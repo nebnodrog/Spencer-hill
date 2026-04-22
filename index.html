@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Project Manager</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -2930,12 +2929,16 @@ document.getElementById(‘loadingOverlay’).style.display = ‘none’;
 
 // ── Save helpers ──
 async function saveRecord(table, record) {
-const { error } = await db.from(table).upsert(record);
-if (error) console.error(`Save ${table}:`, error);
+const res = await fetch(`${SB_URL}/${table}`, {
+method: ‘POST’,
+headers: { …SB_HEADERS, ‘Prefer’: ‘resolution=merge-duplicates,return=minimal’ },
+body: JSON.stringify(record)
+});
+if (!res.ok) { const t = await res.text(); console.error(`Save ${table}:`, t); }
 }
 async function deleteRecord(table, id) {
-const { error } = await db.from(table).delete().eq(‘id’, id);
-if (error) console.error(`Delete ${table}:`, error);
+const res = await fetch(`${SB_URL}/${table}?id=eq.${id}`, { method: ‘DELETE’, headers: SB_HEADERS });
+if (!res.ok) console.error(`Delete ${table} failed`);
 }
 
 // ── Patch S object to auto-save on mutation ──
@@ -3141,73 +3144,37 @@ renderSuppliers();
 });
 }
 
-// ── Load all data from Supabase ──
+// ── Load all data ──
 async function loadFromSupabase() {
 showLoading(‘Loading project data…’);
 try {
-const [areas, tasks, materials, orders, suppliers] = await Promise.all([
-db.from(‘areas’).select(’*’).eq(‘project_id’,‘spencer-hill’).order(‘created_at’),
-db.from(‘tasks’).select(’*’).eq(‘project_id’,‘spencer-hill’).order(‘created_at’),
-db.from(‘materials’).select(’*’).eq(‘project_id’,‘spencer-hill’).order(‘created_at’),
-db.from(‘orders’).select(’*’).eq(‘project_id’,‘spencer-hill’).order(‘ordered_at’),
-db.from(‘suppliers’).select(’*’).eq(‘project_id’,‘spencer-hill’).order(‘created_at’),
+const [areasR, tasksR, matsR, ordersR, supsR] = await Promise.all([
+sbGet(‘areas’),
+sbGet(‘tasks’),
+sbGet(‘materials’),
+sbGet(‘orders’, ‘&order=ordered_at’),
+sbGet(‘suppliers’)
 ]);
 
 ```
-if (areas.error || tasks.error || materials.error || orders.error || suppliers.error) {
-  throw new Error('Failed to load data');
-}
-
-// Map DB rows to app format
-if (areas.data.length) {
-  S.areas = areas.data.map(r => ({ id: r.id, name: r.name }));
-}
-if (tasks.data.length) {
-  S.tasks = tasks.data.map(r => ({ id: r.id, text: r.text, areaIds: r.area_ids||[], assignees: r.assignees||[0], done: r.done||false }));
-}
-if (materials.data.length) {
-  S.materials = materials.data.map(r => ({ id: r.id, name: r.name, unit: r.unit, cat: r.cat, assignments: r.assignments||[], productUrl: r.product_url||'', suppliers: r.suppliers||[] }));
-}
-if (orders.data.length) {
-  S.orders = orders.data.map(r => ({ id: r.id, matId: r.mat_id, qty: r.qty, unit: r.unit, supplierId: r.supplier_id, status: r.status, orderedBy: r.ordered_by||0, orderedAt: r.ordered_at, expectedDelivery: r.expected_delivery, deliveredAt: r.delivered_at, notes: r.notes||'' }));
-}
-if (suppliers.data.length) {
-  S.suppliers = suppliers.data.map(r => ({ id: r.id, name: r.name, phone: r.phone||'', website: r.website||'', account: r.account||'', notes: r.notes||'' }));
-}
+if (areasR.length) S.areas = areasR.map(r=>({ id:r.id, name:r.name }));
+if (tasksR.length) S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false }));
+if (matsR.length) S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[] }));
+if (ordersR.length) S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'' }));
+if (supsR.length) S.suppliers = supsR.map(r=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'' }));
 
 hideLoading();
 renderHeader();
 renderAreaPage();
-
-// ── Realtime subscriptions ──
-db.channel('project-changes')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'areas', filter: 'project_id=eq.spencer-hill' }, () => reloadTable('areas'))
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks', filter: 'project_id=eq.spencer-hill' }, () => reloadTable('tasks'))
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'materials', filter: 'project_id=eq.spencer-hill' }, () => reloadTable('materials'))
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: 'project_id=eq.spencer-hill' }, () => reloadTable('orders'))
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'suppliers', filter: 'project_id=eq.spencer-hill' }, () => reloadTable('suppliers'))
-  .subscribe();
 ```
 
 } catch(e) {
 hideLoading();
 console.error(‘Load error:’, e);
-// Fall back to sample data if DB not set up yet
-showToast(‘Using local data — database not yet set up’);
+showToast(‘Using local data — tap to retry’, () => loadFromSupabase());
 renderHeader();
 renderAreaPage();
 }
-}
-
-async function reloadTable(table) {
-const { data, error } = await db.from(table).select(’*’).eq(‘project_id’,‘spencer-hill’).order(‘created_at’);
-if (error || !data) return;
-if (table===‘areas’) S.areas = data.map(r=>({ id:r.id, name:r.name }));
-if (table===‘tasks’) S.tasks = data.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false }));
-if (table===‘materials’) S.materials = data.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||’’, suppliers:r.suppliers||[] }));
-if (table===‘orders’) S.orders = data.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||’’ }));
-if (table===‘suppliers’) S.suppliers = data.map(r=>({ id:r.id, name:r.name, phone:r.phone||’’, website:r.website||’’, account:r.account||’’, notes:r.notes||’’ }));
-refreshCurrentPage();
 }
 
 // ═══════════════ INIT ═══════════════
