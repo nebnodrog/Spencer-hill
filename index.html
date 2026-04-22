@@ -40,13 +40,10 @@ padding-bottom: 72px;
 /* ── HEADER ── */
 header {
 background: var(–ink);
-padding: 14px 16px 12px;
+padding: 10px 16px;
 display: flex;
 align-items: center;
 justify-content: space-between;
-position: sticky;
-top: 0;
-z-index: 50;
 }
 .logo-block { display: flex; flex-direction: column; gap: 0; }
 .logo-sh {
@@ -565,6 +562,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     </div>
 
 <!-- Filter pills -->
+
 <div class="row-wrap" style="gap:6px;margin-bottom:14px" id="matFilters">
   <button class="btn btn-sm btn-ghost" id="mf-all" onclick="setMatFilter('all')">All</button>
   <button class="btn btn-sm btn-ghost" id="mf-pending" onclick="setMatFilter('pending')">Pending</button>
@@ -668,11 +666,11 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div class="page-title">Team</div>
     <div id="teamList"></div>
     <div class="divider"></div>
-    <div class="section-head">Add member</div>
+    <div class="section-head" id="teamFormTitle">Add member</div>
     <div class="row" style="gap:8px;flex-wrap:wrap">
       <input id="newUserName" placeholder="Name" style="flex:2;min-width:100px">
       <input id="newUserRole" placeholder="Role" style="flex:2;min-width:100px">
-      <button class="btn btn-primary" onclick="addUser()" style="flex-shrink:0">Add</button>
+      <button class="btn btn-primary" onclick="addUser()" style="flex-shrink:0" id="addUserBtn">Add</button>
     </div>
   </div>
 </div>
@@ -818,6 +816,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 </div>
 
 <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px">Assign to Tasks — tap to select, set quantity per task</label>
+
 <div class="area-chips" id="taskChipsContainer"></div>
 
 <div class="divider"></div>
@@ -901,9 +900,10 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <div class="overlay" id="addAreaOverlay" onclick="if(event.target===this)closeAddArea()">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Add Area / Flat</div>
+    <div class="sheet-title" id="addAreaTitle">Add Area / Flat</div>
     <input id="newAreaInput" placeholder="e.g. Flat 5, Roof, Communal Hallway" style="margin-bottom:12px">
-    <button class="btn btn-primary" style="width:100%" onclick="saveArea()">Add Area</button>
+    <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="saveArea()">Save</button>
+    <button class="btn btn-ghost" style="width:100%;color:var(--accent);display:none" id="deleteAreaBtn" onclick="deleteCurrentArea()">Delete Area</button>
   </div>
 </div>
 
@@ -1124,7 +1124,10 @@ function showPage(p) {
 function renderAreaTabs() {
   document.getElementById('areaTabs').innerHTML =
     S.areas.map((a,i)=>`
-      <button class="area-tab ${i===S.currentArea?'active':''}" onclick="switchArea(${i})">${a.name}</button>
+      <div style="display:flex;align-items:center;flex-shrink:0">
+        <button class="area-tab ${i===S.currentArea?'active':''}" onclick="switchArea(${i})">${a.name}</button>
+        ${i===S.currentArea ? `<button onclick="openEditArea(${i})" style="background:none;border:none;color:var(--muted);font-size:13px;padding:0 4px;cursor:pointer;line-height:1;margin-left:-6px;padding-bottom:2px">✎</button>` : ''}
+      </div>
     `).join('') +
     `<button class="area-tab-add" onclick="openAddArea()" title="Add area">+</button>`;
 }
@@ -1518,20 +1521,16 @@ function renderTasksPage() {
   if (taskFilter==='open') tasks = tasks.filter(t=>!t.done);
   if (taskFilter==='done') tasks = tasks.filter(t=>t.done);
 
-  // Group by area, de-dupe multi-area tasks
+  // Group by area — show task under EACH area it belongs to
   const byArea = {};
   tasks.forEach(t=>{
-    const firstId = (t.areaIds||[])[0];
-    if (!firstId) return;
-    (byArea[firstId]||(byArea[firstId]=[])).push(t);
+    (t.areaIds||[]).forEach(aId=>{
+      (byArea[aId]||(byArea[aId]=[])).push(t);
+    });
   });
 
-  const seen = new Set();
-  const html = Object.keys(byArea).map(aId=>{
-    const area = S.areas.find(a=>a.id===aId);
-    if (!area) return '';
-    const rows = byArea[aId].filter(t=>!seen.has(t.id));
-    rows.forEach(t=>seen.add(t.id));
+  const html = S.areas.filter(a=>byArea[a.id]).map(area=>{
+    const rows = byArea[area.id];
     if (!rows.length) return '';
     return `
       ${taskHeadingsVisible ? `<div class="section-head">${area.name}</div>` : ''}
@@ -1672,14 +1671,47 @@ function refreshCurrentPage() {
 }
 
 // ═══════════════ ADD AREA ═══════════════
-function openAddArea() { document.getElementById('newAreaInput').value=''; document.getElementById('addAreaOverlay').classList.add('open'); setTimeout(()=>document.getElementById('newAreaInput').focus(),200); }
-function closeAddArea() { document.getElementById('addAreaOverlay').classList.remove('open'); }
+function openAddArea() {
+  editingAreaIdx = null;
+  document.getElementById('newAreaInput').value='';
+  document.getElementById('addAreaTitle').textContent='Add Area / Flat';
+  document.getElementById('deleteAreaBtn').style.display='none';
+  document.getElementById('addAreaOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('newAreaInput').focus(),200);
+}
+function closeAddArea() { document.getElementById('addAreaOverlay').classList.remove('open'); editingAreaIdx=null; }
+
+let editingAreaIdx = null;
+function openEditArea(i) {
+  editingAreaIdx = i;
+  document.getElementById('newAreaInput').value = S.areas[i].name;
+  document.getElementById('addAreaTitle').textContent='Edit Area';
+  document.getElementById('deleteAreaBtn').style.display='block';
+  document.getElementById('addAreaOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('newAreaInput').focus(),200);
+}
+
+function deleteCurrentArea() {
+  if (editingAreaIdx === null) return;
+  const area = S.areas[editingAreaIdx];
+  if (!confirm(`Delete "${area.name}"? Tasks assigned only to this area will lose their area.`)) return;
+  S.areas.splice(editingAreaIdx, 1);
+  S.currentArea = Math.min(S.currentArea, S.areas.length - 1);
+  closeAddArea();
+  renderAreaPage();
+}
+
 function saveArea() {
   const name = document.getElementById('newAreaInput').value.trim();
   if (!name) return;
-  S.areas.push({ id:uid(), name });
+  if (editingAreaIdx !== null) {
+    S.areas[editingAreaIdx].name = name;
+    editingAreaIdx = null;
+  } else {
+    S.areas.push({ id:uid(), name });
+    S.currentArea = S.areas.length - 1;
+  }
   closeAddArea();
-  S.currentArea = S.areas.length - 1;
   renderAreaPage();
 }
 
@@ -2217,10 +2249,17 @@ function renderDiary() {
                   </div>
                 </div>
                 ${!isDelivered ? `
-                  <button class="btn btn-primary btn-sm" style="background:var(--green);font-size:11px;padding:5px 12px;flex-shrink:0" onclick="markDelivered('${o.id}')">
-                    ✓ Delivered
-                  </button>` : `
-                  <span style="font-family:var(--mono);font-size:11px;color:var(--green)">✓ ${fmtDate(o.deliveredAt)}</span>`}
+                  <div style="display:flex;gap:6px;align-items:center">
+                    <button class="btn btn-primary btn-sm" style="background:var(--green);font-size:11px;padding:5px 12px;flex-shrink:0" onclick="markDelivered('${o.id}')">
+                      ✓ Delivered
+                    </button>
+                    <button class="del-btn" onclick="openOrderModal('${m.id}','${o.id}')" style="font-size:13px;color:var(--muted)">✎</button>
+                    <button class="del-btn" onclick="deleteOrder('${o.id}');renderDiary()">×</button>
+                  </div>` : `
+                  <div style="display:flex;gap:6px;align-items:center">
+                    <span style="font-family:var(--mono);font-size:11px;color:var(--green)">✓ ${fmtDate(o.deliveredAt)}</span>
+                    <button class="del-btn" onclick="deleteOrder('${o.id}');renderDiary()">×</button>
+                  </div>`}
               </div>
               ${sup&&sup.phone ? `<a href="tel:${sup.phone}" style="font-family:var(--mono);font-size:11px;color:var(--blue);text-decoration:none">📞 ${sup.phone}</a>` : ''}
             </div>`;
@@ -2623,7 +2662,8 @@ function goToArea(i) {
 // ═══════════════ TEAM ═══════════════
 function renderTeam() {
   document.getElementById('teamList').innerHTML = S.users.map((u,i)=>{
-    const open = S.tasks.filter(t=>!t.done && (t.assignees||[t.assignee??0]).includes(i)).length;    return `
+    const open = S.tasks.filter(t=>!t.done && (t.assignees||[t.assignee??0]).includes(i)).length;
+    return `
       <div class="team-card">
         <div class="avatar team-avatar" style="background:${uColor(i)};color:#fff">${initials(u.name)}</div>
         <div class="team-info">
@@ -2631,18 +2671,42 @@ function renderTeam() {
           <div class="team-role">${u.role}</div>
         </div>
         <div class="team-count">${open} open</div>
+        <button class="del-btn" onclick="openEditUser(${i})" style="font-size:13px;color:var(--muted)">✎</button>
+        ${i>0?`<button class="del-btn" onclick="deleteUser(${i})">×</button>`:''}
       </div>`;
   }).join('');
+}
+
+let editingUserIdx = null;
+function openEditUser(i) {
+  editingUserIdx = i;
+  document.getElementById('newUserName').value = S.users[i].name;
+  document.getElementById('newUserRole').value = S.users[i].role;
+  document.getElementById('newUserName').focus();
+}
+function deleteUser(i) {
+  if (i===0) return;
+  if (i===S.currentUser) S.currentUser=0;
+  S.users.splice(i,1);
+  renderTeam();
+  renderHeader();
 }
 
 function addUser() {
   const name = document.getElementById('newUserName').value.trim();
   const role = document.getElementById('newUserRole').value.trim();
   if (!name) return;
-  S.users.push({ name, role: role||'Team Member' });
+  if (editingUserIdx !== null) {
+    S.users[editingUserIdx].name = name;
+    S.users[editingUserIdx].role = role||'Team Member';
+    editingUserIdx = null;
+  } else {
+    S.users.push({ name, role: role||'Team Member' });
+  }
   document.getElementById('newUserName').value='';
   document.getElementById('newUserRole').value='';
   renderTeam();
+  renderHeader();
 }
 
 // ═══════════════ USER SWITCHER ═══════════════
