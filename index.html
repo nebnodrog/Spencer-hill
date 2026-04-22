@@ -29,9 +29,9 @@
 - { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 body {
-background: #f5f3ee;
-color: #1a1916;
-font-family: ‘DM Sans’, sans-serif;
+background: var(–bg);
+color: var(–ink);
+font-family: var(–sans);
 min-height: 100vh;
 font-size: 14px;
 padding-bottom: 72px;
@@ -39,16 +39,18 @@ padding-bottom: 72px;
 
 /* ── HEADER ── */
 header {
-background: #f5f3ee;
-border-bottom: 1px solid #ddd9d0;
-padding: 10px 16px;
+background: var(–ink);
+padding: 14px 16px 12px;
 display: flex;
 align-items: center;
 justify-content: space-between;
+position: sticky;
+top: 0;
+z-index: 50;
 }
 .logo-block { display: flex; flex-direction: column; gap: 0; }
 .logo-sh {
-font-family: ‘DM Mono’, monospace;
+font-family: var(–mono);
 font-size: 22px;
 font-weight: 500;
 color: #fff;
@@ -56,10 +58,10 @@ letter-spacing: -0.5px;
 line-height: 1;
 }
 .logo-sh span {
-color: #c8440e;
+color: var(–accent);
 }
 .logo-sub {
-font-family: ‘DM Mono’, monospace;
+font-family: var(–mono);
 font-size: 10px;
 color: #666;
 letter-spacing: 2px;
@@ -77,7 +79,7 @@ cursor: pointer;
 .avatar {
 width: 26px; height: 26px; border-radius: 50%;
 display: flex; align-items: center; justify-content: center;
-font-family: ‘DM Mono’, monospace; font-size: 11px; font-weight: 500;
+font-family: var(–mono); font-size: 11px; font-weight: 500;
 flex-shrink: 0;
 }
 .user-name-label { font-size: 13px; font-weight: 500; color: #fff; }
@@ -94,10 +96,10 @@ flex: 1; border: none; background: none;
 color: #555; cursor: pointer;
 padding: 10px 4px 12px;
 display: flex; flex-direction: column; align-items: center; gap: 3px;
-font-family: ‘DM Mono’, monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
+font-family: var(–mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
 transition: color 0.15s;
 }
-.nav-btn.active { color: #c8440e; }
+.nav-btn.active { color: var(–accent); }
 .nav-btn svg { width: 20px; height: 20px; }
 
 /* ── PAGES ── */
@@ -107,30 +109,30 @@ transition: color 0.15s;
 /* ── SHARED ── */
 .page-pad { padding: 16px; max-width: 640px; margin: 0 auto; }
 .page-title {
-font-family: ‘DM Mono’, monospace;
+font-family: var(–mono);
 font-size: 11px; font-weight: 500;
 letter-spacing: 2px; text-transform: uppercase;
-color: #8a8578; margin-bottom: 16px;
+color: var(–muted); margin-bottom: 16px;
 }
 .section-head {
-font-family: ‘DM Mono’, monospace; font-size: 10px; letter-spacing: 1.5px;
-text-transform: uppercase; color: #8a8578;
+font-family: var(–mono); font-size: 10px; letter-spacing: 1.5px;
+text-transform: uppercase; color: var(–muted);
 padding: 8px 0 4px;
-border-bottom: 1px solid #ddd9d0;
+border-bottom: 1px solid var(–border);
 margin-bottom: 4px;
 }
 
 /* ── CARDS ── */
 .card {
-background: #ffffff;
-border: 1px solid #ddd9d0;
+background: var(–surface);
+border: 1px solid var(–border);
 border-radius: 10px;
 padding: 14px;
 margin-bottom: 8px;
 }
 .card-sm {
-background: #ffffff;
-border: 1px solid #ddd9d0;
+background: var(–surface);
+border: 1px solid var(–border);
 border-radius: 8px;
 padding: 10px 12px;
 margin-bottom: 6px;
@@ -138,11 +140,11 @@ margin-bottom: 6px;
 
 /* ── INPUTS ── */
 input, select, textarea {
-font-family: ‘DM Sans’, sans-serif;
+font-family: var(–sans);
 font-size: 14px;
-color: #1a1916;
-background: #ffffff;
-border: 1px solid #ddd9d0;
+color: var(–ink);
+background: var(–surface);
+border: 1px solid var(–border);
 border-radius: 8px;
 padding: 9px 12px;
 outline: none;
@@ -150,12 +152,12 @@ width: 100%;
 transition: border-color 0.15s;
 -webkit-appearance: none;
 }
-input:focus, select:focus, textarea:focus { border-color: #1a1916; }
-input::placeholder { color: #8a8578; }
-select option { background: #ffffff; }
+input:focus, select:focus, textarea:focus { border-color: var(–ink); }
+input::placeholder { color: var(–muted); }
+select option { background: var(–surface); }
 
 .btn {
-font-family: ‘DM Mono’, monospace;
+font-family: var(–mono);
 font-size: 12px; font-weight: 500;
 letter-spacing: 0.5px;
 border-radius: 8px;
@@ -165,24 +167,24 @@ transition: opacity 0.15s, transform 0.1s;
 white-space: nowrap;
 }
 .btn:active { transform: scale(0.97); }
-.btn-primary { background: #1a1916; color: #fff; }
-.btn-accent { background: #c8440e; color: #fff; }
+.btn-primary { background: var(–ink); color: #fff; }
+.btn-accent { background: var(–accent); color: #fff; }
 .btn-ghost {
-background: #edeae3; color: #1a1916;
-border: 1px solid #ddd9d0;
+background: var(–surface2); color: var(–ink);
+border: 1px solid var(–border);
 }
 .btn-sm { padding: 5px 10px; font-size: 11px; }
 
 /* ── TAGS ── */
 .tag {
 display: inline-flex; align-items: center; gap: 3px;
-font-family: ‘DM Mono’, monospace; font-size: 11px;
+font-family: var(–mono); font-size: 11px;
 padding: 2px 7px; border-radius: 4px;
 }
-.tag-pending { background: #fffbeb; color: #b45309; }
-.tag-ordered { background: #eff3ff; color: #1d4ed8; }
-.tag-delivered { background: #f0fdf4; color: #15803d; }
-.tag-area { background: #edeae3; color: #8a8578; border: 1px solid #ddd9d0; }
+.tag-pending { background: var(–amber-light); color: var(–amber); }
+.tag-ordered { background: var(–blue-light); color: var(–blue); }
+.tag-delivered { background: var(–green-light); color: var(–green); }
+.tag-area { background: var(–surface2); color: var(–muted); border: 1px solid var(–border); }
 
 /* ── MODAL ── */
 .overlay {
@@ -193,7 +195,7 @@ backdrop-filter: blur(2px);
 }
 .overlay.open { display: flex; }
 .sheet {
-background: #ffffff;
+background: var(–surface);
 border-radius: 16px 16px 0 0;
 width: 100%; max-height: 92vh;
 overflow-y: auto;
@@ -206,25 +208,25 @@ to { transform: translateY(0); opacity: 1; }
 }
 .sheet-handle {
 width: 36px; height: 4px;
-background: #ddd9d0; border-radius: 2px;
+background: var(–border); border-radius: 2px;
 margin: 0 auto 16px;
 }
 .sheet-title {
-font-family: ‘DM Mono’, monospace; font-size: 13px; font-weight: 500;
+font-family: var(–mono); font-size: 13px; font-weight: 500;
 letter-spacing: 1px; text-transform: uppercase;
-margin-bottom: 16px; color: #1a1916;
+margin-bottom: 16px; color: var(–ink);
 }
 
 /* ── AREA CHIPS in modal ── */
 .area-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .area-chip {
 display: flex; align-items: center; gap: 5px;
-border: 1px solid #ddd9d0; border-radius: 8px;
+border: 1px solid var(–border); border-radius: 8px;
 padding: 5px 10px;
-cursor: pointer; background: #edeae3;
+cursor: pointer; background: var(–surface2);
 transition: all 0.15s;
 }
-.area-chip.selected { border-color: #1a1916; background: #1a1916; color: #fff; }
+.area-chip.selected { border-color: var(–ink); background: var(–ink); color: #fff; }
 .area-chip-name { font-size: 13px; font-weight: 500; }
 .area-chip-qty {
 display: none;
@@ -238,53 +240,53 @@ color: #fff; font-size: 13px; line-height: 1;
 cursor: pointer; display: flex; align-items: center; justify-content: center;
 }
 .chip-qty-val {
-font-family: ‘DM Mono’, monospace; font-size: 12px;
+font-family: var(–mono); font-size: 12px;
 min-width: 16px; text-align: center;
 }
 
 /* ── MATERIAL CARD (master list) ── */
 .mat-card {
-background: #ffffff;
-border: 1px solid #ddd9d0;
+background: var(–surface);
+border: 1px solid var(–border);
 border-radius: 10px;
 padding: 12px 14px;
 margin-bottom: 8px;
 transition: border-color 0.15s;
 }
-.mat-card:active { border-color: #1a1916; }
+.mat-card:active { border-color: var(–ink); }
 .mat-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
 .mat-name { font-size: 15px; font-weight: 600; flex: 1; }
 .mat-total {
-font-family: ‘DM Mono’, monospace; font-size: 18px; font-weight: 500;
-color: #1a1916; white-space: nowrap;
+font-family: var(–mono); font-size: 18px; font-weight: 500;
+color: var(–ink); white-space: nowrap;
 }
-.mat-total-unit { font-size: 11px; color: #8a8578; }
+.mat-total-unit { font-size: 11px; color: var(–muted); }
 .mat-areas { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
 .mat-area-pill {
 display: flex; align-items: center; gap: 3px;
-background: #edeae3; border: 1px solid #ddd9d0;
+background: var(–surface2); border: 1px solid var(–border);
 border-radius: 5px; padding: 2px 7px;
-font-size: 12px; color: #8a8578;
-font-family: ‘DM Mono’, monospace;
+font-size: 12px; color: var(–muted);
+font-family: var(–mono);
 }
-.mat-area-qty { color: #1a1916; font-weight: 500; }
+.mat-area-qty { color: var(–ink); font-weight: 500; }
 .mat-bottom { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 /* Status selector */
 .status-sel {
-font-family: ‘DM Mono’, monospace; font-size: 11px; font-weight: 500;
+font-family: var(–mono); font-size: 11px; font-weight: 500;
 padding: 3px 8px; border-radius: 5px; border: none;
 cursor: pointer; outline: none; -webkit-appearance: none;
-background: #fffbeb; color: #b45309;
+background: var(–amber-light); color: var(–amber);
 }
-.status-sel.s-ordered { background: #eff3ff; color: #1d4ed8; }
-.status-sel.s-delivered { background: #f0fdf4; color: #15803d; }
+.status-sel.s-ordered { background: var(–blue-light); color: var(–blue); }
+.status-sel.s-delivered { background: var(–green-light); color: var(–green); }
 
 /* ── TASK ITEM ── */
 .task-item {
 display: flex; align-items: flex-start; gap: 10px;
 padding: 10px 0;
-border-bottom: 1px solid #ddd9d0;
+border-bottom: 1px solid var(–border);
 transition: opacity 0.2s;
 }
 .task-item:last-child { border-bottom: none; }
@@ -292,72 +294,72 @@ transition: opacity 0.2s;
 .task-item.done .task-text { text-decoration: line-through; }
 .task-check {
 width: 20px; height: 20px; border-radius: 50%;
-border: 2px solid #ddd9d0;
+border: 2px solid var(–border);
 flex-shrink: 0; cursor: pointer; margin-top: 1px;
 display: flex; align-items: center; justify-content: center;
 font-size: 10px; color: #fff;
 transition: all 0.15s;
 }
-.task-check:hover { border-color: #15803d; }
-.task-item.done .task-check { background: #15803d; border-color: #15803d; }
+.task-check:hover { border-color: var(–green); }
+.task-item.done .task-check { background: var(–green); border-color: var(–green); }
 .task-text { font-size: 14px; flex: 1; line-height: 1.4; }
 .task-assignee {
 display: flex; align-items: center; gap: 3px;
-font-size: 11px; color: #8a8578;
+font-size: 11px; color: var(–muted);
 flex-shrink: 0;
 }
 
 /* ── AREA VIEW ── */
 .area-tab-scroll {
 overflow-x: auto; scrollbar-width: none;
-background: #ffffff;
-border-bottom: 1px solid #ddd9d0;
+background: var(–surface);
+border-bottom: 1px solid var(–border);
 padding: 0 16px;
 display: flex; gap: 0;
 }
 .area-tab-scroll::-webkit-scrollbar { display: none; }
 .area-tab {
 flex-shrink: 0; padding: 12px 14px 10px;
-font-family: ‘DM Mono’, monospace; font-size: 11px; font-weight: 500;
+font-family: var(–mono); font-size: 11px; font-weight: 500;
 letter-spacing: 1px; text-transform: uppercase;
-color: #8a8578; background: none; border: none;
+color: var(–muted); background: none; border: none;
 border-bottom: 2px solid transparent; cursor: pointer;
 transition: all 0.15s; white-space: nowrap;
 }
-.area-tab.active { color: #1a1916; border-bottom-color: #c8440e; }
+.area-tab.active { color: var(–ink); border-bottom-color: var(–accent); }
 .area-tab-add {
 flex-shrink: 0; padding: 12px 12px 10px;
-font-size: 18px; color: #8a8578; background: none; border: none;
+font-size: 18px; color: var(–muted); background: none; border: none;
 border-bottom: 2px solid transparent; cursor: pointer;
 }
-.area-tab-add:hover { color: #1a1916; }
+.area-tab-add:hover { color: var(–ink); }
 
 /* ── OVERVIEW STATS ── */
 .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
 .stat-box {
-background: #ffffff; border: 1px solid #ddd9d0;
+background: var(–surface); border: 1px solid var(–border);
 border-radius: 10px; padding: 14px 12px;
 }
 .stat-label {
-font-family: ‘DM Mono’, monospace; font-size: 9px; letter-spacing: 1.5px;
-text-transform: uppercase; color: #8a8578; margin-bottom: 6px;
+font-family: var(–mono); font-size: 9px; letter-spacing: 1.5px;
+text-transform: uppercase; color: var(–muted); margin-bottom: 6px;
 }
 .stat-val {
-font-family: ‘DM Mono’, monospace; font-size: 28px; font-weight: 500;
-line-height: 1; color: #1a1916;
+font-family: var(–mono); font-size: 28px; font-weight: 500;
+line-height: 1; color: var(–ink);
 }
-.stat-val small { font-size: 13px; color: #8a8578; }
+.stat-val small { font-size: 13px; color: var(–muted); }
 
 /* ── PROGRESS ── */
 .prog-bar {
-height: 3px; background: #ddd9d0; border-radius: 2px;
+height: 3px; background: var(–border); border-radius: 2px;
 margin-top: 8px; overflow: hidden;
 }
-.prog-fill { height: 100%; background: #c8440e; border-radius: 2px; transition: width 0.4s; }
+.prog-fill { height: 100%; background: var(–accent); border-radius: 2px; transition: width 0.4s; }
 
 /* ── TEAM ── */
 .team-card {
-background: #ffffff; border: 1px solid #ddd9d0;
+background: var(–surface); border: 1px solid var(–border);
 border-radius: 10px; padding: 12px 14px;
 display: flex; align-items: center; gap: 12px;
 margin-bottom: 8px;
@@ -365,53 +367,53 @@ margin-bottom: 8px;
 .team-avatar { width: 40px; height: 40px; font-size: 15px; }
 .team-info { flex: 1; }
 .team-name { font-size: 15px; font-weight: 600; }
-.team-role { font-size: 12px; color: #8a8578; margin-top: 1px; }
-.team-count { font-family: ‘DM Mono’, monospace; font-size: 12px; color: #8a8578; }
+.team-role { font-size: 12px; color: var(–muted); margin-top: 1px; }
+.team-count { font-family: var(–mono); font-size: 12px; color: var(–muted); }
 
 /* Delete button */
 .del-btn {
 background: none; border: none; cursor: pointer;
-color: #ddd9d0; font-size: 16px;
+color: var(–border); font-size: 16px;
 padding: 4px; border-radius: 4px;
 transition: color 0.15s; line-height: 1;
 flex-shrink: 0;
 }
-.del-btn:hover { color: #c8440e; }
+.del-btn:hover { color: var(–accent); }
 
 /* Row layout helpers */
 .row { display: flex; gap: 8px; align-items: center; }
 .row-wrap { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
-.divider { height: 1px; background: #ddd9d0; margin: 14px 0; }
+.divider { height: 1px; background: var(–border); margin: 14px 0; }
 
 /* Area material in area view */
 .area-mat-item {
 display: flex; align-items: center; gap: 10px;
-padding: 8px 0; border-bottom: 1px solid #ddd9d0;
+padding: 8px 0; border-bottom: 1px solid var(–border);
 }
 .area-mat-item:last-child { border-bottom: none; }
 .area-mat-dot {
 width: 7px; height: 7px; border-radius: 50%;
-background: #b45309; flex-shrink: 0;
+background: var(–amber); flex-shrink: 0;
 }
 .area-mat-name { flex: 1; font-size: 14px; font-weight: 500; }
-.area-mat-qty { font-family: ‘DM Mono’, monospace; font-size: 13px; color: #8a8578; }
+.area-mat-qty { font-family: var(–mono); font-size: 13px; color: var(–muted); }
 
 /* ── COLLAPSIBLE TASK GROUP ── */
 .task-group-head {
 display: flex; align-items: center; justify-content: space-between;
 cursor: pointer; user-select: none;
 padding: 8px 0 4px;
-border-bottom: 1px solid #ddd9d0;
+border-bottom: 1px solid var(–border);
 margin-bottom: 4px;
 }
 .task-group-label {
-font-family: ‘DM Mono’, monospace; font-size: 10px; letter-spacing: 1.5px;
-text-transform: uppercase; color: #8a8578;
+font-family: var(–mono); font-size: 10px; letter-spacing: 1.5px;
+text-transform: uppercase; color: var(–muted);
 }
 .task-group-meta {
 display: flex; align-items: center; gap: 8px;
-font-family: ‘DM Mono’, monospace; font-size: 10px; color: #8a8578;
+font-family: var(–mono); font-size: 10px; color: var(–muted);
 }
 .task-group-chevron { font-size: 11px; transition: transform 0.2s; }
 .task-group-chevron.open { transform: rotate(180deg); }
@@ -419,8 +421,8 @@ font-family: ‘DM Mono’, monospace; font-size: 10px; color: #8a8578;
 
 /* ── TASK ROW (collapsed) ── */
 .task-row {
-background: #ffffff;
-border: 1px solid #ddd9d0;
+background: var(–surface);
+border: 1px solid var(–border);
 border-radius: 8px;
 padding: 8px 12px;
 margin-bottom: 4px;
@@ -428,15 +430,15 @@ display: flex; align-items: center; gap: 10px;
 cursor: pointer; user-select: none;
 transition: border-color 0.15s;
 }
-.task-row:active { border-color: #1a1916; }
+.task-row:active { border-color: var(–ink); }
 .task-row.expanded { border-radius: 8px 8px 0 0; border-bottom-color: transparent; margin-bottom: 0; }
 .task-row-text { flex: 1; font-size: 14px; font-weight: 500; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.task-row-chevron { font-size: 11px; color: #8a8578; flex-shrink: 0; transition: transform 0.2s; }
+.task-row-chevron { font-size: 11px; color: var(–muted); flex-shrink: 0; transition: transform 0.2s; }
 .task-row.expanded .task-row-chevron { transform: rotate(180deg); }
 .task-detail {
 display: none;
-background: #ffffff;
-border: 1px solid #ddd9d0;
+background: var(–surface);
+border: 1px solid var(–border);
 border-top: none;
 border-radius: 0 0 8px 8px;
 padding: 10px 12px 12px;
@@ -444,8 +446,8 @@ margin-bottom: 4px;
 }
 .task-detail.open { display: block; }
 .mat-row {
-background: #ffffff;
-border: 1px solid #ddd9d0;
+background: var(–surface);
+border: 1px solid var(–border);
 border-radius: 8px;
 padding: 9px 12px;
 margin-bottom: 3px;
@@ -456,20 +458,20 @@ cursor: pointer;
 transition: border-color 0.15s, border-radius 0.15s;
 user-select: none;
 }
-.mat-row:active { border-color: #1a1916; }
+.mat-row:active { border-color: var(–ink); }
 .mat-row.expanded {
 border-radius: 8px 8px 0 0;
 border-bottom-color: transparent;
 margin-bottom: 0;
 }
 .mat-row-name { flex: 1; font-size: 14px; font-weight: 500; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mat-row-qty { font-family: ‘DM Mono’, monospace; font-size: 13px; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
-.mat-row-chevron { font-size: 11px; color: #8a8578; flex-shrink: 0; transition: transform 0.2s; }
+.mat-row-qty { font-family: var(–mono); font-size: 13px; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+.mat-row-chevron { font-size: 11px; color: var(–muted); flex-shrink: 0; transition: transform 0.2s; }
 .mat-row.expanded .mat-row-chevron { transform: rotate(180deg); }
 .mat-detail {
 display: none;
-background: #ffffff;
-border: 1px solid #ddd9d0;
+background: var(–surface);
+border: 1px solid var(–border);
 border-top: none;
 border-radius: 0 0 8px 8px;
 padding: 10px 12px 12px;
@@ -478,7 +480,7 @@ margin-bottom: 3px;
 .mat-detail.open { display: block; }
 .toast {
 position: fixed; bottom: 82px; left: 50%; transform: translateX(-50%) translateY(20px);
-background: #1a1916; color: #fff;
+background: var(–ink); color: #fff;
 padding: 10px 16px; border-radius: 10px;
 display: flex; align-items: center; gap: 14px;
 font-size: 13px; white-space: nowrap;
@@ -489,8 +491,8 @@ max-width: calc(100vw - 32px);
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: all; }
 .toast-undo {
-font-family: ‘DM Mono’, monospace; font-size: 12px; font-weight: 500;
-color: #c8440e; background: none; border: none;
+font-family: var(–mono); font-size: 12px; font-weight: 500;
+color: var(–accent); background: none; border: none;
 cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 }
 
@@ -502,21 +504,21 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div id="loadingOverlay" style="display:none;position:fixed;inset:0;background:rgba(26,25,22,0.85);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:12px">
   <div style="width:36px;height:36px;border:3px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite"></div>
-  <div id="loadingMsg" style="color:#fff;font-family:'DM Mono', monospace;font-size:13px;letter-spacing:1px">Loading…</div>
+  <div id="loadingMsg" style="color:#fff;font-family:var(--mono);font-size:13px;letter-spacing:1px">Loading…</div>
 </div>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
 <!-- HEADER -->
 
-<header style="padding:10px 16px">
+<header style="padding:10px 16px;background:#1a1916">
   <div class="logo-block" onclick="openProjectSettings()" style="cursor:pointer;flex-direction:row;align-items:center;gap:8px;display:flex">
-    <div style="font-family:'DM Mono', monospace;font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;white-space:nowrap">Project Manager</div>
-    <div style="color:#888;font-size:11px">·</div>
-    <div id="projectNameDisplay" style="font-family:'DM Sans', sans-serif;font-size:14px;font-weight:600;color:#ffffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px">Spencer Hill</div>
+    <div style="font-family:var(--mono);font-size:11px;color:#aaa;letter-spacing:2px;text-transform:uppercase;white-space:nowrap">Project Manager</div>
+    <div style="color:#aaa;font-size:11px">·</div>
+    <div id="projectNameDisplay" style="font-family:var(--sans);font-size:14px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px">Spencer Hill</div>
   </div>
   <div class="user-pill" onclick="openUserModal()" style="padding:3px 8px 3px 3px;gap:5px">
     <div class="avatar" id="hAvatar" style="width:22px;height:22px;font-size:9px"></div>
-    <span class="user-name-label" id="hName" style="font-size:12px;color:#ffffff"></span>
+    <span class="user-name-label" id="hName" style="font-size:12px;color:#fff"></span>
   </div>
 </header>
 
@@ -527,11 +529,11 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div class="sheet-handle"></div>
     <div class="sheet-title">Project Settings</div>
     <div style="margin-bottom:14px">
-      <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Project Name</label>
+      <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Project Name</label>
       <input id="projectNameInput" placeholder="e.g. Spencer Hill">
     </div>
     <div style="margin-bottom:14px">
-      <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Project Description</label>
+      <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Project Description</label>
       <input id="projectDescInput" placeholder="e.g. Block conversion and refurbishment">
     </div>
     <button class="btn btn-primary" style="width:100%" onclick="saveProjectSettings()">Save</button>
@@ -667,7 +669,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div class="page-title">Team</div>
     <div id="teamList"></div>
     <div class="divider"></div>
-    <div class="section-head" id="teamFormTitle">Add member</div>
+    <div class="section-head">Add member</div>
     <div class="row" style="gap:8px;flex-wrap:wrap">
       <input id="newUserName" placeholder="Name" style="flex:2;min-width:100px">
       <input id="newUserRole" placeholder="Role" style="flex:2;min-width:100px">
@@ -726,18 +728,18 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="orderModalTitle">Place Order</div>
-    <div style="background:#edeae3;border-radius:8px;padding:10px 12px;margin-bottom:14px">
+    <div style="background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:14px">
       <div style="font-size:13px;font-weight:600" id="orderMatName"></div>
-      <div style="font-family:'DM Mono', monospace;font-size:11px;color:#8a8578;margin-top:2px" id="orderMatMeta"></div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px" id="orderMatMeta"></div>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
       <div class="row" style="gap:8px">
         <div style="flex:1">
-          <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Quantity *</label>
+          <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Quantity *</label>
           <input id="orderQtyInput" type="number" min="0.1" step="0.1" placeholder="0">
         </div>
         <div style="flex:1">
-          <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Status</label>
+          <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Status</label>
           <select id="orderStatusInput">
             <option value="pending">Pending</option>
             <option value="ordered">Ordered</option>
@@ -747,21 +749,21 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
         </div>
       </div>
       <div>
-        <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Supplier</label>
+        <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Supplier</label>
         <select id="orderSupplierInput"></select>
       </div>
       <div class="row" style="gap:8px">
         <div style="flex:1">
-          <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Order Date</label>
+          <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Order Date</label>
           <input id="orderDateInput" type="date">
         </div>
         <div style="flex:1">
-          <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Expected Delivery</label>
+          <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Expected Delivery</label>
           <input id="orderDeliveredInput" type="date">
         </div>
       </div>
       <div>
-        <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Notes</label>
+        <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Notes</label>
         <input id="orderNotesInput" placeholder="e.g. 2nd fix batch, check colour match">
       </div>
     </div>
@@ -791,13 +793,13 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div class="sheet-title" id="addMatTitle">Add Material</div>
 
 <div style="margin-bottom:10px">
-  <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Material Name</label>
+  <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Material Name</label>
   <input id="matNameInput" placeholder="e.g. Bathroom taps">
 </div>
 
 <div class="row" style="margin-bottom:14px;gap:8px">
   <div style="flex:1">
-    <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Unit</label>
+    <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Unit</label>
     <select id="matUnitInput">
       <option>units</option><option>metres</option><option>sqm</option>
       <option>litres</option><option>sheets</option><option>tins</option>
@@ -807,7 +809,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     </select>
   </div>
   <div style="flex:1">
-    <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Category</label>
+    <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Category</label>
     <select id="matCatInput">
       <option>General</option><option>Plumbing</option><option>Electrical</option>
       <option>Flooring</option><option>Plastering</option><option>Painting</option>
@@ -816,7 +818,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   </div>
 </div>
 
-<label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:8px">Assign to Tasks — tap to select, set quantity per task</label>
+<label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px">Assign to Tasks — tap to select, set quantity per task</label>
 
 <div class="area-chips" id="taskChipsContainer"></div>
 
@@ -824,7 +826,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div style="margin-bottom:14px">
   <div class="row" style="justify-content:space-between;margin-bottom:8px">
-    <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578">Suppliers</label>
+    <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Suppliers</label>
     <button class="btn btn-ghost btn-sm" onclick="openPickSupplier()">Select</button>
   </div>
   <div id="matSupplierPreview" style="display:flex;flex-direction:column;gap:6px"></div>
@@ -833,15 +835,15 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <div class="divider"></div>
 
 <div style="margin-bottom:10px">
-  <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Product Link (URL)</label>
+  <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Product Link (URL)</label>
   <input id="matProductUrl" placeholder="https://… paste product page link">
 </div>
 
 <div class="divider"></div>
 
 <div class="row" style="justify-content:space-between;margin-bottom:6px">
-  <span style="font-family:'DM Mono', monospace;font-size:11px;color:#8a8578">TOTAL QUANTITY</span>
-  <span style="font-family:'DM Mono', monospace;font-size:18px;font-weight:500" id="chipTotalPreview">0</span>
+  <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">TOTAL QUANTITY</span>
+  <span style="font-family:var(--mono);font-size:18px;font-weight:500" id="chipTotalPreview">0</span>
 </div>
 
 <div class="divider"></div>
@@ -858,23 +860,23 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div class="sheet-title" id="addTaskTitle">Add Task</div>
 
 <div style="margin-bottom:10px">
-  <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Description</label>
+  <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Description</label>
   <input id="taskTextInput" placeholder="What needs doing…">
 </div>
 
 <div style="margin-bottom:10px">
-  <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Area</label>
+  <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Area</label>
   <div class="area-chips" id="taskAreaChips"></div>
 </div>
 
 <div style="margin-bottom:14px">
-  <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Assign to</label>
+  <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Assign to</label>
   <div class="area-chips" id="taskPersonChips"></div>
 </div>
 
 <div id="taskMatsSection" style="display:none;margin-bottom:14px">
   <div class="row" style="justify-content:space-between;margin-bottom:8px">
-    <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578">Materials</label>
+    <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Materials</label>
     <button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="openAddMatForCurrentTask()">+ Add material</button>
   </div>
   <div id="taskMatsList"></div>
@@ -891,7 +893,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">Reassign Task</div>
-    <div style="font-size:14px;color:#8a8578;margin-bottom:14px;font-style:italic" id="reassignTaskName"></div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:14px;font-style:italic" id="reassignTaskName"></div>
     <div id="reassignPersonList"></div>
   </div>
 </div>
@@ -904,7 +906,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div class="sheet-title" id="addAreaTitle">Add Area / Flat</div>
     <input id="newAreaInput" placeholder="e.g. Flat 5, Roof, Communal Hallway" style="margin-bottom:12px">
     <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="saveArea()">Save</button>
-    <button class="btn btn-ghost" style="width:100%;color:#c8440e;display:none" id="deleteAreaBtn" onclick="deleteCurrentArea()">Delete Area</button>
+    <button class="btn btn-ghost" id="deleteAreaBtn" style="width:100%;color:var(--accent);display:none" onclick="deleteCurrentArea()">Delete Area</button>
   </div>
 </div>
 
@@ -926,23 +928,23 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div class="sheet-title" id="addSupplierTitle">Add Supplier</div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
       <div>
-        <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Company Name *</label>
+        <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Company Name *</label>
         <input id="supNameInput" placeholder="e.g. Travis Perkins">
       </div>
       <div>
-        <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Phone</label>
+        <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Phone</label>
         <input id="supPhoneInput" placeholder="e.g. 01234 567890" type="tel">
       </div>
       <div>
-        <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Website</label>
+        <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Website</label>
         <input id="supWebInput" placeholder="e.g. travisperkins.co.uk" type="url">
       </div>
       <div>
-        <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Account Number</label>
+        <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Account Number</label>
         <input id="supAccInput" placeholder="e.g. ACC-12345">
       </div>
       <div>
-        <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Notes</label>
+        <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Notes</label>
         <input id="supNotesInput" placeholder="e.g. Ask for Dave, 10% trade discount">
       </div>
     </div>
@@ -956,7 +958,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">Assign Suppliers</div>
-    <p style="font-size:12px;color:#8a8578;margin-bottom:12px;font-family:'DM Mono', monospace">PRIMARY supplier first, then alternatives</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;font-family:var(--mono)">PRIMARY supplier first, then alternatives</p>
     <div id="pickSupplierList"></div>
     <div class="divider"></div>
     <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px" onclick="closePickSupplier();openAddSupplier('frompicker')">+ Add new supplier</button>
@@ -1127,7 +1129,7 @@ function renderAreaTabs() {
     S.areas.map((a,i)=>`
       <div style="display:flex;align-items:center;flex-shrink:0">
         <button class="area-tab ${i===S.currentArea?'active':''}" onclick="switchArea(${i})">${a.name}</button>
-        ${i===S.currentArea ? `<button onclick="openEditArea(${i})" style="background:none;border:none;color:#8a8578;font-size:13px;padding:0 4px;cursor:pointer;line-height:1;margin-left:-6px;padding-bottom:2px">✎</button>` : ''}
+        ${i===S.currentArea ? `<button onclick="openEditArea(${i})" style="background:none;border:none;color:#888;font-size:13px;padding:0 4px;cursor:pointer;line-height:1;margin-left:-4px">✎</button>` : ''}
       </div>
     `).join('') +
     `<button class="area-tab-add" onclick="openAddArea()" title="Add area">+</button>`;
@@ -1163,7 +1165,7 @@ function renderAreaPage() {
     <div class="row" style="justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div>
         <div style="font-size:22px;font-weight:700;line-height:1">${area.name}</div>
-        <div style="font-family:'DM Mono', monospace;font-size:11px;color:#8a8578;margin-top:3px">${doneTasks}/${tasks.length} tasks · ${totalMatCount} materials</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:3px">${doneTasks}/${tasks.length} tasks · ${totalMatCount} materials</div>
       </div>
       <div class="row" style="gap:6px">
         <button class="btn btn-ghost btn-sm" onclick="openAddMat()">+ Material</button>
@@ -1172,15 +1174,15 @@ function renderAreaPage() {
     </div>
 
     ${tasks.length===0 ? `
-      <div style="text-align:center;padding:48px 20px;color:#8a8578">
+      <div style="text-align:center;padding:48px 20px;color:var(--muted)">
         <div style="font-size:32px;margin-bottom:8px">🧱</div>
-        <div style="font-family:'DM Mono', monospace;font-size:12px;letter-spacing:1px">Nothing added yet</div>
+        <div style="font-family:var(--mono);font-size:12px;letter-spacing:1px">Nothing added yet</div>
       </div>
     ` : ''}
 
     ${tasks.length>0 ? `
       <div class="section-head">Tasks</div>
-      <div style="background:#ffffff;border:1px solid #ddd9d0;border-radius:8px;margin-bottom:16px;overflow:hidden">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:16px;overflow:hidden">
         ${tasks.map(t=>renderAreaTaskRow(t)).join('')}
       </div>
     ` : ''}
@@ -1193,7 +1195,7 @@ function renderAreaPage() {
       <div style="margin-bottom:16px">
         ${matByTask.map(({task,mats})=>`
           <div style="margin-bottom:8px">
-            <div style="font-family:'DM Mono', monospace;font-size:10px;font-weight:500;color:#1a1916;margin-bottom:4px;letter-spacing:0.5px">${task.text}</div>
+            <div style="font-family:var(--mono);font-size:10px;font-weight:500;color:var(--ink);margin-bottom:4px;letter-spacing:0.5px">${task.text}</div>
             ${mats.map(m=>{
               const assign = m.assignments.find(a=>a.taskId===task.id);
               const taskQty = assign ? assign.qty : 0;
@@ -1202,7 +1204,7 @@ function renderAreaPage() {
               const totalOnOrder = matOrders.filter(o=>o.status==='ordered').reduce((s,o)=>s+o.qty,0);
               const totalPending = matOrders.filter(o=>o.status==='pending').reduce((s,o)=>s+o.qty,0);
               const outstanding = Math.max(0, taskQty - totalDelivered - totalOnOrder - totalPending);
-              const dotColor = totalDelivered>=taskQty&&taskQty>0&&outstanding===0 ? '#15803d' : totalOnOrder>0 ? '#1d4ed8' : outstanding>0 ? '#b45309' : '#ddd9d0';
+              const dotColor = totalDelivered>=taskQty&&taskQty>0&&outstanding===0 ? 'var(--green)' : totalOnOrder>0 ? 'var(--blue)' : outstanding>0 ? 'var(--amber)' : 'var(--border)';
               const rowKey = 't-'+m.id+'-'+task.id;
               const isOpen = expandedAreaMats.has(rowKey);
               // Status pills — same logic as materials page
@@ -1211,15 +1213,15 @@ function renderAreaPage() {
               if (totalOnOrder > 0) pills.push(`<span class="tag tag-ordered" style="font-size:10px;padding:1px 5px">${totalOnOrder} ordered</span>`);
               if (totalDelivered >= taskQty && taskQty > 0 && outstanding === 0 && totalOnOrder === 0) pills.push(`<span class="tag tag-delivered" style="font-size:10px;padding:1px 5px">${totalDelivered} delivered</span>`);
               return `
-                <div style="background:#ffffff;border:1px solid ${isOpen?'#1a1916':'#ddd9d0'};border-radius:8px;margin-bottom:3px;overflow:hidden">
+                <div style="background:var(--surface);border:1px solid ${isOpen?'var(--ink)':'var(--border)'};border-radius:8px;margin-bottom:3px;overflow:hidden">
                   <div onclick="toggleAreaMat('${rowKey}')" style="display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;user-select:none">
                     <div style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
                     <div style="font-size:13px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.name}</div>
                     <div style="display:flex;gap:4px;flex-shrink:0">${pills.join('')}</div>
-                    <span style="font-size:11px;color:#8a8578;transition:transform 0.2s;display:inline-block;transform:rotate(${isOpen?'180':'0'}deg)">▼</span>
+                    <span style="font-size:11px;color:var(--muted);transition:transform 0.2s;display:inline-block;transform:rotate(${isOpen?'180':'0'}deg)">▼</span>
                   </div>
                   ${isOpen ? `
-                    <div style="padding:0 12px 9px;display:flex;gap:5px;flex-wrap:wrap;border-top:1px solid #ddd9d0;padding-top:7px">
+                    <div style="padding:0 12px 9px;display:flex;gap:5px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:7px">
                       <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 7px" onclick="openAddMat('${m.id}')">✎ Edit</button>
                       <button class="btn btn-accent btn-sm" style="font-size:10px;padding:2px 7px" onclick="openOrderModal('${m.id}')">+ Order</button>
                       <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 7px" onclick="openOrderHistory('${m.id}')">History${matOrders.length>0?' ('+matOrders.length+')':''}</button>
@@ -1235,8 +1237,8 @@ function renderAreaPage() {
           <span>Materials</span>
           <button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="openAddMat()">+ Add</button>
         </div>
-        <div style="text-align:center;padding:20px;color:#8a8578">
-          <div style="font-family:'DM Mono', monospace;font-size:11px">No materials assigned yet</div>
+        <div style="text-align:center;padding:20px;color:var(--muted)">
+          <div style="font-family:var(--mono);font-size:11px">No materials assigned yet</div>
           <button class="btn btn-ghost btn-sm" style="margin-top:8px;font-size:11px" onclick="openAddMat()">+ Add material</button>
         </div>` : ''}
     `}
@@ -1357,7 +1359,7 @@ function renderTaskMatsList(taskId) {
   const el = document.getElementById('taskMatsList');
   if (!el) return;
   if (!mats.length) {
-    el.innerHTML = `<div style="font-family:'DM Mono', monospace;font-size:11px;color:#8a8578;padding:6px 0">No materials assigned yet</div>`;
+    el.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:6px 0">No materials assigned yet</div>`;
     return;
   }
   el.innerHTML = mats.map(m=>{
@@ -1365,12 +1367,12 @@ function renderTaskMatsList(taskId) {
     const matOrders = S.orders.filter(o=>o.matId===m.id);
     const delivered = matOrders.filter(o=>o.status==='delivered').reduce((s,o)=>s+o.qty,0);
     const onOrder = matOrders.filter(o=>o.status==='ordered').reduce((s,o)=>s+o.qty,0);
-    const dotColor = delivered>=(assign?.qty||0)&&(assign?.qty||0)>0 ? '#15803d' : onOrder>0 ? '#1d4ed8' : '#b45309';
+    const dotColor = delivered>=(assign?.qty||0)&&(assign?.qty||0)>0 ? 'var(--green)' : onOrder>0 ? 'var(--blue)' : 'var(--amber)';
     return `
-      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #ddd9d0">
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">
         <div style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
         <div style="flex:1;font-size:13px;font-weight:500">${m.name}</div>
-        <span style="font-family:'DM Mono', monospace;font-size:12px;color:#8a8578;flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
+        <span style="font-family:var(--mono);font-size:12px;color:var(--muted);flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
         <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:11px"
           onclick="event.stopPropagation();closeAddTask();openAddMat('${m.id}','${taskId}')">Edit</button>
         <button class="del-btn" onclick="event.stopPropagation();removeMatFromTaskInline('${m.id}','${taskId}')" title="Remove">×</button>
@@ -1443,20 +1445,20 @@ function renderAreaTaskRow(t) {
   const assignees = t.assignees || [t.assignee ?? 0];
   const taskMats = matsForTask(t.id);
   const avatarHtml = assignees.slice(0,3).map((i,idx)=>`
-    <div class="avatar" style="width:20px;height:20px;font-size:8px;background:${uColor(i)};color:#fff;margin-left:${idx>0?'-5px':'0'};border:2px solid #ffffff;z-index:${3-idx}">${initials(S.users[i]?.name||'?')}</div>
-  `).join('') + (assignees.length>3?`<span style="font-family:'DM Mono', monospace;font-size:9px;color:#8a8578;margin-left:3px">+${assignees.length-3}</span>`:'');
+    <div class="avatar" style="width:20px;height:20px;font-size:8px;background:${uColor(i)};color:#fff;margin-left:${idx>0?'-5px':'0'};border:2px solid var(--surface);z-index:${3-idx}">${initials(S.users[i]?.name||'?')}</div>
+  `).join('') + (assignees.length>3?`<span style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-left:3px">+${assignees.length-3}</span>`:'');
 
   return `
     <div onclick="openAddTask(null,'${t.id}')"
-         style="padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;border-bottom:1px solid #ddd9d0;${t.done?'opacity:0.45':''}">
+         style="padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;border-bottom:1px solid var(--border);${t.done?'opacity:0.45':''}">
       <div onclick="event.stopPropagation();toggleTask('${t.id}')"
-           style="width:20px;height:20px;border-radius:50%;border:2px solid ${t.done?'#15803d':'#ddd9d0'};background:${t.done?'#15803d':'transparent'};display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0;cursor:pointer">${t.done?'✓':''}</div>
+           style="width:20px;height:20px;border-radius:50%;border:2px solid ${t.done?'var(--green)':'var(--border)'};background:${t.done?'var(--green)':'transparent'};display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0;cursor:pointer">${t.done?'✓':''}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:500;${t.done?'text-decoration:line-through':''}">${t.text}</div>
-        ${taskMats.length ? `<div style="font-family:'DM Mono', monospace;font-size:10px;color:#8a8578;margin-top:2px">${taskMats.length} material${taskMats.length!==1?'s':''}</div>` : ''}
+        ${taskMats.length ? `<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px">${taskMats.length} material${taskMats.length!==1?'s':''}</div>` : ''}
       </div>
       <div style="display:flex;align-items:center">${avatarHtml}</div>
-      <span style="font-size:11px;color:#8a8578">✎</span>
+      <span style="font-size:11px;color:var(--muted)">✎</span>
     </div>`;
 }
 
@@ -1532,16 +1534,16 @@ function renderTasksPage() {
 
   const html = S.areas.filter(a=>byArea[a.id]).map(area=>{
     const rows = byArea[area.id];
-    if (!rows.length) return '';
+    if (!rows || !rows.length) return '';
     return `
       ${taskHeadingsVisible ? `<div class="section-head">${area.name}</div>` : ''}
       ${rows.map(t=>renderTaskRow(t)).join('')}`;
   }).join('');
 
   document.getElementById('taskListGlobal').innerHTML = tasks.length ? html : `
-    <div style="text-align:center;padding:48px 20px;color:#8a8578">
+    <div style="text-align:center;padding:48px 20px;color:var(--muted)">
       <div style="font-size:32px;margin-bottom:8px">✅</div>
-      <div style="font-family:'DM Mono', monospace;font-size:12px;letter-spacing:1px">No tasks here</div>
+      <div style="font-family:var(--mono);font-size:12px;letter-spacing:1px">No tasks here</div>
     </div>`;
   syncTaskExpandLabel();
 }
@@ -1553,19 +1555,19 @@ function renderTaskRow(t) {
   const taskMats = matsForTask(t.id);
 
   // Status dot — mirrors material dot
-  const dotColor = t.done ? '#15803d' : '#b45309';
+  const dotColor = t.done ? 'var(--green)' : 'var(--amber)';
 
   // Status pill
   const statusPill = t.done
-    ? `<span style="font-family:'DM Mono', monospace;font-size:10px;background:#f0fdf4;color:#15803d;padding:1px 6px;border-radius:3px;flex-shrink:0">done</span>`
-    : `<span style="font-family:'DM Mono', monospace;font-size:10px;background:#fffbeb;color:#b45309;padding:1px 6px;border-radius:3px;flex-shrink:0">open</span>`;
+    ? `<span style="font-family:var(--mono);font-size:10px;background:var(--green-light);color:var(--green);padding:1px 6px;border-radius:3px;flex-shrink:0">done</span>`
+    : `<span style="font-family:var(--mono);font-size:10px;background:var(--amber-light);color:var(--amber);padding:1px 6px;border-radius:3px;flex-shrink:0">open</span>`;
 
   // ── COLLAPSED ROW — mirrors mat-row exactly ──
   const row = `
     <div class="mat-row ${isExpanded?'expanded':''}" onclick="toggleTaskRow('${t.id}',event)" id="trow-${t.id}">
       <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
       <div class="mat-row-name" style="font-weight:500;${t.done?'text-decoration:line-through;opacity:0.5':''}">${t.text}</div>
-      ${taskMats.length ? `<span style="font-family:'DM Mono', monospace;font-size:10px;color:#8a8578;flex-shrink:0">${taskMats.length} mat${taskMats.length!==1?'s':''}</span>` : ''}
+      ${taskMats.length ? `<span style="font-family:var(--mono);font-size:10px;color:var(--muted);flex-shrink:0">${taskMats.length} mat${taskMats.length!==1?'s':''}</span>` : ''}
       ${statusPill}
       <span class="mat-row-chevron">▼</span>
     </div>`;
@@ -1575,31 +1577,31 @@ function renderTaskRow(t) {
   // ── EXPANDED DETAIL — mirrors mat-detail ──
   // Stacked avatars
   const avatarHtml = assignees.slice(0,3).map((i,idx)=>`
-    <div class="avatar" style="width:20px;height:20px;font-size:8px;background:${uColor(i)};color:#fff;margin-left:${idx>0?'-5px':'0'};border:2px solid #ffffff;z-index:${3-idx}">${initials(S.users[i]?.name||'?')}</div>
-  `).join('') + (assignees.length>3?`<span style="font-family:'DM Mono', monospace;font-size:9px;color:#8a8578;margin-left:3px">+${assignees.length-3}</span>`:'');
+    <div class="avatar" style="width:20px;height:20px;font-size:8px;background:${uColor(i)};color:#fff;margin-left:${idx>0?'-5px':'0'};border:2px solid var(--surface);z-index:${3-idx}">${initials(S.users[i]?.name||'?')}</div>
+  `).join('') + (assignees.length>3?`<span style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-left:3px">+${assignees.length-3}</span>`:'');
 
   const matsHtml = taskMats.length ? `
     <div style="margin-bottom:10px">
-      <div style="font-family:'DM Mono', monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;margin-bottom:6px">Materials</div>
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Materials</div>
       ${taskMats.map(m=>{
         const assign = m.assignments.find(a=>a.taskId===t.id);
         const matOrders = S.orders.filter(o=>o.matId===m.id);
         const activeOrder = matOrders.find(o=>o.status!=='cancelled'&&o.status!=='delivered');
         const delivered = matOrders.filter(o=>o.status==='delivered').reduce((s,o)=>s+o.qty,0);
-        const mdot = delivered>=(assign?.qty||0) ? '#15803d' : activeOrder?.status==='ordered' ? '#1d4ed8' : '#b45309';
+        const mdot = delivered>=(assign?.qty||0) ? 'var(--green)' : activeOrder?.status==='ordered' ? 'var(--blue)' : 'var(--amber)';
         return `
-          <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #ddd9d0">
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
             <div style="width:7px;height:7px;border-radius:50%;background:${mdot};flex-shrink:0"></div>
             <div style="flex:1;font-size:13px;font-weight:500">${m.name}</div>
-            <span style="font-family:'DM Mono', monospace;font-size:12px;color:#8a8578;flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
-            <button class="del-btn" onclick="event.stopPropagation();openAddMat('${m.id}')" style="font-size:12px;color:#8a8578" title="Edit">✎</button>
+            <span style="font-family:var(--mono);font-size:12px;color:var(--muted);flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
+            <button class="del-btn" onclick="event.stopPropagation();openAddMat('${m.id}')" style="font-size:12px;color:var(--muted)" title="Edit">✎</button>
             <button class="btn btn-accent btn-sm" style="padding:2px 7px;font-size:10px;flex-shrink:0" onclick="event.stopPropagation();openOrderModal('${m.id}')">Order</button>
           </div>`;
       }).join('')}
       <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;font-size:11px" onclick="event.stopPropagation();openAddMat(null,'${t.id}')">+ Add material</button>
     </div>` : `
     <div style="margin-bottom:10px">
-      <div style="font-family:'DM Mono', monospace;font-size:11px;color:#8a8578;margin-bottom:6px">No materials assigned</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:6px">No materials assigned</div>
       <button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="event.stopPropagation();openAddMat(null,'${t.id}')">+ Add material</button>
     </div>`;
 
@@ -1610,7 +1612,7 @@ function renderTaskRow(t) {
           const u = S.users[i];
           return u ? `<span style="display:flex;align-items:center;gap:4px;font-size:12px"><div class="avatar" style="width:20px;height:20px;font-size:8px;background:${uColor(i)};color:#fff">${initials(u.name)}</div>${u.name}</span>` : '';
         }).join('')}
-        ${areaIds.length>1 ? areaIds.map(id=>`<span style="font-family:'DM Mono', monospace;font-size:10px;background:#edeae3;border:1px solid #ddd9d0;border-radius:3px;padding:1px 5px;color:#8a8578">${areaName(id)}</span>`).join('') : ''}
+        ${areaIds.length>1 ? areaIds.map(id=>`<span style="font-family:var(--mono);font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;color:var(--muted)">${areaName(id)}</span>`).join('') : ''}
       </div>
       ${matsHtml}
       <div class="row" style="gap:6px">
@@ -1637,11 +1639,11 @@ function renderReassignList() {
   const t = S.tasks.find(x=>x.id===reassignTaskId);
   const current = new Set(t.assignees || [t.assignee ?? 0]);
   document.getElementById('reassignPersonList').innerHTML = S.users.map((u,i)=>`
-    <div class="team-card" style="cursor:pointer;margin-bottom:6px;${current.has(i)?'border-color:#c8440e':''}"
+    <div class="team-card" style="cursor:pointer;margin-bottom:6px;${current.has(i)?'border-color:var(--accent)':''}"
          onclick="toggleReassign(${i})">
       <div class="avatar team-avatar" style="background:${uColor(i)};color:#fff;width:36px;height:36px;font-size:13px">${initials(u.name)}</div>
       <div class="team-info"><div class="team-name">${u.name}</div><div class="team-role">${u.role}</div></div>
-      ${current.has(i)?'<span style="color:#c8440e;font-size:18px">✓</span>':''}
+      ${current.has(i)?'<span style="color:var(--accent);font-size:18px">✓</span>':''}
     </div>`).join('') +
     `<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="closeReassign()">Done</button>`;
 }
@@ -1681,27 +1683,24 @@ function openAddArea() {
   setTimeout(()=>document.getElementById('newAreaInput').focus(),200);
 }
 function closeAddArea() { document.getElementById('addAreaOverlay').classList.remove('open'); editingAreaIdx=null; }
-
 let editingAreaIdx = null;
 function openEditArea(i) {
   editingAreaIdx = i;
   document.getElementById('newAreaInput').value = S.areas[i].name;
-  document.getElementById('addAreaTitle').textContent='Edit Area';
-  document.getElementById('deleteAreaBtn').style.display='block';
+  document.getElementById('addAreaTitle').textContent = 'Edit Area';
+  document.getElementById('deleteAreaBtn').style.display = 'block';
   document.getElementById('addAreaOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('newAreaInput').focus(),200);
 }
-
 function deleteCurrentArea() {
   if (editingAreaIdx === null) return;
   const area = S.areas[editingAreaIdx];
-  if (!confirm(`Delete "${area.name}"? Tasks assigned only to this area will lose their area.`)) return;
+  if (!confirm(`Delete "${area.name}"?`)) return;
   S.areas.splice(editingAreaIdx, 1);
-  S.currentArea = Math.min(S.currentArea, S.areas.length - 1);
+  S.currentArea = Math.min(S.currentArea, Math.max(0, S.areas.length - 1));
   closeAddArea();
   renderAreaPage();
 }
-
 function saveArea() {
   const name = document.getElementById('newAreaInput').value.trim();
   if (!name) return;
@@ -1815,9 +1814,9 @@ function renderMaterials() {
   `).join('');
 
   document.getElementById('matList').innerHTML = mats.length ? html : `
-    <div style="text-align:center;padding:48px 20px;color:#8a8578">
+    <div style="text-align:center;padding:48px 20px;color:var(--muted)">
       <div style="font-size:32px;margin-bottom:8px">📦</div>
-      <div style="font-family:'DM Mono', monospace;font-size:12px;letter-spacing:1px">Nothing to show</div>
+      <div style="font-family:var(--mono);font-size:12px;letter-spacing:1px">Nothing to show</div>
     </div>`;
   syncExpandToggleLabel();
 }
@@ -1844,7 +1843,7 @@ function renderMatCard(m) {
     statusPills.push(`<span class="tag tag-delivered" style="font-size:10px;padding:1px 6px">${totalDelivered} delivered</span>`);
 
   // Dot colour based on calculated state
-  const dotColor = totalDelivered>=total&&total>0&&outstanding===0 ? '#15803d' : totalOnOrder>0 ? '#1d4ed8' : outstanding>0 ? '#b45309' : '#ddd9d0';
+  const dotColor = totalDelivered>=total&&total>0&&outstanding===0 ? 'var(--green)' : totalOnOrder>0 ? 'var(--blue)' : outstanding>0 ? 'var(--amber)' : 'var(--border)';
 
   // ── COLLAPSED ROW ──
   const row = `
@@ -1871,29 +1870,29 @@ function renderMatCard(m) {
 
   const supplierHtml = primary ? `
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-      <span style="font-family:'DM Mono', monospace;font-size:10px;color:#8a8578">SUPPLIER:</span>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">SUPPLIER:</span>
       <span style="font-size:13px;font-weight:600">${primary.name}</span>
-      ${primary.phone?`<a href="tel:${primary.phone}" style="font-family:'DM Mono', monospace;font-size:11px;color:#1d4ed8;text-decoration:none">📞 ${primary.phone}</a>`:''}
-      ${primary.website?`<a href="https://${primary.website.replace(/^https?:\/\//,'')}" target="_blank" style="font-family:'DM Mono', monospace;font-size:11px;color:#1d4ed8;text-decoration:none">🌐</a>`:''}
-      ${sups[0].productUrl?`<a href="${sups[0].productUrl}" target="_blank" style="font-family:'DM Mono', monospace;font-size:11px;color:#c8440e;text-decoration:none">🔗 Product</a>`:''}
-      ${altCount>0?`<span style="font-family:'DM Mono', monospace;font-size:10px;color:#8a8578">+${altCount} alt${altCount>1?'s':''}</span>`:''}
+      ${primary.phone?`<a href="tel:${primary.phone}" style="font-family:var(--mono);font-size:11px;color:var(--blue);text-decoration:none">📞 ${primary.phone}</a>`:''}
+      ${primary.website?`<a href="https://${primary.website.replace(/^https?:\/\//,'')}" target="_blank" style="font-family:var(--mono);font-size:11px;color:var(--blue);text-decoration:none">🌐</a>`:''}
+      ${sups[0].productUrl?`<a href="${sups[0].productUrl}" target="_blank" style="font-family:var(--mono);font-size:11px;color:var(--accent);text-decoration:none">🔗 Product</a>`:''}
+      ${altCount>0?`<span style="font-family:var(--mono);font-size:10px;color:var(--muted)">+${altCount} alt${altCount>1?'s':''}</span>`:''}
     </div>` : '';
 
   const orderSummaryHtml = `
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
-      <span style="font-family:'DM Mono', monospace;font-size:10px;color:#8a8578">Need ${total} ${m.unit}</span>
-      ${totalDelivered>0?`<span style="font-family:'DM Mono', monospace;font-size:10px;color:#15803d">✓ ${totalDelivered} delivered</span>`:''}
-      ${totalOnOrder>0?`<span style="font-family:'DM Mono', monospace;font-size:10px;color:#1d4ed8">⟳ ${totalOnOrder} on order</span>`:''}
-      ${totalPending>0?`<span style="font-family:'DM Mono', monospace;font-size:10px;color:#b45309">⏳ ${totalPending} pending</span>`:''}
-      ${outstanding>0?`<span style="font-family:'DM Mono', monospace;font-size:10px;color:#c8440e;font-weight:500">${outstanding} still to order</span>`:`<span style="font-family:'DM Mono', monospace;font-size:10px;color:#15803d">fully accounted for</span>`}
-      ${matOrders.length?`<span style="font-family:'DM Mono', monospace;font-size:10px;color:#8a8578;cursor:pointer;text-decoration:underline" onclick="openOrderHistory('${m.id}')">${matOrders.length} order${matOrders.length!==1?'s':''}</span>`:'<span style="font-family:'DM Mono', monospace;font-size:10px;color:#8a8578">No orders yet</span>'}
+      <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">Need ${total} ${m.unit}</span>
+      ${totalDelivered>0?`<span style="font-family:var(--mono);font-size:10px;color:var(--green)">✓ ${totalDelivered} delivered</span>`:''}
+      ${totalOnOrder>0?`<span style="font-family:var(--mono);font-size:10px;color:var(--blue)">⟳ ${totalOnOrder} on order</span>`:''}
+      ${totalPending>0?`<span style="font-family:var(--mono);font-size:10px;color:var(--amber)">⏳ ${totalPending} pending</span>`:''}
+      ${outstanding>0?`<span style="font-family:var(--mono);font-size:10px;color:var(--accent);font-weight:500">${outstanding} still to order</span>`:`<span style="font-family:var(--mono);font-size:10px;color:var(--green)">fully accounted for</span>`}
+      ${matOrders.length?`<span style="font-family:var(--mono);font-size:10px;color:var(--muted);cursor:pointer;text-decoration:underline" onclick="openOrderHistory('${m.id}')">${matOrders.length} order${matOrders.length!==1?'s':''}</span>`:'<span style="font-family:var(--mono);font-size:10px;color:var(--muted)">No orders yet</span>'}
     </div>`;
 
   const detail = `
     <div class="mat-detail open">
       <div style="margin-bottom:8px">
-        <div style="font-family:'DM Mono', monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;margin-bottom:4px">Tasks</div>
-        <div class="mat-areas">${taskList || '<span style="font-family:'DM Mono', monospace;font-size:11px;color:#8a8578">No tasks assigned</span>'}</div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Tasks</div>
+        <div class="mat-areas">${taskList || '<span style="font-family:var(--mono);font-size:11px;color:var(--muted)">No tasks assigned</span>'}</div>
       </div>
       ${supplierHtml}
       ${orderSummaryHtml}
@@ -1959,7 +1958,7 @@ function renderTaskChips() {
     return `
       <div class="area-chip ${sel?'selected':''}" id="chip-${t.id}" onclick="toggleChip('${t.id}')">
         <span class="area-chip-name" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.text}">${t.text}</span>
-        <span style="font-family:'DM Mono', monospace;font-size:9px;opacity:0.7;margin-left:2px">${areas}</span>
+        <span style="font-family:var(--mono);font-size:9px;opacity:0.7;margin-left:2px">${areas}</span>
         <span class="area-chip-qty">
           <button class="chip-qty-btn" onclick="event.stopPropagation();adjustChip('${t.id}',-1)">−</button>
           <span class="chip-qty-val" id="chipqty-${t.id}">${qty}</span>
@@ -2024,23 +2023,23 @@ function renderSuppliers() {
       <div class="row" style="justify-content:space-between;margin-bottom:6px">
         <div style="font-size:16px;font-weight:700">${s.name}</div>
         <div class="row" style="gap:4px">
-          <button class="del-btn" onclick="openAddSupplier('${s.id}')" style="font-size:13px;color:#8a8578" title="Edit">✎</button>
+          <button class="del-btn" onclick="openAddSupplier('${s.id}')" style="font-size:13px;color:var(--muted)" title="Edit">✎</button>
           <button class="del-btn" onclick="deleteSupplier('${s.id}')">×</button>
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:5px">
-        ${s.phone?`<a href="tel:${s.phone}" style="font-family:'DM Mono', monospace;font-size:12px;color:#1d4ed8;text-decoration:none;display:flex;align-items:center;gap:5px"><span>📞</span>${s.phone}</a>`:''}
-        ${s.website?`<a href="https://${s.website.replace(/^https?:\/\//,'')}" target="_blank" style="font-family:'DM Mono', monospace;font-size:12px;color:#1d4ed8;text-decoration:none;display:flex;align-items:center;gap:5px"><span>🌐</span>${s.website}</a>`:''}
-        ${s.account?`<div style="font-family:'DM Mono', monospace;font-size:11px;color:#8a8578">Account: ${s.account}</div>`:''}
-        ${s.notes?`<div style="font-size:12px;color:#8a8578;font-style:italic">${s.notes}</div>`:''}
+        ${s.phone?`<a href="tel:${s.phone}" style="font-family:var(--mono);font-size:12px;color:var(--blue);text-decoration:none;display:flex;align-items:center;gap:5px"><span>📞</span>${s.phone}</a>`:''}
+        ${s.website?`<a href="https://${s.website.replace(/^https?:\/\//,'')}" target="_blank" style="font-family:var(--mono);font-size:12px;color:var(--blue);text-decoration:none;display:flex;align-items:center;gap:5px"><span>🌐</span>${s.website}</a>`:''}
+        ${s.account?`<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">Account: ${s.account}</div>`:''}
+        ${s.notes?`<div style="font-size:12px;color:var(--muted);font-style:italic">${s.notes}</div>`:''}
       </div>
-      <div style="margin-top:8px;font-family:'DM Mono', monospace;font-size:10px;color:#8a8578">
+      <div style="margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--muted)">
         Used in ${S.materials.filter(m=>(m.suppliers||[]).some(x=>x.supplierId===s.id)).length} material(s)
       </div>
     </div>`).join('') : `
-    <div style="text-align:center;padding:48px 20px;color:#8a8578">
+    <div style="text-align:center;padding:48px 20px;color:var(--muted)">
       <div style="font-size:32px;margin-bottom:8px">🏢</div>
-      <div style="font-family:'DM Mono', monospace;font-size:12px;letter-spacing:1px">No suppliers yet</div>
+      <div style="font-family:var(--mono);font-size:12px;letter-spacing:1px">No suppliers yet</div>
     </div>`;
 }
 
@@ -2123,7 +2122,7 @@ function closePickSupplier() {
 function renderPickSupplierList() {
   if (!S.suppliers.length) {
     document.getElementById('pickSupplierList').innerHTML = `
-      <div style="text-align:center;padding:24px;color:#8a8578;font-size:13px">No suppliers yet — add one below</div>`;
+      <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">No suppliers yet — add one below</div>`;
     return;
   }
   document.getElementById('pickSupplierList').innerHTML = S.suppliers.map(s=>{
@@ -2131,20 +2130,20 @@ function renderPickSupplierList() {
     const isPrimary = existing && matSelectedSuppliers.indexOf(existing)===0;
     const isAlt = existing && !isPrimary;
     return `
-      <div style="background:#ffffff;border:1px solid ${existing?'#1a1916':'#ddd9d0'};border-radius:10px;padding:12px;margin-bottom:8px">
+      <div style="background:var(--surface);border:1px solid ${existing?'var(--ink)':'var(--border)'};border-radius:10px;padding:12px;margin-bottom:8px">
         <div class="row" style="justify-content:space-between;margin-bottom:${existing?'8px':'0'}">
           <div>
             <div style="font-weight:600;font-size:14px">${s.name}</div>
-            ${s.phone?`<div style="font-family:'DM Mono', monospace;font-size:11px;color:#8a8578">${s.phone}</div>`:''}
+            ${s.phone?`<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${s.phone}</div>`:''}
           </div>
           <div class="row" style="gap:6px">
-            ${existing ? `<span style="font-family:'DM Mono', monospace;font-size:10px;background:${isPrimary?'#1a1916':'#edeae3'};color:${isPrimary?'#fff':'#8a8578'};padding:2px 7px;border-radius:4px">${isPrimary?'PRIMARY':'ALT'}</span>` : ''}
+            ${existing ? `<span style="font-family:var(--mono);font-size:10px;background:${isPrimary?'var(--ink)':'var(--surface2)'};color:${isPrimary?'#fff':'var(--muted)'};padding:2px 7px;border-radius:4px">${isPrimary?'PRIMARY':'ALT'}</span>` : ''}
             <button class="btn btn-sm ${existing?'btn-ghost':'btn-primary'}" onclick="togglePickSupplier('${s.id}')">${existing?'Remove':'Add'}</button>
           </div>
         </div>
         ${existing ? `
           <div>
-            <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px">Product Link</label>
+            <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Product Link</label>
             <input value="${existing.productUrl||''}" placeholder="https://… product URL" onchange="updateSupplierProductUrl('${s.id}',this.value)" style="font-size:13px">
           </div>` : ''}
       </div>`;
@@ -2170,17 +2169,17 @@ function renderMatSupplierPreview() {
   const el = document.getElementById('matSupplierPreview');
   if (!el) return;
   if (!matSelectedSuppliers.length) {
-    el.innerHTML = `<div style="font-family:'DM Mono', monospace;font-size:11px;color:#8a8578">None selected</div>`;
+    el.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">None selected</div>`;
     return;
   }
   el.innerHTML = matSelectedSuppliers.map((entry,i)=>{
     const s = S.suppliers.find(x=>x.id===entry.supplierId);
     if (!s) return '';
     return `
-      <div style="display:flex;align-items:center;gap:8px;background:#edeae3;border-radius:7px;padding:7px 10px">
-        <span style="font-family:'DM Mono', monospace;font-size:10px;background:${i===0?'#1a1916':'#ddd9d0'};color:${i===0?'#fff':'#8a8578'};padding:1px 6px;border-radius:3px;flex-shrink:0">${i===0?'PRIMARY':'ALT'}</span>
+      <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:7px;padding:7px 10px">
+        <span style="font-family:var(--mono);font-size:10px;background:${i===0?'var(--ink)':'var(--border)'};color:${i===0?'#fff':'var(--muted)'};padding:1px 6px;border-radius:3px;flex-shrink:0">${i===0?'PRIMARY':'ALT'}</span>
         <span style="font-size:13px;font-weight:600;flex:1">${s.name}</span>
-        ${entry.productUrl?`<a href="${entry.productUrl}" target="_blank" style="font-family:'DM Mono', monospace;font-size:10px;color:#c8440e">🔗</a>`:''}
+        ${entry.productUrl?`<a href="${entry.productUrl}" target="_blank" style="font-family:var(--mono);font-size:10px;color:var(--accent)">🔗</a>`:''}
       </div>`;
   }).join('');
 }
@@ -2195,10 +2194,10 @@ function renderDiary() {
 
   if (!upcoming.length) {
     document.getElementById('diaryList').innerHTML = `
-      <div style="text-align:center;padding:48px 20px;color:#8a8578">
+      <div style="text-align:center;padding:48px 20px;color:var(--muted)">
         <div style="font-size:32px;margin-bottom:8px">📅</div>
-        <div style="font-family:'DM Mono', monospace;font-size:12px;letter-spacing:1px">No deliveries scheduled</div>
-        <div style="font-size:12px;margin-top:8px;color:#8a8578">Add an expected delivery date when placing an order</div>
+        <div style="font-family:var(--mono);font-size:12px;letter-spacing:1px">No deliveries scheduled</div>
+        <div style="font-size:12px;margin-top:8px;color:var(--muted)">Add an expected delivery date when placing an order</div>
       </div>`;
     return;
   }
@@ -2226,11 +2225,11 @@ function renderDiary() {
     const diff = Math.round((dt - new Date(today + 'T00:00:00')) / 86400000);
     const isOverdue = diff < 0;
     const isToday = diff === 0;
-    const headerColor = isOverdue ? '#c8440e' : isToday ? '#15803d' : '#1a1916';
+    const headerColor = isOverdue ? 'var(--accent)' : isToday ? 'var(--green)' : 'var(--ink)';
 
     return `
       <div style="margin-bottom:16px">
-        <div style="font-family:'DM Mono', monospace;font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:${headerColor};padding:8px 0 6px;border-bottom:2px solid ${headerColor};margin-bottom:8px">
+        <div style="font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:${headerColor};padding:8px 0 6px;border-bottom:2px solid ${headerColor};margin-bottom:8px">
           ${formatDate(date)}
         </div>
         ${orders.map(o => {
@@ -2239,30 +2238,28 @@ function renderDiary() {
           const sup = o.supplierId ? S.suppliers.find(x=>x.id===o.supplierId) : null;
           const isDelivered = o.status === 'delivered';
           return `
-            <div style="background:#ffffff;border:1px solid ${isDelivered?'#15803d':isOverdue?'#c8440e':'#ddd9d0'};border-radius:10px;padding:12px 14px;margin-bottom:6px;${isDelivered?'opacity:0.6':''}">
+            <div style="background:var(--surface);border:1px solid ${isDelivered?'var(--green)':isOverdue?'var(--accent)':'var(--border)'};border-radius:10px;padding:12px 14px;margin-bottom:6px;${isDelivered?'opacity:0.6':''}">
               <div class="row" style="justify-content:space-between;margin-bottom:6px">
                 <div>
                   <div style="font-size:14px;font-weight:500">${m.name}</div>
-                  <div style="font-family:'DM Mono', monospace;font-size:11px;color:#8a8578;margin-top:2px">
+                  <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px">
                     ${o.qty} ${m.unit}
                     ${sup ? ` · ${sup.name}` : ''}
                     ${o.notes ? ` · "${o.notes}"` : ''}
                   </div>
                 </div>
                 ${!isDelivered ? `
-                  <div style="display:flex;gap:6px;align-items:center">
-                    <button class="btn btn-primary btn-sm" style="background:#15803d;font-size:11px;padding:5px 12px;flex-shrink:0" onclick="markDelivered('${o.id}')">
-                      ✓ Delivered
-                    </button>
-                    <button class="del-btn" onclick="openOrderModal('${m.id}','${o.id}')" style="font-size:13px;color:#8a8578">✎</button>
+                  <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+                    <button class="btn btn-primary btn-sm" style="background:var(--green);font-size:11px;padding:5px 12px" onclick="markDelivered('${o.id}')">✓ Delivered</button>
+                    <button class="del-btn" onclick="openOrderModal('${m.id}','${o.id}')" style="font-size:13px;color:var(--muted)">✎</button>
                     <button class="del-btn" onclick="deleteOrder('${o.id}');renderDiary()">×</button>
                   </div>` : `
-                  <div style="display:flex;gap:6px;align-items:center">
-                    <span style="font-family:'DM Mono', monospace;font-size:11px;color:#15803d">✓ ${fmtDate(o.deliveredAt)}</span>
+                  <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+                    <span style="font-family:var(--mono);font-size:11px;color:var(--green)">✓ ${fmtDate(o.deliveredAt)}</span>
                     <button class="del-btn" onclick="deleteOrder('${o.id}');renderDiary()">×</button>
                   </div>`}
               </div>
-              ${sup&&sup.phone ? `<a href="tel:${sup.phone}" style="font-family:'DM Mono', monospace;font-size:11px;color:#1d4ed8;text-decoration:none">📞 ${sup.phone}</a>` : ''}
+              ${sup&&sup.phone ? `<a href="tel:${sup.phone}" style="font-family:var(--mono);font-size:11px;color:var(--blue);text-decoration:none">📞 ${sup.phone}</a>` : ''}
             </div>`;
         }).join('')}
       </div>`;
@@ -2319,9 +2316,9 @@ function renderOrdersPage() {
 
   if (!orders.length) {
     document.getElementById('ordersList').innerHTML = `
-      <div style="text-align:center;padding:48px 20px;color:#8a8578">
+      <div style="text-align:center;padding:48px 20px;color:var(--muted)">
         <div style="font-size:32px;margin-bottom:8px">📋</div>
-        <div style="font-family:'DM Mono', monospace;font-size:12px;letter-spacing:1px">No orders yet</div>
+        <div style="font-family:var(--mono);font-size:12px;letter-spacing:1px">No orders yet</div>
       </div>`;
     syncOrderExpandLabel();
     return;
@@ -2343,23 +2340,23 @@ function renderOrdersPage() {
     const statusCounts = { pending:0, ordered:0, delivered:0, cancelled:0 };
     matOrders.forEach(o=>{ if(statusCounts[o.status]!==undefined) statusCounts[o.status]++; });
     const statusDots = [
-      statusCounts.pending   ? `<span style="font-family:'DM Mono', monospace;font-size:10px;background:#fffbeb;color:#b45309;padding:1px 6px;border-radius:3px;flex-shrink:0">${statusCounts.pending} pending</span>` : '',
-      statusCounts.ordered   ? `<span style="font-family:'DM Mono', monospace;font-size:10px;background:#eff3ff;color:#1d4ed8;padding:1px 6px;border-radius:3px;flex-shrink:0">${statusCounts.ordered} ordered</span>` : '',
-      statusCounts.delivered ? `<span style="font-family:'DM Mono', monospace;font-size:10px;background:#f0fdf4;color:#15803d;padding:1px 6px;border-radius:3px;flex-shrink:0">${statusCounts.delivered} delivered</span>` : '',
-      statusCounts.cancelled ? `<span style="font-family:'DM Mono', monospace;font-size:10px;background:#edeae3;color:#8a8578;padding:1px 6px;border-radius:3px;flex-shrink:0">${statusCounts.cancelled} cancelled</span>` : '',
+      statusCounts.pending   ? `<span style="font-family:var(--mono);font-size:10px;background:var(--amber-light);color:var(--amber);padding:1px 6px;border-radius:3px;flex-shrink:0">${statusCounts.pending} pending</span>` : '',
+      statusCounts.ordered   ? `<span style="font-family:var(--mono);font-size:10px;background:var(--blue-light);color:var(--blue);padding:1px 6px;border-radius:3px;flex-shrink:0">${statusCounts.ordered} ordered</span>` : '',
+      statusCounts.delivered ? `<span style="font-family:var(--mono);font-size:10px;background:var(--green-light);color:var(--green);padding:1px 6px;border-radius:3px;flex-shrink:0">${statusCounts.delivered} delivered</span>` : '',
+      statusCounts.cancelled ? `<span style="font-family:var(--mono);font-size:10px;background:var(--surface2);color:var(--muted);padding:1px 6px;border-radius:3px;flex-shrink:0">${statusCounts.cancelled} cancelled</span>` : '',
     ].filter(Boolean).join('');
 
     return `
-      <div style="background:#ffffff;border:1px solid #ddd9d0;border-radius:${isExpanded?'10px 10px 0 0':'8px'};margin-bottom:${isExpanded?'0':'3px'}">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:${isExpanded?'10px 10px 0 0':'8px'};margin-bottom:${isExpanded?'0':'3px'}">
         <div onclick="toggleOrderGroup('${matId}')"
              style="padding:8px 10px;display:flex;flex-direction:column;gap:5px;cursor:pointer;user-select:none">
           <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:11px;color:#8a8578;flex-shrink:0;transition:transform 0.2s;display:inline-block;transform:rotate(${isExpanded?'180':'0'}deg)">▼</span>
+            <span style="font-size:11px;color:var(--muted);flex-shrink:0;transition:transform 0.2s;display:inline-block;transform:rotate(${isExpanded?'180':'0'}deg)">▼</span>
             <div style="font-size:14px;font-weight:500;flex:1;line-height:1.3">${m.name}</div>
           </div>
           <div style="display:flex;align-items:center;gap:6px;padding-left:16px">
-            <span style="font-family:'DM Mono', monospace;font-size:12px;font-weight:500;color:#1a1916;flex-shrink:0">${neededQty} ${m.unit}</span>
-            <span style="color:#ddd9d0">·</span>
+            <span style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink);flex-shrink:0">${neededQty} ${m.unit}</span>
+            <span style="color:var(--border)">·</span>
             <div style="display:flex;gap:4px;flex:1">${statusDots}</div>
             <button class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:11px;flex-shrink:0" onclick="event.stopPropagation();openAddMat('${matId}')">Edit</button>
             <button class="btn btn-accent btn-sm" style="padding:3px 8px;font-size:11px;flex-shrink:0" onclick="event.stopPropagation();openOrderModal('${matId}')">+ Order</button>
@@ -2367,7 +2364,7 @@ function renderOrdersPage() {
         </div>
       </div>
       ${isExpanded ? `
-        <div style="border:1px solid #ddd9d0;border-top:none;border-radius:0 0 10px 10px;padding:0 14px 12px;margin-bottom:4px">
+        <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:0 14px 12px;margin-bottom:4px">
           ${matOrders.map(o=>renderOrderRow(o,m)).join('')}
         </div>` : ''}`;
   }).join('');
@@ -2380,12 +2377,12 @@ function renderOrderRow(o, m) {
   const orderer = S.users[o.orderedBy] || S.users[0];
   const isDelivered = o.status === 'delivered';
   return `
-    <div style="background:#ffffff;border:1px solid #ddd9d0;border-radius:10px;padding:12px 14px;margin-bottom:8px;margin-top:8px">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;margin-top:8px">
       <div class="row" style="justify-content:space-between;margin-bottom:8px">
         <div class="row" style="gap:6px;cursor:pointer" onclick="openOrderModal('${m.id}','${o.id}')" title="Tap to edit">
-          <span style="font-family:'DM Mono', monospace;font-size:22px;font-weight:500">${o.qty}</span>
-          <span style="font-family:'DM Mono', monospace;font-size:12px;color:#8a8578">${m.unit}</span>
-          <span style="font-size:12px;color:#8a8578">✎</span>
+          <span style="font-family:var(--mono);font-size:22px;font-weight:500">${o.qty}</span>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--muted)">${m.unit}</span>
+          <span style="font-size:12px;color:var(--muted)">✎</span>
         </div>
         <div class="row" style="gap:6px">
           <select class="status-sel s-${o.status}" onchange="changeOrderStatus('${o.id}',this.value);this.className='status-sel s-'+this.value">
@@ -2394,15 +2391,15 @@ function renderOrderRow(o, m) {
             <option value="delivered" ${o.status==='delivered'?'selected':''}>Delivered</option>
             <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Cancelled</option>
           </select>
-          ${!isDelivered ? `<button class="btn btn-primary btn-sm" style="font-size:11px;padding:3px 10px;background:#15803d" onclick="markDelivered('${o.id}')">✓ Delivered</button>` : ''}
+          ${!isDelivered ? `<button class="btn btn-primary btn-sm" style="font-size:11px;padding:3px 10px;background:var(--green)" onclick="markDelivered('${o.id}')">✓ Delivered</button>` : ''}
           <button class="del-btn" onclick="deleteOrder('${o.id}')">×</button>
         </div>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;font-family:'DM Mono', monospace;font-size:11px;color:#8a8578">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:11px;color:var(--muted)">
         ${sup?`<span>🏢 ${sup.name}</span>`:''}
         ${o.orderedAt?`<span>📅 Ordered ${fmtDate(o.orderedAt)}</span>`:''}
-        ${o.expectedDelivery?`<span style="color:${isDelivered?'#8a8578':'#1d4ed8'}">🚚 Expected ${fmtDate(o.expectedDelivery)}</span>`:''}
-        ${o.deliveredAt?`<span style="color:#15803d">✓ Delivered ${fmtDate(o.deliveredAt)}</span>`:''}
+        ${o.expectedDelivery?`<span style="color:${isDelivered?'var(--muted)':'var(--blue)'}">🚚 Expected ${fmtDate(o.expectedDelivery)}</span>`:''}
+        ${o.deliveredAt?`<span style="color:var(--green)">✓ Delivered ${fmtDate(o.deliveredAt)}</span>`:''}
         <span>👤 ${orderer.name}</span>
         ${o.notes?`<span style="font-style:italic">"${o.notes}"</span>`:''}
       </div>
@@ -2554,9 +2551,9 @@ function renderOrderHistory() {
 
   if (!orders.length) {
     document.getElementById('orderHistoryList').innerHTML = `
-      <div style="text-align:center;padding:32px 20px;color:#8a8578">
+      <div style="text-align:center;padding:32px 20px;color:var(--muted)">
         <div style="font-size:28px;margin-bottom:8px">📋</div>
-        <div style="font-family:'DM Mono', monospace;font-size:12px">No orders yet</div>
+        <div style="font-family:var(--mono);font-size:12px">No orders yet</div>
       </div>`;
     return;
   }
@@ -2567,38 +2564,38 @@ function renderOrderHistory() {
 
   document.getElementById('orderHistoryList').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
-      <div style="background:#edeae3;border-radius:8px;padding:10px;text-align:center">
-        <div style="font-family:'DM Mono', monospace;font-size:9px;letter-spacing:1px;color:#8a8578;margin-bottom:4px">NEEDED</div>
-        <div style="font-family:'DM Mono', monospace;font-size:20px;font-weight:500">${needed}</div>
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:4px">NEEDED</div>
+        <div style="font-family:var(--mono);font-size:20px;font-weight:500">${needed}</div>
       </div>
-      <div style="background:#eff3ff;border-radius:8px;padding:10px;text-align:center">
-        <div style="font-family:'DM Mono', monospace;font-size:9px;letter-spacing:1px;color:#1d4ed8;margin-bottom:4px">ON ORDER</div>
-        <div style="font-family:'DM Mono', monospace;font-size:20px;font-weight:500;color:#1d4ed8">${totalOrdered}</div>
+      <div style="background:var(--blue-light);border-radius:8px;padding:10px;text-align:center">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--blue);margin-bottom:4px">ON ORDER</div>
+        <div style="font-family:var(--mono);font-size:20px;font-weight:500;color:var(--blue)">${totalOrdered}</div>
       </div>
-      <div style="background:#f0fdf4;border-radius:8px;padding:10px;text-align:center">
-        <div style="font-family:'DM Mono', monospace;font-size:9px;letter-spacing:1px;color:#15803d;margin-bottom:4px">DELIVERED</div>
-        <div style="font-family:'DM Mono', monospace;font-size:20px;font-weight:500;color:#15803d">${totalDelivered}</div>
+      <div style="background:var(--green-light);border-radius:8px;padding:10px;text-align:center">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--green);margin-bottom:4px">DELIVERED</div>
+        <div style="font-family:var(--mono);font-size:20px;font-weight:500;color:var(--green)">${totalDelivered}</div>
       </div>
     </div>
     ${orders.map(o=>{
       const sup = o.supplierId ? S.suppliers.find(x=>x.id===o.supplierId) : null;
       const orderer = S.users[o.orderedBy]||S.users[0];
       return `
-        <div style="border:1px solid #ddd9d0;border-radius:8px;padding:10px 12px;margin-bottom:8px">
+        <div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px">
           <div class="row" style="justify-content:space-between;margin-bottom:6px">
             <div class="row" style="gap:6px">
-              <span style="font-family:'DM Mono', monospace;font-size:16px;font-weight:500">${o.qty} ${m.unit}</span>
+              <span style="font-family:var(--mono);font-size:16px;font-weight:500">${o.qty} ${m.unit}</span>
               <span class="tag tag-${o.status}" style="font-size:10px">${o.status}</span>
             </div>
             <div class="row" style="gap:4px">
-              <button class="del-btn" onclick="closeOrderHistory();openOrderModal('${m.id}','${o.id}')" style="font-size:13px;color:#8a8578">✎</button>
+              <button class="del-btn" onclick="closeOrderHistory();openOrderModal('${m.id}','${o.id}')" style="font-size:13px;color:var(--muted)">✎</button>
               <button class="del-btn" onclick="reorderClone('${o.id}');closeOrderHistory()">↻</button>
             </div>
           </div>
-          <div style="font-family:'DM Mono', monospace;font-size:11px;color:#8a8578;display:flex;flex-wrap:wrap;gap:8px">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px">
             ${sup?`<span>🏢 ${sup.name}</span>`:''}
             <span>📅 ${fmtDate(o.orderedAt)||'—'}</span>
-            ${o.deliveredAt?`<span style="color:#15803d">✓ ${fmtDate(o.deliveredAt)}</span>`:''}
+            ${o.deliveredAt?`<span style="color:var(--green)">✓ ${fmtDate(o.deliveredAt)}</span>`:''}
             <span>👤 ${orderer.name}</span>
             ${o.notes?`<span style="font-style:italic">"${o.notes}"</span>`:''}
           </div>
@@ -2626,13 +2623,13 @@ function renderOverview() {
       <div class="stat-label">Materials</div>
       <div class="stat-val">${totalMats}</div>
     </div>
-    <div class="stat-box" style="border-color:#c8440e">
+    <div class="stat-box" style="border-color:var(--accent)">
       <div class="stat-label">To Order</div>
-      <div class="stat-val" style="color:#c8440e" style="cursor:pointer" onclick="showPage('orders')">${pendingOrders}</div>
+      <div class="stat-val" style="color:var(--accent)" style="cursor:pointer" onclick="showPage('orders')">${pendingOrders}</div>
     </div>
     <div class="stat-box">
       <div class="stat-label">On Order</div>
-      <div class="stat-val" style="color:#1d4ed8">${orderedOrders}</div>
+      <div class="stat-val" style="color:var(--blue)">${orderedOrders}</div>
     </div>`;
 
   document.getElementById('ovAreas').innerHTML = S.areas.map((area,i)=>{
@@ -2646,11 +2643,11 @@ function renderOverview() {
         <div class="row" style="justify-content:space-between;margin-bottom:6px">
           <div style="font-weight:600">${area.name}</div>
           <div class="row" style="gap:6px">
-            <span style="font-family:'DM Mono', monospace;font-size:11px;color:#8a8578">${done}/${tasks.length} tasks</span>
+            <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">${done}/${tasks.length} tasks</span>
             ${pendingMats>0?`<span class="tag tag-pending" style="font-size:10px">${pendingMats} to order</span>`:''}
           </div>
         </div>
-        <div class="prog-bar" style="margin-top:0"><div class="prog-fill" style="width:${pct}%;background:${pct===100?'#15803d':'#c8440e'}"></div></div>
+        <div class="prog-bar" style="margin-top:0"><div class="prog-fill" style="width:${pct}%;background:${pct===100?'var(--green)':'var(--accent)'}"></div></div>
       </div>`;
   }).join('');
 }
@@ -2672,7 +2669,7 @@ function renderTeam() {
           <div class="team-role">${u.role}</div>
         </div>
         <div class="team-count">${open} open</div>
-        <button class="del-btn" onclick="openEditUser(${i})" style="font-size:13px;color:#8a8578">✎</button>
+        <button class="del-btn" onclick="openEditUser(${i})" style="font-size:13px;color:var(--muted)">✎</button>
         ${i>0?`<button class="del-btn" onclick="deleteUser(${i})">×</button>`:''}
       </div>`;
   }).join('');
@@ -2683,16 +2680,15 @@ function openEditUser(i) {
   editingUserIdx = i;
   document.getElementById('newUserName').value = S.users[i].name;
   document.getElementById('newUserRole').value = S.users[i].role;
+  document.getElementById('addUserBtn').textContent = 'Save';
   document.getElementById('newUserName').focus();
 }
 function deleteUser(i) {
   if (i===0) return;
   if (i===S.currentUser) S.currentUser=0;
   S.users.splice(i,1);
-  renderTeam();
-  renderHeader();
+  renderTeam(); renderHeader();
 }
-
 function addUser() {
   const name = document.getElementById('newUserName').value.trim();
   const role = document.getElementById('newUserRole').value.trim();
@@ -2706,20 +2702,20 @@ function addUser() {
   }
   document.getElementById('newUserName').value='';
   document.getElementById('newUserRole').value='';
-  renderTeam();
-  renderHeader();
+  document.getElementById('addUserBtn').textContent = 'Add';
+  renderTeam(); renderHeader();
 }
 
 // ═══════════════ USER SWITCHER ═══════════════
 function openUserModal() {
   document.getElementById('userSwitchList').innerHTML = S.users.map((u,i)=>`
-    <div class="team-card" style="cursor:pointer;${i===S.currentUser?'border-color:#c8440e':''}" onclick="switchUser(${i})">
+    <div class="team-card" style="cursor:pointer;${i===S.currentUser?'border-color:var(--accent)':''}" onclick="switchUser(${i})">
       <div class="avatar team-avatar" style="background:${uColor(i)};color:#fff">${initials(u.name)}</div>
       <div class="team-info">
         <div class="team-name">${u.name}</div>
         <div class="team-role">${u.role}</div>
       </div>
-      ${i===S.currentUser?'<span style="color:#c8440e;font-size:20px">✓</span>':''}
+      ${i===S.currentUser?'<span style="color:var(--accent);font-size:20px">✓</span>':''}
     </div>`).join('');
   document.getElementById('userOverlay').classList.add('open');
 }
