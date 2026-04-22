@@ -5,7 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Project Manager</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -565,6 +564,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
       </div>
     </div>
 
+```
 <!-- Filter pills -->
 <div class="row-wrap" style="gap:6px;margin-bottom:14px" id="matFilters">
   <button class="btn btn-sm btn-ghost" id="mf-all" onclick="setMatFilter('all')">All</button>
@@ -574,6 +574,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 </div>
 
 <div id="matList"></div>
+```
 
   </div>
 </div>
@@ -792,6 +793,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="addMatTitle">Add Material</div>
 
+```
 <div style="margin-bottom:10px">
   <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Material Name</label>
   <input id="matNameInput" placeholder="e.g. Bathroom taps">
@@ -847,6 +849,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="divider"></div>
 <button class="btn btn-accent" style="width:100%;margin-top:4px" onclick="saveMaterial()" id="saveMatBtn">Save Material</button>
+```
 
   </div>
 </div>
@@ -858,6 +861,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="addTaskTitle">Add Task</div>
 
+```
 <div style="margin-bottom:10px">
   <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Description</label>
   <input id="taskTextInput" placeholder="What needs doing…">
@@ -882,6 +886,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 </div>
 
 <button class="btn btn-primary" style="width:100%" onclick="saveTask()" id="saveTaskBtn">Add Task</button>
+```
 
   </div>
 </div>
@@ -2905,268 +2910,6 @@ async function loadFromSupabase() {
     renderHeader();
     renderAreaPage();
   }
-}
-
-// ═══════════════ INIT ═══════════════
-renderHeader();
-loadFromSupabase();
-</script>
-
-// Show loading state
-function showLoading(msg) {
-document.getElementById(‘loadingOverlay’).style.display = ‘flex’;
-document.getElementById(‘loadingMsg’).textContent = msg || ‘Loading…’;
-}
-function hideLoading() {
-document.getElementById(‘loadingOverlay’).style.display = ‘none’;
-}
-
-// ── Save helpers ──
-async function saveRecord(table, record) {
-const res = await fetch(`${SB_URL}/${table}`, {
-method: ‘POST’,
-headers: { …SB_HEADERS, ‘Prefer’: ‘resolution=merge-duplicates,return=minimal’ },
-body: JSON.stringify(record)
-});
-if (!res.ok) { const t = await res.text(); console.error(`Save ${table}:`, t); }
-}
-async function deleteRecord(table, id) {
-const res = await fetch(`${SB_URL}/${table}?id=eq.${id}`, { method: ‘DELETE’, headers: SB_HEADERS });
-if (!res.ok) console.error(`Delete ${table} failed`);
-}
-
-// ── Patch S object to auto-save on mutation ──
-// We wrap the key mutating operations to also persist to Supabase
-
-const _origSaveArea = saveArea;
-async function saveArea() {
-const name = document.getElementById(‘newAreaInput’).value.trim();
-if (!name) return;
-const id = uid();
-const record = { id, name, project_id: ‘spencer-hill’ };
-S.areas.push({ id, name });
-closeAddArea();
-S.currentArea = S.areas.length - 1;
-renderAreaPage();
-await saveRecord(‘areas’, record);
-}
-
-const _origSaveTask = saveTask;
-async function saveTask() {
-const text = document.getElementById(‘taskTextInput’).value.trim();
-if (!text) return;
-if (taskSelectedAreas.size === 0) { alert(‘Please select at least one area’); return; }
-const areaIds = […taskSelectedAreas];
-const assignees = taskSelectedPeople.size > 0 ? […taskSelectedPeople] : [S.currentUser];
-
-if (taskEditId) {
-const t = S.tasks.find(x=>x.id===taskEditId);
-t.text = text; t.areaIds = areaIds; t.assignees = assignees;
-await saveRecord(‘tasks’, { id: t.id, text, area_ids: areaIds, assignees, done: t.done, project_id: ‘spencer-hill’ });
-} else {
-const id = uid();
-S.tasks.push({ id, areaIds, text, done: false, assignees });
-await saveRecord(‘tasks’, { id, text, area_ids: areaIds, assignees, done: false, project_id: ‘spencer-hill’ });
-}
-closeAddTask();
-refreshCurrentPage();
-}
-
-const _origToggleTask = toggleTask;
-async function toggleTask(id) {
-const t = S.tasks.find(x=>x.id===id);
-if (t) {
-t.done = !t.done;
-await saveRecord(‘tasks’, { id, text: t.text, area_ids: t.areaIds, assignees: t.assignees, done: t.done, project_id: ‘spencer-hill’ });
-}
-refreshCurrentPage();
-}
-
-const _origDeleteTask = deleteTask;
-async function deleteTask(id) {
-const t = S.tasks.find(x=>x.id===id);
-if (!t) return;
-const snapshot = JSON.parse(JSON.stringify(t));
-const idx = S.tasks.findIndex(x=>x.id===id);
-S.tasks.splice(idx, 1);
-refreshCurrentPage();
-await deleteRecord(‘tasks’, id);
-showToast(`"${t.text.slice(0,30)}" deleted`, async ()=>{
-S.tasks.splice(idx, 0, snapshot);
-await saveRecord(‘tasks’, { id: snapshot.id, text: snapshot.text, area_ids: snapshot.areaIds, assignees: snapshot.assignees, done: snapshot.done, project_id: ‘spencer-hill’ });
-refreshCurrentPage();
-});
-}
-
-const _origSaveMaterial = saveMaterial;
-async function saveMaterial() {
-const name = document.getElementById(‘matNameInput’).value.trim();
-if (!name) { alert(‘Please enter a material name’); return; }
-const unit = document.getElementById(‘matUnitInput’).value;
-const cat = document.getElementById(‘matCatInput’).value;
-const assignments = Object.entries(chipState).map(([taskId,qty])=>({taskId,qty}));
-const productUrl = document.getElementById(‘matProductUrl’).value.trim();
-const suppliers = matSelectedSuppliers;
-
-if (S.editingMatId) {
-const m = S.materials.find(x=>x.id===S.editingMatId);
-m.name=name; m.unit=unit; m.cat=cat; m.assignments=assignments; m.productUrl=productUrl; m.suppliers=suppliers;
-await saveRecord(‘materials’, { id: S.editingMatId, name, unit, cat, assignments, product_url: productUrl, suppliers, project_id: ‘spencer-hill’ });
-} else {
-const id = uid();
-S.materials.push({ id, name, unit, cat, assignments, productUrl, suppliers });
-await saveRecord(‘materials’, { id, name, unit, cat, assignments, product_url: productUrl, suppliers, project_id: ‘spencer-hill’ });
-}
-
-const returnToTaskId = preselectedTaskId;
-closeAddMat();
-renderMaterials();
-renderAreaPage();
-if (document.getElementById(‘page-orders’).classList.contains(‘active’)) renderOrdersPage();
-if (returnToTaskId) openAddTask(null, returnToTaskId);
-}
-
-const _origDeleteMat = deleteMat;
-async function deleteMat(id) {
-const m = S.materials.find(x=>x.id===id);
-if (!m) return;
-const snapshot = JSON.parse(JSON.stringify(m));
-const idx = S.materials.findIndex(x=>x.id===id);
-S.materials.splice(idx, 1);
-refreshCurrentPage();
-await deleteRecord(‘materials’, id);
-showToast(`"${m.name.slice(0,30)}" deleted`, async ()=>{
-S.materials.splice(idx, 0, snapshot);
-await saveRecord(‘materials’, { id: snapshot.id, name: snapshot.name, unit: snapshot.unit, cat: snapshot.cat, assignments: snapshot.assignments, product_url: snapshot.productUrl, suppliers: snapshot.suppliers, project_id: ‘spencer-hill’ });
-refreshCurrentPage();
-});
-}
-
-const _origSaveOrder = saveOrder;
-async function saveOrder() {
-const qty = parseFloat(document.getElementById(‘orderQtyInput’).value);
-if (!qty||qty<=0) { alert(‘Please enter a quantity’); return; }
-const m = S.materials.find(x=>x.id===orderingMatId);
-const data = {
-mat_id: orderingMatId,
-qty,
-unit: m.unit,
-supplier_id: document.getElementById(‘orderSupplierInput’).value||null,
-status: document.getElementById(‘orderStatusInput’).value,
-ordered_by: S.currentUser,
-ordered_at: document.getElementById(‘orderDateInput’).value||new Date().toISOString().slice(0,10),
-expected_delivery: document.getElementById(‘orderDeliveredInput’).value||null,
-delivered_at: editingOrderId ? (S.orders.find(x=>x.id===editingOrderId)?.deliveredAt||null) : null,
-notes: document.getElementById(‘orderNotesInput’).value.trim(),
-project_id: ‘spencer-hill’,
-};
-
-if (editingOrderId) {
-const o = S.orders.find(x=>x.id===editingOrderId);
-Object.assign(o, { matId: data.mat_id, qty: data.qty, unit: data.unit, supplierId: data.supplier_id, status: data.status, orderedBy: data.ordered_by, orderedAt: data.ordered_at, expectedDelivery: data.expected_delivery, deliveredAt: data.delivered_at, notes: data.notes });
-await saveRecord(‘orders’, { id: editingOrderId, …data });
-} else {
-const id = uid();
-S.orders.push({ id, matId: data.mat_id, qty: data.qty, unit: data.unit, supplierId: data.supplier_id, status: data.status, orderedBy: data.ordered_by, orderedAt: data.ordered_at, expectedDelivery: data.expected_delivery, deliveredAt: data.delivered_at, notes: data.notes });
-await saveRecord(‘orders’, { id, …data });
-}
-closeOrderModal();
-renderOrdersPage();
-renderMaterials();
-if (document.getElementById(‘page-areas’).classList.contains(‘active’)) renderAreaPage();
-if (document.getElementById(‘page-overview’).classList.contains(‘active’)) renderOverview();
-if (document.getElementById(‘page-diary’).classList.contains(‘active’)) renderDiary();
-}
-
-const _origMarkDelivered = markDelivered;
-async function markDelivered(id) {
-const o = S.orders.find(x=>x.id===id);
-if (!o) return;
-o.status = ‘delivered’;
-o.deliveredAt = new Date().toISOString().slice(0,10);
-await saveRecord(‘orders’, { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: ‘delivered’, ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: o.deliveredAt, notes: o.notes, project_id: ‘spencer-hill’ });
-renderOrdersPage(); renderMaterials();
-if (document.getElementById(‘page-areas’).classList.contains(‘active’)) renderAreaPage();
-if (document.getElementById(‘page-diary’).classList.contains(‘active’)) renderDiary();
-showToast(‘Marked as delivered’, async ()=>{
-o.status=‘ordered’; o.deliveredAt=null;
-await saveRecord(‘orders’, { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: ‘ordered’, ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: null, notes: o.notes, project_id: ‘spencer-hill’ });
-renderOrdersPage(); renderMaterials();
-});
-}
-
-const _origSaveSupplier = saveSupplier;
-async function saveSupplier() {
-const name = document.getElementById(‘supNameInput’).value.trim();
-if (!name) { alert(‘Please enter a supplier name’); return; }
-const data = {
-name,
-phone: document.getElementById(‘supPhoneInput’).value.trim(),
-website: document.getElementById(‘supWebInput’).value.trim(),
-account: document.getElementById(‘supAccInput’).value.trim(),
-notes: document.getElementById(‘supNotesInput’).value.trim(),
-project_id: ‘spencer-hill’,
-};
-if (editingSupplierId) {
-const s = S.suppliers.find(x=>x.id===editingSupplierId);
-Object.assign(s, { name: data.name, phone: data.phone, website: data.website, account: data.account, notes: data.notes });
-await saveRecord(‘suppliers’, { id: editingSupplierId, …data });
-} else {
-const id = uid();
-const newSup = { id, …data };
-S.suppliers.push({ id, name: data.name, phone: data.phone, website: data.website, account: data.account, notes: data.notes });
-await saveRecord(‘suppliers’, newSup);
-if (returnToMatPicker) { closeAddSupplier(); openPickSupplier(); return; }
-}
-closeAddSupplier();
-if (document.getElementById(‘page-suppliers’).classList.contains(‘active’)) renderSuppliers();
-}
-
-const _origDeleteSupplier = deleteSupplier;
-async function deleteSupplier(id) {
-const s = S.suppliers.find(x=>x.id===id);
-if (!s) return;
-const snapshot = JSON.parse(JSON.stringify(s));
-const idx = S.suppliers.findIndex(x=>x.id===id);
-S.suppliers.splice(idx, 1);
-renderSuppliers();
-await deleteRecord(‘suppliers’, id);
-showToast(`"${s.name}" deleted`, async ()=>{
-S.suppliers.splice(idx, 0, snapshot);
-await saveRecord(‘suppliers’, { id: snapshot.id, name: snapshot.name, phone: snapshot.phone, website: snapshot.website, account: snapshot.account, notes: snapshot.notes, project_id: ‘spencer-hill’ });
-renderSuppliers();
-});
-}
-
-// ── Load all data ──
-async function loadFromSupabase() {
-showLoading(‘Loading project data…’);
-try {
-const [areasR, tasksR, matsR, ordersR, supsR] = await Promise.all([
-sbGet(‘areas’),
-sbGet(‘tasks’),
-sbGet(‘materials’),
-sbGet(‘orders’, ‘&order=ordered_at’),
-sbGet(‘suppliers’)
-]);
-
-if (areasR.length) S.areas = areasR.map(r=>({ id:r.id, name:r.name }));
-if (tasksR.length) S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false }));
-if (matsR.length) S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[] }));
-if (ordersR.length) S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'' }));
-if (supsR.length) S.suppliers = supsR.map(r=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'' }));
-
-hideLoading();
-renderHeader();
-renderAreaPage();
-
-} catch(e) {
-hideLoading();
-console.error(‘Load error:’, e);
-showToast(‘Using local data — tap to retry’, () => loadFromSupabase());
-renderHeader();
-renderAreaPage();
-}
 }
 
 // ═══════════════ INIT ═══════════════
