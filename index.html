@@ -3156,7 +3156,6 @@ sbGet(‘orders’, ‘&order=ordered_at’),
 sbGet(‘suppliers’)
 ]);
 
-```
 if (areasR.length) S.areas = areasR.map(r=>({ id:r.id, name:r.name }));
 if (tasksR.length) S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false }));
 if (matsR.length) S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[] }));
@@ -3166,7 +3165,6 @@ if (supsR.length) S.suppliers = supsR.map(r=>({ id:r.id, name:r.name, phone:r.ph
 hideLoading();
 renderHeader();
 renderAreaPage();
-```
 
 } catch(e) {
 hideLoading();
