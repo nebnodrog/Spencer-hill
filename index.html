@@ -1982,6 +1982,9 @@ function openAddMat(matId=null, forTaskId=null) {
 function closeAddMat() {
   document.getElementById('addMatOverlay').classList.remove('open');
   S.editingMatId = null;
+  chipState = {};
+  matSelectedSuppliers = [];
+  preselectedTaskId = null;
 }
 
 let _lastChipToggle = 0;
