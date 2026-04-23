@@ -1047,7 +1047,7 @@ let S = {
 // Chip state while modal open
 let chipState = {}; // taskId -> qty
 
-function uid() { return 'x' + (S.nextId++); }
+function uid() { return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function initials(name) { return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
 function uColor(i) { return COLORS[i % COLORS.length]; }
 function totalQty(mat) { return mat.assignments.reduce((s,a)=>s+a.qty,0); }
@@ -1946,7 +1946,7 @@ let matSelectedSuppliers = [];
 
 function openAddMat(matId=null, forTaskId=null) {
   S.editingMatId = matId;
-  preselectedTaskId = forTaskId;
+  preselectedTaskId = forTaskId || null;
   chipState = {};
   matSelectedSuppliers = [];
 
