@@ -1397,8 +1397,8 @@ function closeAddTask() { document.getElementById('addTaskOverlay').classList.re
 function renderTaskAreaChips() {
   document.getElementById('taskAreaChips').innerHTML = S.areas.map(a=>`
     <div class="area-chip ${taskSelectedAreas.has(a.id)?'selected':''}"
-         onclick="toggleTaskArea('${a.id}')">
-      <span class="area-chip-name">${a.name}</span>
+         onclick="event.stopPropagation();toggleTaskArea('${a.id}')">
+      <span class="area-chip-name" style="pointer-events:none">${a.name}</span>
     </div>`).join('');
 }
 
@@ -1411,9 +1411,9 @@ function toggleTaskArea(aId) {
 function renderTaskPersonChips() {
   document.getElementById('taskPersonChips').innerHTML = S.users.map((u,i)=>`
     <div class="area-chip ${taskSelectedPeople.has(i)?'selected':''}"
-         onclick="toggleTaskPerson(${i})" style="gap:6px">
-      <div class="avatar" style="width:20px;height:20px;font-size:9px;background:${uColor(i)};color:#fff;flex-shrink:0">${initials(u.name)}</div>
-      <span class="area-chip-name">${u.name.split(' ')[0]}</span>
+         onclick="event.stopPropagation();toggleTaskPerson(${i})" style="gap:6px">
+      <div class="avatar" style="width:20px;height:20px;font-size:9px;background:${uColor(i)};color:#fff;flex-shrink:0;pointer-events:none">${initials(u.name)}</div>
+      <span class="area-chip-name" style="pointer-events:none">${u.name.split(' ')[0]}</span>
     </div>`).join('');
 }
 
@@ -2683,22 +2683,28 @@ function openEditUser(i) {
   document.getElementById('addUserBtn').textContent = 'Save';
   document.getElementById('newUserName').focus();
 }
-function deleteUser(i) {
+async function deleteUser(i) {
   if (i===0) return;
+  const u = S.users[i];
   if (i===S.currentUser) S.currentUser=0;
   S.users.splice(i,1);
   renderTeam(); renderHeader();
+  if (u.id) await deleteRecord('users', u.id);
 }
-function addUser() {
+async function addUser() {
   const name = document.getElementById('newUserName').value.trim();
   const role = document.getElementById('newUserRole').value.trim();
   if (!name) return;
   if (editingUserIdx !== null) {
-    S.users[editingUserIdx].name = name;
-    S.users[editingUserIdx].role = role||'Team Member';
+    const u = S.users[editingUserIdx];
+    u.name = name;
+    u.role = role||'Team Member';
+    await saveUserRecord(u, editingUserIdx);
     editingUserIdx = null;
   } else {
-    S.users.push({ name, role: role||'Team Member' });
+    const newUser = { id: uid(), name, role: role||'Team Member' };
+    S.users.push(newUser);
+    await saveUserRecord(newUser, S.users.length - 1);
   }
   document.getElementById('newUserName').value='';
   document.getElementById('newUserRole').value='';
@@ -2943,9 +2949,10 @@ async function deleteSupplier(id) {
 async function loadFromSupabase() {
   showLoading('Loading project data…');
   try {
-    const [areasR, tasksR, matsR, ordersR, supsR] = await Promise.all([
+    const [areasR, tasksR, matsR, ordersR, supsR, usersR] = await Promise.all([
       sbGet('areas'), sbGet('tasks'), sbGet('materials'),
-      sbGet('orders', '&order=ordered_at'), sbGet('suppliers')
+      sbGet('orders', '&order=ordered_at'), sbGet('suppliers'),
+      sbGet('users', '&order=sort_order')
     ]);
 
     if (areasR.length) S.areas = areasR.map(r=>({ id:r.id, name:r.name }));
@@ -2953,6 +2960,7 @@ async function loadFromSupabase() {
     if (matsR.length) S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[] }));
     if (ordersR.length) S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'' }));
     if (supsR.length) S.suppliers = supsR.map(r=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'' }));
+    if (usersR.length) S.users = usersR.map(r=>({ id:r.id, name:r.name, role:r.role||'Team Member' }));
 
     hideLoading();
     renderHeader();
@@ -2965,6 +2973,13 @@ async function loadFromSupabase() {
     renderHeader();
     renderAreaPage();
   }
+}
+
+// ── Save user helpers ──
+async function saveUserRecord(u, i) {
+  const id = u.id || uid();
+  if (!u.id) u.id = id;
+  await saveRecord('users', { id, name: u.name, role: u.role, sort_order: i, project_id: 'spencer-hill' });
 }
 
 // ═══════════════ INIT ═══════════════
