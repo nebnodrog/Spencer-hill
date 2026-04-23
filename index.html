@@ -1984,6 +1984,7 @@ function closeAddMat() {
   S.editingMatId = null;
 }
 
+let _lastChipToggle = 0;
 function renderTaskChips() {
   const container = document.getElementById('taskChipsContainer');
   if (!container) return;
@@ -1992,9 +1993,9 @@ function renderTaskChips() {
     const qty = chipState[t.id]||1;
     const areas = (t.areaIds||[]).map(id=>areaName(id)).join(', ');
     return `
-      <div class="area-chip ${sel?'selected':''}" id="chip-${t.id}" onclick="toggleChip('${t.id}')">
-        <span class="area-chip-name" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.text}">${t.text}</span>
-        <span style="font-family:var(--mono);font-size:9px;opacity:0.7;margin-left:2px">${areas}</span>
+      <div class="area-chip ${sel?'selected':''}" id="chip-${t.id}">
+        <span class="area-chip-name" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:none" title="${t.text}">${t.text}</span>
+        <span style="font-family:var(--mono);font-size:9px;opacity:0.7;margin-left:2px;pointer-events:none">${areas}</span>
         <span class="area-chip-qty">
           <button class="chip-qty-btn" onclick="event.stopPropagation();adjustChip('${t.id}',-1)">−</button>
           <span class="chip-qty-val" id="chipqty-${t.id}">${qty}</span>
@@ -2002,6 +2003,21 @@ function renderTaskChips() {
         </span>
       </div>`;
   }).join('');
+  // Attach touch listeners after render
+  S.tasks.forEach(t=>{
+    const el = document.getElementById('chip-'+t.id);
+    if (!el) return;
+    el.addEventListener('touchend', function(e){
+      e.preventDefault(); e.stopPropagation();
+      const now = Date.now();
+      if (now - _lastChipToggle < 400) return;
+      _lastChipToggle = now;
+      toggleChip(t.id);
+    }, {passive:false});
+    el.addEventListener('click', function(e){
+      e.stopPropagation();
+    });
+  });
   updateTotalPreview();
 }
 
