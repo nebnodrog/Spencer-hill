@@ -980,66 +980,13 @@ let S = {
 
   users: [
     { name: 'Ben', role: 'Project Manager' },
-    { name: 'Sarah K', role: 'Site Supervisor' },
-    { name: 'Mike R', role: 'Contractor' },
-    { name: 'Lisa T', role: 'Electrician' },
   ],
 
-  areas: [
-    { id:'a1', name:'Flat 1' },
-    { id:'a2', name:'Flat 2' },
-    { id:'a3', name:'Flat 3' },
-    { id:'a4', name:'Flat 4' },
-    { id:'a5', name:'Communal' },
-    { id:'a6', name:'Roof' },
-  ],
-
-  // Materials: assigned to tasks (not areas directly)
-  // assignments: [{taskId, qty}]
-  materials: [
-    { id:'m1', name:'Bathroom taps (pair)', unit:'pairs', cat:'Plumbing',
-      assignments:[{taskId:'t3',qty:1}],
-      suppliers:[{supplierId:'s3',productUrl:'https://plumbase.co.uk/bathroom-taps'}], productUrl:'' },
-    { id:'m2', name:'Plasterboard 12.5mm', unit:'sheets', cat:'Plastering',
-      assignments:[{taskId:'t2',qty:12}],
-      suppliers:[{supplierId:'s1',productUrl:'https://travisperkins.co.uk/plasterboard'},{supplierId:'s2',productUrl:''}], productUrl:'' },
-    { id:'m3', name:'Emulsion paint (white 10L)', unit:'tins', cat:'Painting',
-      assignments:[{taskId:'t5',qty:3}],
-      suppliers:[{supplierId:'s1',productUrl:''}], productUrl:'' },
-    { id:'m4', name:'Roofing felt', unit:'sqm', cat:'Roofing',
-      assignments:[{taskId:'t6',qty:50}],
-      suppliers:[], productUrl:'' },
-    { id:'m5', name:'Skirting board MDF', unit:'metres', cat:'Joinery',
-      assignments:[{taskId:'t2',qty:18},{taskId:'t3',qty:6}],
-      suppliers:[{supplierId:'s1',productUrl:''}], productUrl:'' },
-  ],
-
-  // Tasks: assigned to multiple areas
-  tasks: [
-    { id:'t1', areaIds:['a1'], text:'Strip wallpaper', done:false, assignees:[0] },
-    { id:'t2', areaIds:['a1','a2','a3','a4'], text:'Plaster walls', done:false, assignees:[1,2] },
-    { id:'t3', areaIds:['a2'], text:'Install bathroom suite', done:false, assignees:[2] },
-    { id:'t4', areaIds:['a2'], text:'Tile bathroom walls', done:true, assignees:[2] },
-    { id:'t5', areaIds:['a5'], text:'Paint stairwell', done:false, assignees:[1] },
-    { id:'t6', areaIds:['a6'], text:'Inspect flashings', done:true, assignees:[0] },
-  ],
-
-  suppliers: [
-    { id:'s1', name:'Travis Perkins', phone:'0344 693 1234', website:'travisperkins.co.uk', account:'TP-88421', notes:'Trade account, 10% discount' },
-    { id:'s2', name:'Screwfix', phone:'03330 112 112', website:'screwfix.com', account:'', notes:'Click & collect preferred' },
-    { id:'s3', name:'Plumbase', phone:'01234 567890', website:'plumbase.co.uk', account:'PB-441', notes:'Ask for Mark' },
-  ],
-
-  // Orders: each is a discrete order event for a material
-  // status: pending | ordered | delivered | cancelled
-  orders: [
-    { id:'o1', matId:'m2', qty:3, unit:'sheets', supplierId:'s1', status:'ordered',
-      orderedBy:0, orderedAt:'2025-03-10', expectedDelivery:'2025-03-17', deliveredAt:null, notes:'First fix batch' },
-    { id:'o2', matId:'m4', qty:50, unit:'sqm', supplierId:null, status:'delivered',
-      orderedBy:0, orderedAt:'2025-02-20', expectedDelivery:'2025-02-27', deliveredAt:'2025-02-28', notes:'' },
-    { id:'o3', matId:'m1', qty:4, unit:'pairs', supplierId:'s3', status:'ordered',
-      orderedBy:0, orderedAt:'2025-03-18', expectedDelivery:'2025-03-25', deliveredAt:null, notes:'For Flats 1-4' },
-  ],
+  areas: [],
+  materials: [],
+  tasks: [],
+  suppliers: [],
+  orders: [],
 
   nextId: 100,
 };
@@ -3015,11 +2962,11 @@ async function loadFromSupabase() {
       sbGet('users', '&order=sort_order')
     ]);
 
-    if (areasR.length) S.areas = areasR.map(r=>({ id:r.id, name:r.name }));
-    if (tasksR.length) S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false }));
-    if (matsR.length) S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[] }));
-    if (ordersR.length) S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'' }));
-    if (supsR.length) S.suppliers = supsR.map(r=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'' }));
+    S.areas = areasR.map(r=>({ id:r.id, name:r.name }));
+    S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false }));
+    S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[] }));
+    S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'' }));
+    S.suppliers = supsR.map(r=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'' }));
     if (usersR.length) S.users = usersR.map(r=>({ id:r.id, name:r.name, role:r.role||'Team Member' }));
 
     hideLoading();
