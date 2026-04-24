@@ -634,7 +634,10 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <div class="page-pad">
     <div class="row" style="justify-content:space-between;margin-bottom:16px">
       <div class="page-title" style="margin:0">Orders</div>
-      <button class="btn btn-ghost btn-sm" id="orderExpandToggle" onclick="toggleAllOrders()">Expand all</button>
+      <div class="row" style="gap:6px">
+        <button class="btn btn-ghost btn-sm" id="orderGroupToggle" onclick="toggleOrderGrouping()">By Supplier</button>
+        <button class="btn btn-ghost btn-sm" id="orderExpandToggle" onclick="toggleAllOrders()">Expand all</button>
+      </div>
     </div>
     <div class="row-wrap" style="gap:6px;margin-bottom:14px">
       <button class="btn btn-sm btn-primary" id="of-all" onclick="setOrderFilter('all')">All</button>
@@ -758,9 +761,13 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
           <input id="orderDateInput" type="date">
         </div>
         <div style="flex:1">
-          <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Expected Delivery</label>
+          <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px" id="deliveryDateLabel">Expected Delivery</label>
           <input id="orderDeliveredInput" type="date">
         </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+        <input type="checkbox" id="orderIsCollection" onchange="toggleCollectionMode(this.checked)" style="width:18px;height:18px;cursor:pointer;flex-shrink:0">
+        <label for="orderIsCollection" style="font-size:14px;cursor:pointer">This is a collection (I'm picking it up)</label>
       </div>
       <div>
         <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Notes</label>
@@ -810,11 +817,10 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   </div>
   <div style="flex:1">
     <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Category</label>
-    <select id="matCatInput">
-      <option>General</option><option>Plumbing</option><option>Electrical</option>
-      <option>Flooring</option><option>Plastering</option><option>Painting</option>
-      <option>Joinery</option><option>Roofing</option><option>Fixtures</option>
-    </select>
+    <div class="row" style="gap:6px">
+      <select id="matCatInput" style="flex:1"></select>
+      <button class="btn btn-ghost btn-sm" style="flex-shrink:0;font-size:11px" onclick="openManageCategories()">Edit</button>
+    </div>
   </div>
 </div>
 
@@ -898,15 +904,39 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   </div>
 </div>
 
-<!-- MODAL: Add Area -->
+<!-- MODAL: Area Manager -->
 
 <div class="overlay" id="addAreaOverlay" onclick="if(event.target===this)closeAddArea()">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title" id="addAreaTitle">Add Area / Flat</div>
-    <input id="newAreaInput" placeholder="e.g. Flat 5, Roof, Communal Hallway" style="margin-bottom:12px">
-    <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="saveArea()">Save</button>
-    <button class="btn btn-ghost" id="deleteAreaBtn" style="width:100%;color:var(--accent);display:none" onclick="deleteCurrentArea()">Delete Area</button>
+    <div class="sheet-title">Manage Areas</div>
+
+```
+<!-- Area list for editing/sorting -->
+<div id="areaManagerList" style="margin-bottom:16px"></div>
+
+<!-- Add new area -->
+<div style="border-top:1px solid #ddd9d0;padding-top:14px">
+  <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Add New Area</label>
+  <div class="row" style="gap:8px">
+    <input id="newAreaInput" placeholder="e.g. Flat 5, Roof, Communal" style="flex:1">
+    <button class="btn btn-primary" style="flex-shrink:0" onclick="saveArea()">Add</button>
+  </div>
+</div>
+```
+
+  </div>
+</div>
+
+<!-- MODAL: Edit Single Area -->
+
+<div class="overlay" id="editAreaOverlay" onclick="if(event.target===this)closeEditAreaModal()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Edit Area</div>
+    <input id="editAreaInput" placeholder="Area name" style="margin-bottom:12px">
+    <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="saveEditArea()">Save</button>
+    <button class="btn btn-ghost" style="width:100%;color:#c8440e" onclick="deleteCurrentArea()">Delete Area</button>
   </div>
 </div>
 
@@ -917,6 +947,24 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div class="sheet-handle"></div>
     <div class="sheet-title">Switch User</div>
     <div id="userSwitchList"></div>
+  </div>
+</div>
+
+<!-- MODAL: Manage Categories -->
+
+<div class="overlay" id="manageCatsOverlay" onclick="if(event.target===this)closeManageCategories()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Manage Categories</div>
+    <div id="catList" style="margin-bottom:16px"></div>
+    <div style="border-top:1px solid #ddd9d0;padding-top:14px">
+      <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Add New Category</label>
+      <div class="row" style="gap:8px">
+        <input id="newCatInput" placeholder="e.g. Drainage, Metalwork" style="flex:1">
+        <button class="btn btn-primary" style="flex-shrink:0" onclick="addCategory()">Add</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:14px" onclick="closeManageCategories()">Done</button>
   </div>
 </div>
 
@@ -987,6 +1035,7 @@ let S = {
   tasks: [],
   suppliers: [],
   orders: [],
+  categories: ['General','Plumbing','Electrical','Flooring','Plastering','Painting','Joinery','Roofing','Fixtures'],
 
   nextId: 100,
 };
@@ -1074,12 +1123,9 @@ function showPage(p) {
 function renderAreaTabs() {
   document.getElementById('areaTabs').innerHTML =
     S.areas.map((a,i)=>`
-      <div style="display:flex;align-items:center;flex-shrink:0">
-        <button class="area-tab ${i===S.currentArea?'active':''}" onclick="switchArea(${i})">${a.name}</button>
-        ${i===S.currentArea ? `<button onclick="openEditArea(${i})" style="background:none;border:none;color:#888;font-size:13px;padding:0 4px;cursor:pointer;line-height:1;margin-left:-4px">✎</button>` : ''}
-      </div>
+      <button class="area-tab ${i===S.currentArea?'active':''}" onclick="switchArea(${i})">${a.name}</button>
     `).join('') +
-    `<button class="area-tab-add" onclick="openAddArea()" title="Add area">+</button>`;
+    `<button class="area-tab-add" onclick="openAddArea()" title="Manage areas">⋮</button>`;
 }
 
 function switchArea(i) {
@@ -1656,43 +1702,81 @@ function refreshCurrentPage() {
 // ═══════════════ ADD AREA ═══════════════
 function openAddArea() {
   editingAreaIdx = null;
-  document.getElementById('newAreaInput').value='';
-  document.getElementById('addAreaTitle').textContent='Add Area / Flat';
-  document.getElementById('deleteAreaBtn').style.display='none';
+  document.getElementById('newAreaInput').value = '';
+  renderAreaManagerList();
   document.getElementById('addAreaOverlay').classList.add('open');
-  setTimeout(()=>document.getElementById('newAreaInput').focus(),200);
 }
-function closeAddArea() { document.getElementById('addAreaOverlay').classList.remove('open'); editingAreaIdx=null; }
+function closeAddArea() {
+  document.getElementById('addAreaOverlay').classList.remove('open');
+  editingAreaIdx = null;
+  renderAreaPage();
+}
+
 let editingAreaIdx = null;
-function openEditArea(i) {
-  editingAreaIdx = i;
-  document.getElementById('newAreaInput').value = S.areas[i].name;
-  document.getElementById('addAreaTitle').textContent = 'Edit Area';
-  document.getElementById('deleteAreaBtn').style.display = 'block';
-  document.getElementById('addAreaOverlay').classList.add('open');
-  setTimeout(()=>document.getElementById('newAreaInput').focus(),200);
+
+function renderAreaManagerList() {
+  const list = document.getElementById('areaManagerList');
+  if (!list) return;
+  if (!S.areas.length) {
+    list.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:#8a8578;padding:8px 0">No areas yet — add one below</div>`;
+    return;
+  }
+  list.innerHTML = S.areas.map((a,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #ddd9d0">
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+        <button onclick="moveArea(${i},-1)" style="background:none;border:none;font-size:14px;cursor:pointer;color:${i===0?'#ddd9d0':'#8a8578'};padding:0;line-height:1" ${i===0?'disabled':''}>▲</button>
+        <button onclick="moveArea(${i},1)" style="background:none;border:none;font-size:14px;cursor:pointer;color:${i===S.areas.length-1?'#ddd9d0':'#8a8578'};padding:0;line-height:1" ${i===S.areas.length-1?'disabled':''}>▼</button>
+      </div>
+      <div style="flex:1;font-size:15px;font-weight:500">${a.name}</div>
+      <button class="btn btn-ghost btn-sm" style="font-size:13px;padding:6px 14px" onclick="openEditAreaModal(${i})">Edit</button>
+    </div>`).join('');
 }
+
+function moveArea(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= S.areas.length) return;
+  const tmp = S.areas[i];
+  S.areas[i] = S.areas[j];
+  S.areas[j] = tmp;
+  if (S.currentArea === i) S.currentArea = j;
+  else if (S.currentArea === j) S.currentArea = i;
+  renderAreaManagerList();
+}
+
+function openEditAreaModal(i) {
+  editingAreaIdx = i;
+  document.getElementById('editAreaInput').value = S.areas[i].name;
+  document.getElementById('editAreaOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('editAreaInput').focus(), 200);
+}
+function closeEditAreaModal() {
+  document.getElementById('editAreaOverlay').classList.remove('open');
+  editingAreaIdx = null;
+  renderAreaManagerList();
+}
+function saveEditArea() {
+  const name = document.getElementById('editAreaInput').value.trim();
+  if (!name) return;
+  S.areas[editingAreaIdx].name = name;
+  closeEditAreaModal();
+}
+
 function deleteCurrentArea() {
   if (editingAreaIdx === null) return;
   const area = S.areas[editingAreaIdx];
   if (!confirm(`Delete "${area.name}"?`)) return;
   S.areas.splice(editingAreaIdx, 1);
   S.currentArea = Math.min(S.currentArea, Math.max(0, S.areas.length - 1));
-  closeAddArea();
-  renderAreaPage();
+  closeEditAreaModal();
 }
+
 function saveArea() {
   const name = document.getElementById('newAreaInput').value.trim();
   if (!name) return;
-  if (editingAreaIdx !== null) {
-    S.areas[editingAreaIdx].name = name;
-    editingAreaIdx = null;
-  } else {
-    S.areas.push({ id:uid(), name });
-    S.currentArea = S.areas.length - 1;
-  }
-  closeAddArea();
-  renderAreaPage();
+  S.areas.push({ id: uid(), name });
+  S.currentArea = S.areas.length - 1;
+  document.getElementById('newAreaInput').value = '';
+  renderAreaManagerList();
 }
 
 // ═══════════════ MATERIALS PAGE ═══════════════
@@ -1887,7 +1971,48 @@ function renderMatCard(m) {
   return row + detail;
 }
 
-// ═══════════════ ADD/EDIT MATERIAL MODAL ═══════════════
+// ═══════════════ CATEGORIES ═══════════════
+function renderCatSelect(selected='') {
+  const sel = document.getElementById('matCatInput');
+  if (!sel) return;
+  sel.innerHTML = S.categories.sort().map(c=>
+    `<option ${c===selected?'selected':''}>${c}</option>`
+  ).join('');
+}
+
+function openManageCategories() {
+  renderCatList();
+  document.getElementById('manageCatsOverlay').classList.add('open');
+}
+function closeManageCategories() {
+  document.getElementById('manageCatsOverlay').classList.remove('open');
+  const current = document.getElementById('matCatInput')?.value;
+  renderCatSelect(current);
+}
+
+function renderCatList() {
+  document.getElementById('catList').innerHTML = S.categories.sort().map(c=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #ddd9d0">
+      <div style="flex:1;font-size:15px">${c}</div>
+      ${c!=='General' ? `<button class="del-btn" onclick="deleteCategory('${c}')" style="font-size:16px">×</button>` : ''}
+    </div>`).join('');
+}
+
+function addCategory() {
+  const name = document.getElementById('newCatInput').value.trim();
+  if (!name || S.categories.includes(name)) return;
+  S.categories.push(name);
+  document.getElementById('newCatInput').value = '';
+  renderCatList();
+}
+
+function deleteCategory(name) {
+  if (name === 'General') return;
+  // Move any materials using this category to General
+  S.materials.forEach(m => { if (m.cat === name) m.cat = 'General'; });
+  S.categories = S.categories.filter(c => c !== name);
+  renderCatList();
+}
 let preselectedTaskId = null;
 let matSelectedSuppliers = [];
 
@@ -1905,14 +2030,14 @@ function openAddMat(matId=null, forTaskId=null) {
     const m = S.materials.find(x=>x.id===matId);
     document.getElementById('matNameInput').value = m.name;
     document.getElementById('matUnitInput').value = m.unit;
-    document.getElementById('matCatInput').value = m.cat;
+    renderCatSelect(m.cat);
     document.getElementById('matProductUrl').value = m.productUrl || '';
     m.assignments.forEach(a=>{ chipState[a.taskId] = a.qty; });
     matSelectedSuppliers = JSON.parse(JSON.stringify(m.suppliers || []));
   } else {
     document.getElementById('matNameInput').value = '';
     document.getElementById('matUnitInput').value = 'units';
-    document.getElementById('matCatInput').value = 'General';
+    renderCatSelect('General');
     document.getElementById('matProductUrl').value = '';
     if (forTaskId) chipState[forTaskId] = 1;
   }
@@ -1944,9 +2069,14 @@ function renderTaskChips() {
         <span style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:none;font-size:13px;font-weight:500">${t.text}</span>
         <span style="font-family:var(--mono);font-size:9px;opacity:0.7;margin-left:2px;pointer-events:none">${areas}</span>
         <span class="area-chip-qty">
-          <button class="chip-qty-btn" ontouchend="event.preventDefault();event.stopPropagation();adjustChip('${t.id}',-1)" onclick="event.stopPropagation();adjustChip('${t.id}',-1)">−</button>
-          <span class="chip-qty-val" id="chipqty-${t.id}">${qty}</span>
-          <button class="chip-qty-btn" ontouchend="event.preventDefault();event.stopPropagation();adjustChip('${t.id}',1)" onclick="event.stopPropagation();adjustChip('${t.id}',1)">+</button>
+          <input type="number" min="1" step="1"
+            id="chipqty-${t.id}"
+            value="${qty}"
+            style="width:48px;font-family:var(--mono);font-size:13px;text-align:center;padding:2px 4px;border:1px solid rgba(255,255,255,0.3);border-radius:4px;background:rgba(255,255,255,0.15);color:#fff;-webkit-appearance:none"
+            onclick="event.stopPropagation()"
+            ontouchend="event.stopPropagation()"
+            onchange="event.stopPropagation();setChipQty('${t.id}',this.value)"
+            oninput="event.stopPropagation();setChipQty('${t.id}',this.value)">
         </span>
       </div>`;
   }).join('');
@@ -1968,8 +2098,8 @@ function renderTaskChips() {
     } else {
       chipState[id] = 1;
       chip.classList.add('selected');
-      const qtyEl = chip.querySelector('.chip-qty-val');
-      if (qtyEl) qtyEl.textContent = 1;
+      const qtyEl = chip.querySelector('input[type="number"]');
+      if (qtyEl) qtyEl.value = 1;
     }
     updateTotalPreview();
   };
@@ -1982,10 +2112,18 @@ function toggleChip(taskId) {
   renderTaskChips();
 }
 
+function setChipQty(taskId, val) {
+  if (!chipState[taskId]) return;
+  const n = Math.max(1, parseInt(val)||1);
+  chipState[taskId] = n;
+  updateTotalPreview();
+}
+
 function adjustChip(taskId, delta) {
   if (!chipState[taskId]) return;
   chipState[taskId] = Math.max(1, (chipState[taskId]||1) + delta);
-  document.getElementById('chipqty-'+taskId).textContent = chipState[taskId];
+  const el = document.getElementById('chipqty-'+taskId);
+  if (el) el.value = chipState[taskId];
   updateTotalPreview();
 }
 
@@ -1999,7 +2137,8 @@ function saveMaterial() {
   if (!name) { alert('Please enter a material name'); return; }
   const unit = document.getElementById('matUnitInput').value;
   const cat = document.getElementById('matCatInput').value;
-  const assignments = Object.entries(chipState).map(([taskId,qty])=>({taskId,qty}));
+  syncChipStateFromInputs();
+  const assignments = Object.entries(chipState).map(([taskId,qty])=>({taskId,qty:Number(qty)}));
   const productUrl = document.getElementById('matProductUrl').value.trim();
   const suppliers = matSelectedSuppliers;
 
@@ -2248,10 +2387,10 @@ function renderDiary() {
             <div style="background:var(--surface);border:1px solid ${isDelivered?'var(--green)':isOverdue?'var(--accent)':'var(--border)'};border-radius:10px;padding:12px 14px;margin-bottom:6px;${isDelivered?'opacity:0.6':''}">
               <div class="row" style="justify-content:space-between;margin-bottom:6px">
                 <div>
-                  <div style="font-size:14px;font-weight:500">${m.name}</div>
+                  <div style="font-size:14px;font-weight:500">${o.isCollection ? '🚗 ' : '🚚 '}${m.name}</div>
                   <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px">
                     ${o.qty} ${m.unit}
-                    ${sup ? ` · ${sup.name}` : ''}
+                    ${o.isCollection ? ' · Collection' : (sup ? ` · ${sup.name}` : '')}
                     ${o.notes ? ` · "${o.notes}"` : ''}
                   </div>
                 </div>
@@ -2275,40 +2414,47 @@ function renderDiary() {
 
 // ═══════════════ ORDERS PAGE ═══════════════
 let orderFilter = 'all';
-let expandedOrderGroups = new Set(); // matIds that are expanded
+let orderGroupBy = 'material'; // 'material' or 'supplier'
+let expandedOrderGroups = new Set();
 
 function setOrderFilter(f) {
   orderFilter = f;
   renderOrdersPage();
 }
 
-function toggleAllOrders() {
-  const visibleMatIds = getVisibleOrderMatIds();
-  const anyExpanded = visibleMatIds.some(id => expandedOrderGroups.has(id));
-  if (anyExpanded) {
-    visibleMatIds.forEach(id => expandedOrderGroups.delete(id));
-  } else {
-    visibleMatIds.forEach(id => expandedOrderGroups.add(id));
-  }
+function toggleOrderGrouping() {
+  orderGroupBy = orderGroupBy === 'material' ? 'supplier' : 'material';
+  const btn = document.getElementById('orderGroupToggle');
+  if (btn) btn.textContent = orderGroupBy === 'material' ? 'By Supplier' : 'By Material';
+  expandedOrderGroups.clear();
   renderOrdersPage();
 }
 
-function getVisibleOrderMatIds() {
+function toggleAllOrders() {
+  const keys = getVisibleOrderKeys();
+  const anyExpanded = keys.some(id => expandedOrderGroups.has(id));
+  if (anyExpanded) keys.forEach(id => expandedOrderGroups.delete(id));
+  else keys.forEach(id => expandedOrderGroups.add(id));
+  renderOrdersPage();
+}
+
+function getVisibleOrderKeys() {
   let orders = [...S.orders];
-  if (orderFilter !== 'all') orders = orders.filter(o => o.status === orderFilter);
+  if (orderFilter !== 'all' && orderFilter !== 'pending') orders = orders.filter(o => o.status === orderFilter);
+  if (orderGroupBy === 'supplier') return [...new Set(orders.map(o => o.supplierId||'none'))];
   return [...new Set(orders.map(o => o.matId))];
 }
 
-function toggleOrderGroup(matId) {
-  if (expandedOrderGroups.has(matId)) expandedOrderGroups.delete(matId);
-  else expandedOrderGroups.add(matId);
+function toggleOrderGroup(key) {
+  if (expandedOrderGroups.has(key)) expandedOrderGroups.delete(key);
+  else expandedOrderGroups.add(key);
   renderOrdersPage();
 }
 
 function syncOrderExpandLabel() {
   const btn = document.getElementById('orderExpandToggle');
   if (!btn) return;
-  const anyExpanded = getVisibleOrderMatIds().some(id => expandedOrderGroups.has(id));
+  const anyExpanded = getVisibleOrderKeys().some(id => expandedOrderGroups.has(id));
   btn.textContent = anyExpanded ? 'Collapse all' : 'Expand all';
 }
 
@@ -2318,73 +2464,146 @@ function renderOrdersPage() {
     if(b) b.className='btn btn-sm '+(x===orderFilter?'btn-primary':'btn-ghost');
   });
 
-  let orders = [...S.orders].sort((a,b)=>(b.orderedAt||'').localeCompare(a.orderedAt||''));
-  if (orderFilter!=='all') orders = orders.filter(o=>o.status===orderFilter);
+  const el = document.getElementById('ordersList');
+  let html = '';
 
-  if (!orders.length) {
-    document.getElementById('ordersList').innerHTML = `
-      <div style="text-align:center;padding:48px 20px;color:var(--muted)">
-        <div style="font-size:32px;margin-bottom:8px">📋</div>
-        <div style="font-family:var(--mono);font-size:12px;letter-spacing:1px">No orders yet</div>
-      </div>`;
-    syncOrderExpandLabel();
-    return;
+  // ── NEEDS ORDERING section ── materials with outstanding qty
+  if (orderFilter === 'all' || orderFilter === 'pending') {
+    const needsOrdering = S.materials.filter(m => {
+      const needed = totalQty(m);
+      if (needed === 0) return false;
+      const accounted = S.orders
+        .filter(o => o.matId === m.id && o.status !== 'cancelled')
+        .reduce((s,o) => s + Number(o.qty), 0);
+      return accounted < needed;
+    });
+
+    if (needsOrdering.length) {
+      html += `<div class="section-head" style="color:#b45309;border-color:#b45309;margin-bottom:8px">Needs Ordering</div>`;
+      html += needsOrdering.map(m => {
+        const needed = totalQty(m);
+        const accounted = S.orders.filter(o=>o.matId===m.id&&o.status!=='cancelled').reduce((s,o)=>s+Number(o.qty),0);
+        const outstanding = needed - accounted;
+        const sup = (m.suppliers||[])[0] ? S.suppliers.find(x=>x.id===m.suppliers[0].supplierId) : null;
+        return `
+          <div style="background:#fffbeb;border:1px solid #b45309;border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14px;font-weight:500">${m.name}</div>
+              <div style="font-family:var(--mono);font-size:11px;color:#b45309;margin-top:2px">${outstanding} ${m.unit} still to order${sup?' · '+sup.name:''}</div>
+            </div>
+            <button class="btn btn-accent btn-sm" style="flex-shrink:0;font-size:11px" onclick="openOrderModal('${m.id}')">+ Order</button>
+          </div>`;
+      }).join('');
+      html += `<div style="height:12px"></div>`;
+    }
   }
 
-  // Group by material
+  // ── ORDERS section ──
+  let orders = [...S.orders].sort((a,b)=>(b.orderedAt||'').localeCompare(a.orderedAt||''));
+  if (orderFilter !== 'all' && orderFilter !== 'pending') orders = orders.filter(o=>o.status===orderFilter);
+  if (orderFilter === 'pending') orders = orders.filter(o=>o.status==='pending');
+
+  if (orders.length) {
+    if (orderGroupBy === 'supplier') {
+      html += renderOrdersBySupplier(orders);
+    } else {
+      html += renderOrdersByMaterial(orders);
+    }
+  } else if (!html.includes('Needs Ordering')) {
+    html = `<div style="text-align:center;padding:48px 20px;color:var(--muted)">
+      <div style="font-size:32px;margin-bottom:8px">📋</div>
+      <div style="font-family:var(--mono);font-size:12px;letter-spacing:1px">No orders yet</div>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+  syncOrderExpandLabel();
+}
+
+function renderOrdersByMaterial(orders) {
   const byMat = {};
   orders.forEach(o=>{ (byMat[o.matId]||(byMat[o.matId]=[])).push(o); });
 
-  document.getElementById('ordersList').innerHTML = Object.keys(byMat).map(matId=>{
+  return Object.keys(byMat).map(matId=>{
     const m = S.materials.find(x=>x.id===matId);
     if (!m) return '';
     const isExpanded = expandedOrderGroups.has(matId);
     const matOrders = byMat[matId];
-    const totalQtyOrdered = matOrders.reduce((s,o)=>s+o.qty,0);
     const neededQty = totalQty(m);
-
-    // Status summary dots
     const statusCounts = { pending:0, ordered:0, delivered:0, cancelled:0 };
     matOrders.forEach(o=>{ if(statusCounts[o.status]!==undefined) statusCounts[o.status]++; });
     const statusDots = [
-      statusCounts.pending   ? `<span style="font-family:var(--mono);font-size:10px;background:var(--amber-light);color:var(--amber);padding:1px 6px;border-radius:3px;flex-shrink:0">${statusCounts.pending} pending</span>` : '',
-      statusCounts.ordered   ? `<span style="font-family:var(--mono);font-size:10px;background:var(--blue-light);color:var(--blue);padding:1px 6px;border-radius:3px;flex-shrink:0">${statusCounts.ordered} ordered</span>` : '',
-      statusCounts.delivered ? `<span style="font-family:var(--mono);font-size:10px;background:var(--green-light);color:var(--green);padding:1px 6px;border-radius:3px;flex-shrink:0">${statusCounts.delivered} delivered</span>` : '',
-      statusCounts.cancelled ? `<span style="font-family:var(--mono);font-size:10px;background:var(--surface2);color:var(--muted);padding:1px 6px;border-radius:3px;flex-shrink:0">${statusCounts.cancelled} cancelled</span>` : '',
+      statusCounts.pending   ? `<span style="font-family:var(--mono);font-size:10px;background:#fffbeb;color:#b45309;padding:1px 6px;border-radius:3px">${statusCounts.pending} pending</span>` : '',
+      statusCounts.ordered   ? `<span style="font-family:var(--mono);font-size:10px;background:#eff3ff;color:#1d4ed8;padding:1px 6px;border-radius:3px">${statusCounts.ordered} ordered</span>` : '',
+      statusCounts.delivered ? `<span style="font-family:var(--mono);font-size:10px;background:#f0fdf4;color:#15803d;padding:1px 6px;border-radius:3px">${statusCounts.delivered} delivered</span>` : '',
     ].filter(Boolean).join('');
 
     return `
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:${isExpanded?'10px 10px 0 0':'8px'};margin-bottom:${isExpanded?'0':'3px'}">
-        <div onclick="toggleOrderGroup('${matId}')"
-             style="padding:8px 10px;display:flex;flex-direction:column;gap:5px;cursor:pointer;user-select:none">
+      <div style="background:#ffffff;border:1px solid #ddd9d0;border-radius:${isExpanded?'10px 10px 0 0':'8px'};margin-bottom:${isExpanded?'0':'3px'}">
+        <div onclick="toggleOrderGroup('${matId}')" style="padding:8px 10px;display:flex;flex-direction:column;gap:5px;cursor:pointer;user-select:none">
           <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:11px;color:var(--muted);flex-shrink:0;transition:transform 0.2s;display:inline-block;transform:rotate(${isExpanded?'180':'0'}deg)">▼</span>
-            <div style="font-size:14px;font-weight:500;flex:1;line-height:1.3">${m.name}</div>
+            <span style="font-size:11px;color:#8a8578;transition:transform 0.2s;display:inline-block;transform:rotate(${isExpanded?'180':'0'}deg)">▼</span>
+            <div style="font-size:14px;font-weight:500;flex:1">${m.name}</div>
           </div>
-          <div style="display:flex;align-items:center;gap:6px;padding-left:16px">
-            <span style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink);flex-shrink:0">${neededQty} ${m.unit}</span>
-            <span style="color:var(--border)">·</span>
-            <div style="display:flex;gap:4px;flex:1">${statusDots}</div>
-            <button class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:11px;flex-shrink:0" onclick="event.stopPropagation();openAddMat('${matId}')">Edit</button>
-            <button class="btn btn-accent btn-sm" style="padding:3px 8px;font-size:11px;flex-shrink:0" onclick="event.stopPropagation();openOrderModal('${matId}')">+ Order</button>
+          <div style="display:flex;align-items:center;gap:6px;padding-left:16px;flex-wrap:wrap">
+            <span style="font-family:var(--mono);font-size:12px;font-weight:500">${neededQty} ${m.unit}</span>
+            <span style="color:#ddd9d0">·</span>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;flex:1">${statusDots}</div>
+            <button class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:11px" onclick="event.stopPropagation();openAddMat('${matId}')">Edit</button>
+            <button class="btn btn-accent btn-sm" style="padding:3px 8px;font-size:11px" onclick="event.stopPropagation();openOrderModal('${matId}')">+ Order</button>
           </div>
         </div>
       </div>
-      ${isExpanded ? `
-        <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:0 14px 12px;margin-bottom:4px">
-          ${matOrders.map(o=>renderOrderRow(o,m)).join('')}
-        </div>` : ''}`;
+      ${isExpanded ? `<div style="border:1px solid #ddd9d0;border-top:none;border-radius:0 0 10px 10px;padding:0 14px 12px;margin-bottom:4px">${matOrders.map(o=>renderOrderRow(o,m)).join('')}</div>` : ''}`;
   }).join('');
-
-  syncOrderExpandLabel();
 }
 
-function renderOrderRow(o, m) {
+function renderOrdersBySupplier(orders) {
+  const bySup = {};
+  orders.forEach(o=>{
+    const key = o.supplierId||'none';
+    (bySup[key]||(bySup[key]=[])).push(o);
+  });
+
+  return Object.keys(bySup).map(supId=>{
+    const sup = supId==='none' ? null : S.suppliers.find(x=>x.id===supId);
+    const supName = sup ? sup.name : 'No Supplier';
+    const isExpanded = expandedOrderGroups.has(supId);
+    const supOrders = bySup[supId];
+    const totalItems = supOrders.length;
+
+    return `
+      <div style="background:#ffffff;border:1px solid #ddd9d0;border-radius:${isExpanded?'10px 10px 0 0':'8px'};margin-bottom:${isExpanded?'0':'3px'}">
+        <div onclick="toggleOrderGroup('${supId}')" style="padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none">
+          <span style="font-size:11px;color:#8a8578;transition:transform 0.2s;display:inline-block;transform:rotate(${isExpanded?'180':'0'}deg)">▼</span>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:600">${supName}</div>
+            <div style="font-family:var(--mono);font-size:11px;color:#8a8578;margin-top:2px">
+              ${totalItems} order${totalItems!==1?'s':''}
+              ${sup&&sup.phone?` · ${sup.phone}`:''}
+            </div>
+          </div>
+          ${sup&&sup.phone?`<a href="tel:${sup.phone}" class="btn btn-ghost btn-sm" style="text-decoration:none;font-size:11px" onclick="event.stopPropagation()">📞 Call</a>`:''}
+        </div>
+      </div>
+      ${isExpanded ? `
+        <div style="border:1px solid #ddd9d0;border-top:none;border-radius:0 0 10px 10px;padding:0 14px 12px;margin-bottom:4px">
+          ${supOrders.map(o=>{
+            const m = S.materials.find(x=>x.id===o.matId);
+            if (!m) return '';
+            return renderOrderRow(o, m, true);
+          }).join('')}
+        </div>` : ''}`;
+  }).join('');
+}
+
+function renderOrderRow(o, m, showMatName=false) {
   const sup = o.supplierId ? S.suppliers.find(x=>x.id===o.supplierId) : null;
   const orderer = S.users[o.orderedBy] || S.users[0];
   const isDelivered = o.status === 'delivered';
   return `
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;margin-top:8px">
+    <div style="background:#ffffff;border:1px solid #ddd9d0;border-radius:10px;padding:12px 14px;margin-bottom:8px;margin-top:8px">
+      ${showMatName ? `<div style="font-size:12px;font-weight:600;color:#8a8578;margin-bottom:6px;font-family:var(--mono)">${m.name}</div>` : ""}
       <div class="row" style="justify-content:space-between;margin-bottom:8px">
         <div class="row" style="gap:6px;cursor:pointer" onclick="openOrderModal('${m.id}','${o.id}')" title="Tap to edit">
           <span style="font-family:var(--mono);font-size:22px;font-weight:500">${o.qty}</span>
@@ -2446,6 +2665,9 @@ function openOrderModal(matId, orderId=null) {
     document.getElementById('orderDateInput').value = o.orderedAt||'';
     document.getElementById('orderDeliveredInput').value = o.expectedDelivery||'';
     document.getElementById('orderNotesInput').value = o.notes||'';
+    const isCol = !!o.isCollection;
+    document.getElementById('orderIsCollection').checked = isCol;
+    toggleCollectionMode(isCol);
   } else {
     const primarySupId = (m.suppliers||[])[0]?.supplierId||'';
     const needed = totalQty(m);
@@ -2459,10 +2681,17 @@ function openOrderModal(matId, orderId=null) {
     document.getElementById('orderDateInput').value = today;
     document.getElementById('orderDeliveredInput').value = '';
     document.getElementById('orderNotesInput').value = '';
+    document.getElementById('orderIsCollection').checked = false;
+    toggleCollectionMode(false);
   }
 
   document.getElementById('orderModalOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('orderQtyInput').focus(), 200);
+}
+
+function toggleCollectionMode(isCollection) {
+  const label = document.getElementById('deliveryDateLabel');
+  if (label) label.textContent = isCollection ? 'Collection Date' : 'Expected Delivery';
 }
 
 function closeOrderModal() { document.getElementById('orderModalOverlay').classList.remove('open'); }
@@ -2482,6 +2711,7 @@ function saveOrder() {
     expectedDelivery: document.getElementById('orderDeliveredInput').value||null,
     deliveredAt: editingOrderId ? (S.orders.find(x=>x.id===editingOrderId)?.deliveredAt||null) : null,
     notes: document.getElementById('orderNotesInput').value.trim(),
+    isCollection: document.getElementById('orderIsCollection').checked,
   };
   if (editingOrderId) {
     Object.assign(S.orders.find(x=>x.id===editingOrderId), data);
@@ -2775,10 +3005,31 @@ async function saveArea() {
   if (!name) return;
   const id = uid();
   S.areas.push({ id, name });
-  closeAddArea();
   S.currentArea = S.areas.length - 1;
-  renderAreaPage();
+  document.getElementById('newAreaInput').value = '';
+  renderAreaManagerList();
   await saveRecord('areas', { id, name, project_id: 'spencer-hill' });
+}
+
+const _origSaveEditArea = saveEditArea;
+async function saveEditArea() {
+  const name = document.getElementById('editAreaInput').value.trim();
+  if (!name || editingAreaIdx === null) return;
+  const area = S.areas[editingAreaIdx];
+  area.name = name;
+  await saveRecord('areas', { id: area.id, name, project_id: 'spencer-hill' });
+  closeEditAreaModal();
+}
+
+const _origDeleteCurrentArea = deleteCurrentArea;
+async function deleteCurrentArea() {
+  if (editingAreaIdx === null) return;
+  const area = S.areas[editingAreaIdx];
+  if (!confirm(`Delete "${area.name}"?`)) return;
+  S.areas.splice(editingAreaIdx, 1);
+  S.currentArea = Math.min(S.currentArea, Math.max(0, S.areas.length - 1));
+  if (area.id) await deleteRecord('areas', area.id);
+  closeEditAreaModal();
 }
 
 const _origSaveTask = saveTask;
@@ -2833,7 +3084,8 @@ async function saveMaterial() {
   if (!name) { alert('Please enter a material name'); return; }
   const unit = document.getElementById('matUnitInput').value;
   const cat = document.getElementById('matCatInput').value;
-  const assignments = Object.entries(chipState).map(([taskId,qty])=>({taskId,qty}));
+  syncChipStateFromInputs();
+  const assignments = Object.entries(chipState).map(([taskId,qty])=>({taskId,qty:Number(qty)}));
   const productUrl = document.getElementById('matProductUrl').value.trim();
   const suppliers = matSelectedSuppliers;
   if (S.editingMatId) {
@@ -2882,15 +3134,16 @@ async function saveOrder() {
     expected_delivery: document.getElementById('orderDeliveredInput').value||null,
     delivered_at: editingOrderId ? (S.orders.find(x=>x.id===editingOrderId)?.deliveredAt||null) : null,
     notes: document.getElementById('orderNotesInput').value.trim(),
+    is_collection: document.getElementById('orderIsCollection').checked,
     project_id: 'spencer-hill',
   };
   if (editingOrderId) {
     const o = S.orders.find(x=>x.id===editingOrderId);
-    Object.assign(o, { matId: data.mat_id, qty: data.qty, unit: data.unit, supplierId: data.supplier_id, status: data.status, orderedBy: data.ordered_by, orderedAt: data.ordered_at, expectedDelivery: data.expected_delivery, deliveredAt: data.delivered_at, notes: data.notes });
+    Object.assign(o, { matId: data.mat_id, qty: data.qty, unit: data.unit, supplierId: data.supplier_id, status: data.status, orderedBy: data.ordered_by, orderedAt: data.ordered_at, expectedDelivery: data.expected_delivery, deliveredAt: data.delivered_at, notes: data.notes, isCollection: data.is_collection });
     await saveRecord('orders', { id: editingOrderId, ...data });
   } else {
     const id = uid();
-    S.orders.push({ id, matId: data.mat_id, qty: data.qty, unit: data.unit, supplierId: data.supplier_id, status: data.status, orderedBy: data.ordered_by, orderedAt: data.ordered_at, expectedDelivery: data.expected_delivery, deliveredAt: data.delivered_at, notes: data.notes });
+    S.orders.push({ id, matId: data.mat_id, qty: data.qty, unit: data.unit, supplierId: data.supplier_id, status: data.status, orderedBy: data.ordered_by, orderedAt: data.ordered_at, expectedDelivery: data.expected_delivery, deliveredAt: data.delivered_at, notes: data.notes, isCollection: data.is_collection });
     await saveRecord('orders', { id, ...data });
   }
   closeOrderModal();
@@ -2965,7 +3218,7 @@ async function loadFromSupabase() {
     S.areas = areasR.map(r=>({ id:r.id, name:r.name }));
     S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false }));
     S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[] }));
-    S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'' }));
+    S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false }));
     S.suppliers = supsR.map(r=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'' }));
     if (usersR.length) S.users = usersR.map(r=>({ id:r.id, name:r.name, role:r.role||'Team Member' }));
 
