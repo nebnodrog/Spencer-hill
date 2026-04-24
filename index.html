@@ -2619,11 +2619,13 @@ function renderOrdersBySupplier(orders) {
   const supplierIds = new Set();
   // From active orders
   activeOrders.forEach(o => supplierIds.add(o.supplierId||'none'));
-  // Also add suppliers for materials that need ordering
+  // Also add suppliers for materials that need ordering (outstanding qty not covered by active orders)
   S.materials.forEach(m => {
     const needed = totalQty(m);
     if (needed === 0) return;
-    const accounted = S.orders.filter(o=>o.matId===m.id&&o.status!=='cancelled').reduce((s,o)=>s+Number(o.qty),0);
+    const accounted = S.orders
+      .filter(o=>o.matId===m.id && o.status!=='cancelled' && o.status!=='delivered')
+      .reduce((s,o)=>s+Number(o.qty), 0);
     if (accounted < needed) {
       const supId = (m.suppliers||[])[0]?.supplierId || 'none';
       supplierIds.add(supId);
@@ -2649,12 +2651,16 @@ function renderOrdersBySupplier(orders) {
     const supName = sup ? sup.name : 'No Supplier Assigned';
     const isExpanded = expandedOrderGroups.has(supId);
 
-    // Materials needing ordering for this supplier
+    // Materials needing ordering for this supplier — only show if outstanding qty > 0
     const needsOrdering = S.materials.filter(m => {
       const needed = totalQty(m);
       if (needed === 0) return false;
-      const accounted = S.orders.filter(o=>o.matId===m.id&&o.status!=='cancelled').reduce((s,o)=>s+Number(o.qty),0);
+      // Only count non-cancelled, non-delivered orders as covering qty
+      const accounted = S.orders
+        .filter(o => o.matId===m.id && o.status!=='cancelled' && o.status!=='delivered')
+        .reduce((s,o)=>s+Number(o.qty), 0);
       if (accounted >= needed) return false;
+      // Assign to supplier group based on primary supplier
       const primarySup = (m.suppliers||[])[0]?.supplierId || 'none';
       return primarySup === supId;
     });
