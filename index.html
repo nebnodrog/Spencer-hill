@@ -755,26 +755,40 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
         <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Supplier</label>
         <select id="orderSupplierInput"></select>
       </div>
-      <div class="row" style="gap:8px">
-        <div style="flex:1">
-          <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Order Date</label>
-          <input id="orderDateInput" type="date">
-        </div>
-        <div style="flex:1">
-          <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px" id="deliveryDateLabel">Expected Delivery</label>
-          <input id="orderDeliveredInput" type="date">
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
-        <input type="checkbox" id="orderIsCollection" onchange="toggleCollectionMode(this.checked)" style="width:18px;height:18px;cursor:pointer;flex-shrink:0">
-        <label for="orderIsCollection" style="font-size:14px;cursor:pointer">This is a collection (I'm picking it up)</label>
-      </div>
-      <div>
-        <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Notes</label>
-        <input id="orderNotesInput" placeholder="e.g. 2nd fix batch, check colour match">
-      </div>
+
+```
+  <!-- Delivery / Collection toggle -->
+  <div>
+    <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px">Fulfilment Type</label>
+    <div style="display:flex;gap:0;border:1px solid #ddd9d0;border-radius:8px;overflow:hidden;margin-bottom:14px">
+      <button id="btnDelivery" onclick="setCollectionMode(false)"
+        style="flex:1;padding:10px;font-size:14px;border:none;cursor:pointer;background:#1a1916;color:#fff;font-weight:500">
+        🚚 Delivery
+      </button>
+      <button id="btnCollection" onclick="setCollectionMode(true)"
+        style="flex:1;padding:10px;font-size:14px;border:none;cursor:pointer;background:#f5f3ee;color:#8a8578;font-weight:500">
+        🚗 Collection
+      </button>
     </div>
-    <button class="btn btn-accent" style="width:100%" onclick="saveOrder()" id="saveOrderBtn">Place Order</button>
+    <input type="hidden" id="orderIsCollection" value="false">
+  </div>
+
+  <div>
+    <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Order Date</label>
+    <input id="orderDateInput" type="date" style="margin-bottom:12px">
+  </div>
+  <div id="deliveryDateRow">
+    <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px" id="deliveryDateLabel">Expected Delivery Date</label>
+    <input id="orderDeliveredInput" type="date">
+  </div>
+  <div>
+    <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Notes</label>
+    <input id="orderNotesInput" placeholder="e.g. 2nd fix batch, check colour match">
+  </div>
+</div>
+<button class="btn btn-accent" style="width:100%" onclick="saveOrder()" id="saveOrderBtn">Place Order</button>
+```
+
   </div>
 </div>
 
@@ -1203,17 +1217,18 @@ function renderAreaPage() {
               const taskQty = assign ? assign.qty : 0;
               const matOrders = S.orders.filter(o=>o.matId===m.id);
               const totalDelivered = matOrders.filter(o=>o.status==='delivered').reduce((s,o)=>s+o.qty,0);
-              const totalOnOrder = matOrders.filter(o=>o.status==='ordered').reduce((s,o)=>s+o.qty,0);
+              const totalOnOrder = matOrders.filter(o=>o.status==='ordered'&&!o.isCollection).reduce((s,o)=>s+o.qty,0);
+              const totalToCollect = matOrders.filter(o=>o.status==='ordered'&&o.isCollection).reduce((s,o)=>s+o.qty,0);
               const totalPending = matOrders.filter(o=>o.status==='pending').reduce((s,o)=>s+o.qty,0);
-              const outstanding = Math.max(0, taskQty - totalDelivered - totalOnOrder - totalPending);
-              const dotColor = totalDelivered>=taskQty&&taskQty>0&&outstanding===0 ? 'var(--green)' : totalOnOrder>0 ? 'var(--blue)' : outstanding>0 ? 'var(--amber)' : 'var(--border)';
+              const outstanding = Math.max(0, taskQty - totalDelivered - totalOnOrder - totalToCollect - totalPending);
+              const dotColor = totalDelivered>=taskQty&&taskQty>0&&outstanding===0 ? 'var(--green)' : totalToCollect>0 ? 'var(--green)' : totalOnOrder>0 ? 'var(--blue)' : outstanding>0 ? 'var(--amber)' : 'var(--border)';
               const rowKey = 't-'+m.id+'-'+task.id;
               const isOpen = expandedAreaMats.has(rowKey);
-              // Status pills — same logic as materials page
               const pills = [];
-              if (outstanding > 0) pills.push(`<span class="tag tag-pending" style="font-size:10px;padding:1px 5px">${outstanding} pending</span>`);
+              if (outstanding > 0) pills.push(`<span class="tag tag-pending" style="font-size:10px;padding:1px 5px">${outstanding} to order</span>`);
+              if (totalToCollect > 0) pills.push(`<span class="tag tag-delivered" style="font-size:10px;padding:1px 5px">🚗 collect</span>`);
               if (totalOnOrder > 0) pills.push(`<span class="tag tag-ordered" style="font-size:10px;padding:1px 5px">${totalOnOrder} ordered</span>`);
-              if (totalDelivered >= taskQty && taskQty > 0 && outstanding === 0 && totalOnOrder === 0) pills.push(`<span class="tag tag-delivered" style="font-size:10px;padding:1px 5px">${totalDelivered} delivered</span>`);
+              if (totalDelivered >= taskQty && taskQty > 0 && outstanding === 0 && totalOnOrder === 0 && totalToCollect === 0) pills.push(`<span class="tag tag-delivered" style="font-size:10px;padding:1px 5px">✓ delivered</span>`);
               return `
                 <div style="background:var(--surface);border:1px solid ${isOpen?'var(--ink)':'var(--border)'};border-radius:8px;margin-bottom:3px;overflow:hidden">
                   <div onclick="toggleAreaMat('${rowKey}')" style="display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;user-select:none">
@@ -1900,23 +1915,23 @@ function renderMatCard(m) {
   const matOrders = S.orders.filter(o=>o.matId===m.id);
   const activeOrders = matOrders.filter(o=>o.status!=='cancelled'&&o.status!=='delivered');
   const totalDelivered = matOrders.filter(o=>o.status==='delivered').reduce((s,o)=>s+o.qty,0);
-  const totalOnOrder = matOrders.filter(o=>o.status==='ordered').reduce((s,o)=>s+o.qty,0);
+  const totalOnOrder = matOrders.filter(o=>o.status==='ordered'&&!o.isCollection).reduce((s,o)=>s+o.qty,0);
+  const totalToCollect = matOrders.filter(o=>o.status==='ordered'&&o.isCollection).reduce((s,o)=>s+o.qty,0);
   const totalPending = matOrders.filter(o=>o.status==='pending').reduce((s,o)=>s+o.qty,0);
-  // Outstanding = what still needs to be ordered (not yet ordered or delivered)
-  const alreadyAccountedFor = totalDelivered + totalOnOrder + totalPending;
+  const alreadyAccountedFor = totalDelivered + totalOnOrder + totalToCollect + totalPending;
   const outstanding = Math.max(0, total - alreadyAccountedFor);
 
-  // Calculated status pills — show the real-world state clearly
   const statusPills = [];
   if (outstanding > 0)
-    statusPills.push(`<span class="tag tag-pending" style="font-size:10px;padding:1px 6px">${outstanding} pending</span>`);
+    statusPills.push(`<span class="tag tag-pending" style="font-size:10px;padding:1px 6px">${outstanding} to order</span>`);
+  if (totalToCollect > 0)
+    statusPills.push(`<span class="tag tag-delivered" style="font-size:10px;padding:1px 6px">🚗 ${totalToCollect} to collect</span>`);
   if (totalOnOrder > 0)
     statusPills.push(`<span class="tag tag-ordered" style="font-size:10px;padding:1px 6px">${totalOnOrder} ordered</span>`);
-  if (totalDelivered > 0 && totalDelivered >= total && outstanding === 0 && totalOnOrder === 0)
-    statusPills.push(`<span class="tag tag-delivered" style="font-size:10px;padding:1px 6px">${totalDelivered} delivered</span>`);
+  if (totalDelivered > 0 && totalDelivered >= total && outstanding === 0 && totalOnOrder === 0 && totalToCollect === 0)
+    statusPills.push(`<span class="tag tag-delivered" style="font-size:10px;padding:1px 6px">✓ ${totalDelivered} delivered</span>`);
 
-  // Dot colour based on calculated state
-  const dotColor = totalDelivered>=total&&total>0&&outstanding===0 ? 'var(--green)' : totalOnOrder>0 ? 'var(--blue)' : outstanding>0 ? 'var(--amber)' : 'var(--border)';
+  const dotColor = totalDelivered>=total&&total>0&&outstanding===0 ? 'var(--green)' : totalToCollect>0 ? 'var(--green)' : totalOnOrder>0 ? 'var(--blue)' : outstanding>0 ? 'var(--amber)' : 'var(--border)';
 
   // ── COLLAPSED ROW ──
   const row = `
@@ -2781,8 +2796,7 @@ function openOrderModal(matId, orderId=null) {
     document.getElementById('orderDeliveredInput').value = o.expectedDelivery||'';
     document.getElementById('orderNotesInput').value = o.notes||'';
     const isCol = !!o.isCollection;
-    document.getElementById('orderIsCollection').checked = isCol;
-    toggleCollectionMode(isCol);
+    setCollectionMode(isCol);
   } else {
     const primarySupId = (m.suppliers||[])[0]?.supplierId||'';
     const needed = totalQty(m);
@@ -2796,18 +2810,23 @@ function openOrderModal(matId, orderId=null) {
     document.getElementById('orderDateInput').value = today;
     document.getElementById('orderDeliveredInput').value = '';
     document.getElementById('orderNotesInput').value = '';
-    document.getElementById('orderIsCollection').checked = false;
-    toggleCollectionMode(false);
+    setCollectionMode(false);
   }
 
   document.getElementById('orderModalOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('orderQtyInput').focus(), 200);
 }
 
-function toggleCollectionMode(isCollection) {
-  const label = document.getElementById('deliveryDateLabel');
-  if (label) label.textContent = isCollection ? 'Collection Date' : 'Expected Delivery';
+function setCollectionMode(isCollection) {
+  document.getElementById('orderIsCollection').value = isCollection ? 'true' : 'false';
+  document.getElementById('btnDelivery').style.background = isCollection ? '#f5f3ee' : '#1a1916';
+  document.getElementById('btnDelivery').style.color = isCollection ? '#8a8578' : '#fff';
+  document.getElementById('btnCollection').style.background = isCollection ? '#1a1916' : '#f5f3ee';
+  document.getElementById('btnCollection').style.color = isCollection ? '#fff' : '#8a8578';
+  document.getElementById('deliveryDateLabel').textContent = isCollection ? 'Collection Date' : 'Expected Delivery Date';
 }
+
+function toggleCollectionMode(isCollection) { setCollectionMode(isCollection); }
 
 function closeOrderModal() { document.getElementById('orderModalOverlay').classList.remove('open'); }
 
@@ -2826,7 +2845,7 @@ function saveOrder() {
     expectedDelivery: document.getElementById('orderDeliveredInput').value||null,
     deliveredAt: editingOrderId ? (S.orders.find(x=>x.id===editingOrderId)?.deliveredAt||null) : null,
     notes: document.getElementById('orderNotesInput').value.trim(),
-    isCollection: document.getElementById('orderIsCollection').checked,
+    isCollection: document.getElementById('orderIsCollection').value === 'true',
   };
   if (editingOrderId) {
     Object.assign(S.orders.find(x=>x.id===editingOrderId), data);
@@ -3255,7 +3274,7 @@ async function saveOrder() {
     expected_delivery: document.getElementById('orderDeliveredInput').value||null,
     delivered_at: editingOrderId ? (S.orders.find(x=>x.id===editingOrderId)?.deliveredAt||null) : null,
     notes: document.getElementById('orderNotesInput').value.trim(),
-    is_collection: document.getElementById('orderIsCollection').checked,
+    is_collection: document.getElementById('orderIsCollection').value === 'true',
     project_id: 'spencer-hill',
   };
   if (editingOrderId) {
