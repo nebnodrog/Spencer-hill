@@ -2620,7 +2620,16 @@ function renderOrdersBySupplier(orders) {
       <div style="font-family:var(--mono);font-size:12px">No active orders</div>
     </div>`;
 
-  return [...supplierIds].map(supId => {
+  // Sort: 'none' first, then alphabetically by supplier name
+  const sortedIds = [...supplierIds].sort((a, b) => {
+    if (a === 'none') return -1;
+    if (b === 'none') return 1;
+    const supA = S.suppliers.find(x=>x.id===a)?.name||'';
+    const supB = S.suppliers.find(x=>x.id===b)?.name||'';
+    return supA.localeCompare(supB);
+  });
+
+  return sortedIds.map(supId => {
     const sup = supId === 'none' ? null : S.suppliers.find(x=>x.id===supId);
     const supName = sup ? sup.name : 'No Supplier Assigned';
     const isExpanded = expandedOrderGroups.has(supId);
@@ -2853,7 +2862,7 @@ function changeOrderStatus(id, val) {
   if (document.getElementById('page-areas').classList.contains('active')) renderAreaPage();
 }
 
-function deleteOrder(id) {
+async function deleteOrder(id) {
   const o = S.orders.find(x=>x.id===id);
   if (!o) return;
   const snapshot = JSON.parse(JSON.stringify(o));
@@ -2861,7 +2870,12 @@ function deleteOrder(id) {
   S.orders.splice(idx,1);
   refreshCurrentPage();
   if (document.getElementById('page-orders').classList.contains('active')) renderOrdersPage();
-  showToast('Order deleted', ()=>{ S.orders.splice(idx,0,snapshot); refreshCurrentPage(); renderOrdersPage(); });
+  await deleteRecord('orders', id);
+  showToast('Order deleted', async ()=>{
+    S.orders.splice(idx,0,snapshot);
+    await saveRecord('orders', { id: snapshot.id, mat_id: snapshot.matId, qty: snapshot.qty, unit: snapshot.unit, supplier_id: snapshot.supplierId, status: snapshot.status, ordered_by: snapshot.orderedBy, ordered_at: snapshot.orderedAt, expected_delivery: snapshot.expectedDelivery, delivered_at: snapshot.deliveredAt, notes: snapshot.notes, is_collection: snapshot.isCollection||false, project_id: 'spencer-hill' });
+    refreshCurrentPage(); renderOrdersPage();
+  });
 }
 
 function reorderClone(orderId) {
