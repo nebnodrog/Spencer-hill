@@ -816,11 +816,11 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     </select>
   </div>
   <div style="flex:1">
-    <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Category</label>
-    <div class="row" style="gap:6px">
-      <select id="matCatInput" style="flex:1"></select>
-      <button class="btn btn-ghost btn-sm" style="flex-shrink:0;font-size:11px" onclick="openManageCategories()">Edit</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+      <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Category</label>
+      <button class="btn btn-ghost btn-sm" style="font-size:11px;padding:2px 8px" onclick="openManageCategories()">+ Edit categories</button>
     </div>
+    <select id="matCatInput" style="width:100%"></select>
   </div>
 </div>
 
@@ -847,9 +847,15 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="divider"></div>
 
-<div class="row" style="justify-content:space-between;margin-bottom:6px">
-  <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">TOTAL QUANTITY</span>
-  <span style="font-family:var(--mono);font-size:18px;font-weight:500" id="chipTotalPreview">0</span>
+<div style="margin-bottom:6px">
+  <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px">
+    <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">TOTAL QUANTITY NEEDED</span>
+    <span style="font-family:var(--mono);font-size:11px;color:var(--muted)" id="chipTotalHint"></span>
+  </div>
+  <input type="number" id="matDirectQty" min="0" step="1" placeholder="0"
+    style="font-family:var(--mono);font-size:18px;font-weight:500;text-align:center;padding:8px"
+    oninput="syncDirectQty()">
+  <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px" id="chipTotalPreview"></div>
 </div>
 
 <div class="divider"></div>
@@ -1046,7 +1052,10 @@ let chipState = {}; // taskId -> qty
 function uid() { return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function initials(name) { return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
 function uColor(i) { return COLORS[i % COLORS.length]; }
-function totalQty(mat) { return mat.assignments.reduce((s,a)=>s+a.qty,0); }
+function totalQty(mat) {
+  const taskTotal = (mat.assignments||[]).reduce((s,a)=>s+Number(a.qty),0);
+  return taskTotal > 0 ? taskTotal : (mat.directQty || 0);
+}
 function areaName(id) { const a=S.areas.find(x=>x.id===id); return a?a.name:'?'; }
 function taskName(id) { const t=S.tasks.find(x=>x.id===id); return t?t.text:'?'; }
 function fmtDate(iso) {
@@ -1975,9 +1984,16 @@ function renderMatCard(m) {
 function renderCatSelect(selected='') {
   const sel = document.getElementById('matCatInput');
   if (!sel) return;
-  sel.innerHTML = S.categories.sort().map(c=>
+  if (!S.categories || !S.categories.length) {
+    S.categories = ['General','Plumbing','Electrical','Flooring','Plastering','Painting','Joinery','Roofing','Fixtures'];
+  }
+  const cats = [...S.categories].sort();
+  sel.innerHTML = cats.map(c=>
     `<option ${c===selected?'selected':''}>${c}</option>`
   ).join('');
+  if (selected && !cats.includes(selected)) {
+    sel.innerHTML += `<option selected>${selected}</option>`;
+  }
 }
 
 function openManageCategories() {
@@ -2032,6 +2048,7 @@ function openAddMat(matId=null, forTaskId=null) {
     document.getElementById('matUnitInput').value = m.unit;
     renderCatSelect(m.cat);
     document.getElementById('matProductUrl').value = m.productUrl || '';
+    document.getElementById('matDirectQty').value = m.directQty || '';
     m.assignments.forEach(a=>{ chipState[a.taskId] = a.qty; });
     matSelectedSuppliers = JSON.parse(JSON.stringify(m.suppliers || []));
   } else {
@@ -2039,6 +2056,7 @@ function openAddMat(matId=null, forTaskId=null) {
     document.getElementById('matUnitInput').value = 'units';
     renderCatSelect('General');
     document.getElementById('matProductUrl').value = '';
+    document.getElementById('matDirectQty').value = '';
     if (forTaskId) chipState[forTaskId] = 1;
   }
 
@@ -2128,38 +2146,58 @@ function adjustChip(taskId, delta) {
 }
 
 function updateTotalPreview() {
-  const total = Object.values(chipState).reduce((s,v)=>s+v,0);
-  document.getElementById('chipTotalPreview').textContent = total || 0;
+  const taskTotal = Object.values(chipState).reduce((s,v)=>s+Number(v),0);
+  const directEl = document.getElementById('matDirectQty');
+  const hintEl = document.getElementById('chipTotalHint');
+  const previewEl = document.getElementById('chipTotalPreview');
+  if (taskTotal > 0) {
+    if (directEl) { directEl.value = taskTotal; directEl.readOnly = true; directEl.style.opacity = '0.6'; }
+    if (previewEl) previewEl.textContent = `${taskTotal} calculated from task assignments`;
+    if (hintEl) hintEl.textContent = 'from tasks';
+  } else {
+    if (directEl) { directEl.readOnly = false; directEl.style.opacity = '1'; }
+    if (previewEl) previewEl.textContent = 'No tasks assigned — enter quantity directly';
+    if (hintEl) hintEl.textContent = 'enter directly';
+  }
+}
+
+function syncDirectQty() {
+  // When user types directly, clear any task assignments if qty is being set manually
+  // (only if no tasks are selected)
+  if (Object.keys(chipState).length === 0) {
+    updateTotalPreview();
+  }
+}
+
+function syncChipStateFromInputs() {
+  Object.keys(chipState).forEach(taskId => {
+    const el = document.getElementById('chipqty-' + taskId);
+    if (el) chipState[taskId] = Math.max(1, parseInt(el.value)||1);
+  });
 }
 
 function saveMaterial() {
   const name = document.getElementById('matNameInput').value.trim();
   if (!name) { alert('Please enter a material name'); return; }
-  const unit = document.getElementById('matUnitInput').value;
-  const cat = document.getElementById('matCatInput').value;
   syncChipStateFromInputs();
+  const unit = document.getElementById('matUnitInput').value;
+  const cat = document.getElementById('matCatInput').value || 'General';
   const assignments = Object.entries(chipState).map(([taskId,qty])=>({taskId,qty:Number(qty)}));
   const productUrl = document.getElementById('matProductUrl').value.trim();
   const suppliers = matSelectedSuppliers;
-
+  const directQty = assignments.length === 0 ? (parseInt(document.getElementById('matDirectQty').value)||0) : 0;
   if (S.editingMatId) {
     const m = S.materials.find(x=>x.id===S.editingMatId);
     m.name=name; m.unit=unit; m.cat=cat; m.assignments=assignments;
-    m.productUrl=productUrl; m.suppliers=suppliers;
+    m.productUrl=productUrl; m.suppliers=suppliers; m.directQty=directQty;
   } else {
-    S.materials.push({ id:uid(), name, unit, cat, assignments, productUrl, suppliers });
+    S.materials.push({ id:uid(), name, unit, cat, assignments, productUrl, suppliers, directQty });
   }
-
   const returnToTaskId = preselectedTaskId;
   closeAddMat();
-  // Always refresh data on all pages since material data changed
-  renderMaterials();
-  renderAreaPage();
+  renderMaterials(); renderAreaPage();
   if (document.getElementById('page-orders').classList.contains('active')) renderOrdersPage();
-  // If opened from a task edit sheet, reopen it with refreshed materials
-  if (returnToTaskId) {
-    openAddTask(null, returnToTaskId);
-  }
+  if (returnToTaskId) openAddTask(null, returnToTaskId);
 }
 
 // ═══════════════ SUPPLIERS PAGE ═══════════════
@@ -2559,42 +2597,110 @@ function renderOrdersByMaterial(orders) {
 }
 
 function renderOrdersBySupplier(orders) {
-  const bySup = {};
-  orders.forEach(o=>{
-    const key = o.supplierId||'none';
-    (bySup[key]||(bySup[key]=[])).push(o);
+  // Build supplier groups - only active orders (not delivered/cancelled)
+  const activeOrders = orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled');
+
+  // Get all suppliers that have materials assigned to them
+  const supplierIds = new Set();
+  // From active orders
+  activeOrders.forEach(o => supplierIds.add(o.supplierId||'none'));
+  // Also add suppliers for materials that need ordering
+  S.materials.forEach(m => {
+    const needed = totalQty(m);
+    if (needed === 0) return;
+    const accounted = S.orders.filter(o=>o.matId===m.id&&o.status!=='cancelled').reduce((s,o)=>s+Number(o.qty),0);
+    if (accounted < needed) {
+      const supId = (m.suppliers||[])[0]?.supplierId || 'none';
+      supplierIds.add(supId);
+    }
   });
 
-  return Object.keys(bySup).map(supId=>{
-    const sup = supId==='none' ? null : S.suppliers.find(x=>x.id===supId);
-    const supName = sup ? sup.name : 'No Supplier';
+  if (!supplierIds.size) return `
+    <div style="text-align:center;padding:32px 20px;color:#8a8578">
+      <div style="font-family:var(--mono);font-size:12px">No active orders</div>
+    </div>`;
+
+  return [...supplierIds].map(supId => {
+    const sup = supId === 'none' ? null : S.suppliers.find(x=>x.id===supId);
+    const supName = sup ? sup.name : 'No Supplier Assigned';
     const isExpanded = expandedOrderGroups.has(supId);
-    const supOrders = bySup[supId];
-    const totalItems = supOrders.length;
+
+    // Materials needing ordering for this supplier
+    const needsOrdering = S.materials.filter(m => {
+      const needed = totalQty(m);
+      if (needed === 0) return false;
+      const accounted = S.orders.filter(o=>o.matId===m.id&&o.status!=='cancelled').reduce((s,o)=>s+Number(o.qty),0);
+      if (accounted >= needed) return false;
+      const primarySup = (m.suppliers||[])[0]?.supplierId || 'none';
+      return primarySup === supId;
+    });
+
+    // Active orders for this supplier - split by collection vs delivery
+    const supOrders = activeOrders.filter(o => (o.supplierId||'none') === supId);
+    const collections = supOrders.filter(o => o.isCollection);
+    const deliveries = supOrders.filter(o => !o.isCollection);
+
+    const totalCount = needsOrdering.length + collections.length + deliveries.length;
+    if (totalCount === 0) return '';
+
+    const summaryParts = [];
+    if (needsOrdering.length) summaryParts.push(`<span style="color:#b45309">${needsOrdering.length} to order</span>`);
+    if (collections.length) summaryParts.push(`<span style="color:#1d4ed8">${collections.length} to collect</span>`);
+    if (deliveries.length) summaryParts.push(`<span style="color:#15803d">${deliveries.length} on order</span>`);
 
     return `
-      <div style="background:#ffffff;border:1px solid #ddd9d0;border-radius:${isExpanded?'10px 10px 0 0':'8px'};margin-bottom:${isExpanded?'0':'3px'}">
-        <div onclick="toggleOrderGroup('${supId}')" style="padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none">
+      <div style="background:#ffffff;border:1px solid #ddd9d0;border-radius:${isExpanded?'10px 10px 0 0':'8px'};margin-bottom:${isExpanded?'0':'6px'}">
+        <div onclick="toggleOrderGroup('${supId}')" style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none">
           <span style="font-size:11px;color:#8a8578;transition:transform 0.2s;display:inline-block;transform:rotate(${isExpanded?'180':'0'}deg)">▼</span>
           <div style="flex:1">
-            <div style="font-size:15px;font-weight:600">${supName}</div>
-            <div style="font-family:var(--mono);font-size:11px;color:#8a8578;margin-top:2px">
-              ${totalItems} order${totalItems!==1?'s':''}
-              ${sup&&sup.phone?` · ${sup.phone}`:''}
+            <div style="font-size:16px;font-weight:600">${supName}</div>
+            <div style="font-family:var(--mono);font-size:11px;margin-top:3px;display:flex;gap:8px;flex-wrap:wrap">
+              ${summaryParts.join('<span style="color:#ddd9d0">·</span>')}
+              ${sup&&sup.phone?`<span style="color:#8a8578">${sup.phone}</span>`:''}
             </div>
           </div>
-          ${sup&&sup.phone?`<a href="tel:${sup.phone}" class="btn btn-ghost btn-sm" style="text-decoration:none;font-size:11px" onclick="event.stopPropagation()">📞 Call</a>`:''}
+          ${sup&&sup.phone?`<a href="tel:${sup.phone}" class="btn btn-ghost btn-sm" style="text-decoration:none;font-size:11px;flex-shrink:0" onclick="event.stopPropagation()">📞 Call</a>`:''}
         </div>
       </div>
       ${isExpanded ? `
-        <div style="border:1px solid #ddd9d0;border-top:none;border-radius:0 0 10px 10px;padding:0 14px 12px;margin-bottom:4px">
-          ${supOrders.map(o=>{
-            const m = S.materials.find(x=>x.id===o.matId);
-            if (!m) return '';
-            return renderOrderRow(o, m, true);
-          }).join('')}
+        <div style="border:1px solid #ddd9d0;border-top:none;border-radius:0 0 10px 10px;padding:10px 14px 14px;margin-bottom:6px">
+
+          ${needsOrdering.length ? `
+            <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#b45309;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #b45309">Needs Ordering</div>
+            ${needsOrdering.map(m => {
+              const needed = totalQty(m);
+              const accounted = S.orders.filter(o=>o.matId===m.id&&o.status!=='cancelled').reduce((s,o)=>s+Number(o.qty),0);
+              const outstanding = needed - accounted;
+              return `
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f5f3ee">
+                  <div style="flex:1">
+                    <div style="font-size:14px;font-weight:500">${m.name}</div>
+                    <div style="font-family:var(--mono);font-size:11px;color:#b45309;margin-top:2px">${outstanding} ${m.unit} to order</div>
+                  </div>
+                  <button class="btn btn-accent btn-sm" style="font-size:11px;flex-shrink:0" onclick="openOrderModal('${m.id}')">+ Order</button>
+                </div>`;
+            }).join('')}
+            <div style="height:12px"></div>` : ''}
+
+          ${collections.length ? `
+            <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#1d4ed8;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #1d4ed8">🚗 To Collect</div>
+            ${collections.map(o => {
+              const m = S.materials.find(x=>x.id===o.matId);
+              if (!m) return '';
+              return renderOrderRow(o, m, true);
+            }).join('')}
+            <div style="height:8px"></div>` : ''}
+
+          ${deliveries.length ? `
+            <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#15803d;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #15803d">🚚 Awaiting Delivery</div>
+            ${deliveries.map(o => {
+              const m = S.materials.find(x=>x.id===o.matId);
+              if (!m) return '';
+              return renderOrderRow(o, m, true);
+            }).join('')}` : ''}
+
         </div>` : ''}`;
-  }).join('');
+  }).filter(Boolean).join('');
 }
 
 function renderOrderRow(o, m, showMatName=false) {
@@ -3083,19 +3189,20 @@ async function saveMaterial() {
   const name = document.getElementById('matNameInput').value.trim();
   if (!name) { alert('Please enter a material name'); return; }
   const unit = document.getElementById('matUnitInput').value;
-  const cat = document.getElementById('matCatInput').value;
+  const cat = document.getElementById('matCatInput').value || 'General';
   syncChipStateFromInputs();
   const assignments = Object.entries(chipState).map(([taskId,qty])=>({taskId,qty:Number(qty)}));
   const productUrl = document.getElementById('matProductUrl').value.trim();
   const suppliers = matSelectedSuppliers;
+  const directQty = assignments.length === 0 ? (parseInt(document.getElementById('matDirectQty').value)||0) : 0;
   if (S.editingMatId) {
     const m = S.materials.find(x=>x.id===S.editingMatId);
-    m.name=name; m.unit=unit; m.cat=cat; m.assignments=assignments; m.productUrl=productUrl; m.suppliers=suppliers;
-    await saveRecord('materials', { id: S.editingMatId, name, unit, cat, assignments, product_url: productUrl, suppliers, project_id: 'spencer-hill' });
+    m.name=name; m.unit=unit; m.cat=cat; m.assignments=assignments; m.productUrl=productUrl; m.suppliers=suppliers; m.directQty=directQty;
+    await saveRecord('materials', { id: S.editingMatId, name, unit, cat, assignments, product_url: productUrl, suppliers, direct_qty: directQty, project_id: 'spencer-hill' });
   } else {
     const id = uid();
-    S.materials.push({ id, name, unit, cat, assignments, productUrl, suppliers });
-    await saveRecord('materials', { id, name, unit, cat, assignments, product_url: productUrl, suppliers, project_id: 'spencer-hill' });
+    S.materials.push({ id, name, unit, cat, assignments, productUrl, suppliers, directQty });
+    await saveRecord('materials', { id, name, unit, cat, assignments, product_url: productUrl, suppliers, direct_qty: directQty, project_id: 'spencer-hill' });
   }
   const returnToTaskId = preselectedTaskId;
   closeAddMat();
@@ -3217,7 +3324,7 @@ async function loadFromSupabase() {
 
     S.areas = areasR.map(r=>({ id:r.id, name:r.name }));
     S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false }));
-    S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[] }));
+    S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[], directQty:r.direct_qty||0 }));
     S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false }));
     S.suppliers = supsR.map(r=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'' }));
     if (usersR.length) S.users = usersR.map(r=>({ id:r.id, name:r.name, role:r.role||'Team Member' }));
