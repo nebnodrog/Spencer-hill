@@ -108,11 +108,11 @@ transition: color 0.15s;
 .nav-btn svg { width: 20px; height: 20px; }
 
 /* ── PAGES ── */
-.page { display: none; }
+.page { display: none; box-sizing: border-box; max-width: 100vw; overflow-x: hidden; }
 .page.active { display: block; }
 
 /* ── SHARED ── */
-.page-pad { padding: 16px; max-width: 640px; margin: 0 auto; }
+.page-pad { padding: 16px; max-width: 640px; margin: 0 auto; box-sizing: border-box; overflow-x: hidden; }
 .page-title {
 font-family: ‘DM Mono’, monospace;
 font-size: 11px; font-weight: 500;
@@ -154,6 +154,8 @@ border-radius: 8px;
 padding: 9px 12px;
 outline: none;
 width: 100%;
+box-sizing: border-box;
+max-width: 100%;
 transition: border-color 0.15s;
 -webkit-appearance: none;
 }
@@ -202,10 +204,11 @@ backdrop-filter: blur(2px);
 .sheet {
 background: #ffffff;
 border-radius: 16px 16px 0 0;
-width: 100%; max-height: 92vh;
-overflow-y: auto;
-padding: 20px 16px 32px;
+width: 100%; max-width: 100vw; max-height: 92vh;
+overflow-y: auto; overflow-x: hidden;
+padding: 12px 16px 32px;
 animation: slideUp 0.25s ease;
+box-sizing: border-box;
 }
 @keyframes slideUp {
 from { transform: translateY(30px); opacity: 0; }
@@ -531,8 +534,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="projectSettingsOverlay" onclick="if(event.target===this)closeProjectSettings()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="width:36px;height:4px;background:#ddd9d0;border-radius:2px;margin:auto 0"></div><button onclick="closeProjectSettings()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:400;line-height:1">✕</button></div>
-    <div class="sheet-title">Project Settings</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Project Settings</span><button onclick="closeProjectSettings()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div style="margin-bottom:14px">
       <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Project Name</label>
       <input id="projectNameInput" placeholder="e.g. Spencer Hill">
@@ -734,8 +736,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="orderModalOverlay" onclick="if(event.target===this)closeOrderModal()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="width:36px;height:4px;background:#ddd9d0;border-radius:2px;margin:auto 0"></div><button onclick="closeOrderModal()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:400;line-height:1">✕</button></div>
-    <div class="sheet-title" id="orderModalTitle">Place Order</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="orderModalTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Place Order</span><button onclick="closeOrderModal()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div style="background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:14px">
       <div style="font-size:13px;font-weight:600" id="orderMatName"></div>
       <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px" id="orderMatMeta"></div>
@@ -801,8 +802,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="orderHistoryOverlay" onclick="if(event.target===this)closeOrderHistory()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="width:36px;height:4px;background:#ddd9d0;border-radius:2px;margin:auto 0"></div><button onclick="closeOrderHistory()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:400;line-height:1">✕</button></div>
-    <div class="sheet-title" id="historyMatName">Order History</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="historyMatName" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Order History</span><button onclick="closeOrderHistory()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div id="orderHistoryList"></div>
     <div class="divider"></div>
     <button class="btn btn-accent" style="width:100%" id="historyReorderBtn" onclick="">Reorder (clone last)</button>
@@ -815,8 +815,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="addMatOverlay" onclick="if(event.target===this)closeAddMat()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="width:36px;height:4px;background:#ddd9d0;border-radius:2px;margin:auto 0"></div><button onclick="closeAddMat()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:400;line-height:1">✕</button></div>
-    <div class="sheet-title" id="addMatTitle">Add Material</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="addMatTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Material</span><button onclick="closeAddMat()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
 
 <div style="margin-bottom:10px">
   <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Name</label>
@@ -887,8 +886,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="addTaskOverlay" onclick="if(event.target===this)closeAddTask()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="width:36px;height:4px;background:#ddd9d0;border-radius:2px;margin:auto 0"></div><button onclick="closeAddTask()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:400;line-height:1">✕</button></div>
-    <div class="sheet-title" id="addTaskTitle">Add Task</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="addTaskTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Task</span><button onclick="closeAddTask()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
 
 <div style="margin-bottom:10px">
   <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Description</label>
@@ -922,8 +920,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="reassignOverlay" onclick="if(event.target===this)closeReassign()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="width:36px;height:4px;background:#ddd9d0;border-radius:2px;margin:auto 0"></div><button onclick="closeReassign()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:400;line-height:1">✕</button></div>
-    <div class="sheet-title">Reassign Task</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Reassign Task</span><button onclick="closeReassign()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div style="font-size:14px;color:var(--muted);margin-bottom:14px;font-style:italic" id="reassignTaskName"></div>
     <div id="reassignPersonList"></div>
   </div>
@@ -933,8 +930,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="addAreaOverlay" onclick="if(event.target===this)closeAddArea()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="width:36px;height:4px;background:#ddd9d0;border-radius:2px;margin:auto 0"></div><button onclick="closeAddArea()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:400;line-height:1">✕</button></div>
-    <div class="sheet-title">Manage Areas</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Manage Areas</span><button onclick="closeAddArea()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
 
 ```
 <!-- Area list for editing/sorting -->
@@ -957,8 +953,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="editAreaOverlay" onclick="if(event.target===this)closeEditAreaModal()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="width:36px;height:4px;background:#ddd9d0;border-radius:2px;margin:auto 0"></div><button onclick="closeEditAreaModal()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:400;line-height:1">✕</button></div>
-    <div class="sheet-title">Edit Area</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Edit Area</span><button onclick="closeEditAreaModal()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <input id="editAreaInput" placeholder="Area name" style="margin-bottom:12px">
     <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="saveEditArea()">Save</button>
     <button class="btn btn-ghost" style="width:100%;color:#c8440e" onclick="deleteCurrentArea()">Delete Area</button>
@@ -969,8 +964,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="userOverlay" onclick="if(event.target===this)closeUserModal()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="width:36px;height:4px;background:#ddd9d0;border-radius:2px;margin:auto 0"></div><button onclick="closeUserModal()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:400;line-height:1">✕</button></div>
-    <div class="sheet-title">Switch User</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Switch User</span><button onclick="closeUserModal()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div id="userSwitchList"></div>
   </div>
 </div>
@@ -979,8 +973,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="manageCatsOverlay" onclick="if(event.target===this)closeManageCategories()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="width:36px;height:4px;background:#ddd9d0;border-radius:2px;margin:auto 0"></div><button onclick="closeManageCategories()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:400;line-height:1">✕</button></div>
-    <div class="sheet-title">Manage Categories</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Manage Categories</span><button onclick="closeManageCategories()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div id="catList" style="margin-bottom:16px"></div>
     <div style="border-top:1px solid #ddd9d0;padding-top:14px">
       <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Add New Category</label>
@@ -997,8 +990,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="addSupplierOverlay" onclick="if(event.target===this)closeAddSupplier()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="width:36px;height:4px;background:#ddd9d0;border-radius:2px;margin:auto 0"></div><button onclick="closeAddSupplier()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:400;line-height:1">✕</button></div>
-    <div class="sheet-title" id="addSupplierTitle">Add Supplier</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="addSupplierTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Supplier</span><button onclick="closeAddSupplier()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
       <div>
         <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Company Name *</label>
@@ -1029,8 +1021,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="pickSupplierOverlay" onclick="if(event.target===this)closePickSupplier()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="width:36px;height:4px;background:#ddd9d0;border-radius:2px;margin:auto 0"></div><button onclick="closePickSupplier()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:400;line-height:1">✕</button></div>
-    <div class="sheet-title">Assign Suppliers</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Assign Suppliers</span><button onclick="closePickSupplier()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:12px;font-family:var(--mono)">PRIMARY supplier first, then alternatives</p>
     <div id="pickSupplierList"></div>
     <div class="divider"></div>
