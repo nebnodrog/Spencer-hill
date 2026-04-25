@@ -836,11 +836,11 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <div style="flex:1;min-width:0">
     <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px">Category</label>
     <select id="matCatInput" style="width:100%;box-sizing:border-box"></select>
-    <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px;margin-top:3px;width:100%;box-sizing:border-box" onclick="openManageCategories()">+ Edit categories</button>
+    <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px;margin-top:2px;width:100%;box-sizing:border-box" onclick="openManageCategories()">+ Edit categories</button>
   </div>
 </div>
 
-<label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-top:6px;margin-bottom:3px;flex-shrink:0">Assign to Tasks</label>
+<label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-top:3px;margin-bottom:3px;flex-shrink:0">Assign to Tasks</label>
 
 <div style="position:relative;flex:1;min-height:100px;margin-bottom:8px">
   <div id="taskChipsContainer" style="position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:1px solid #ddd9d0;border-bottom:1px solid #ddd9d0;padding:3px 48px 3px 0;box-sizing:border-box"></div>
@@ -849,7 +849,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   </div>
 </div>
 
-<div style="flex-shrink:0">
+<div style="flex-shrink:0;border-top:1px solid #ddd9d0;padding-top:8px">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
     <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578">Suppliers</label>
     <div style="display:flex;align-items:center;gap:6px">
@@ -858,20 +858,21 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     </div>
   </div>
 
-  <input id="matProductUrl" placeholder="https://… product link" style="width:100%;box-sizing:border-box;margin-bottom:6px">
-
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-    <div>
-      <div style="font-family:'DM Mono', monospace;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Total Qty</div>
-      <div style="font-family:'DM Mono', monospace;font-size:10px;color:#8a8578" id="chipTotalHint">enter directly</div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+    <input id="matProductUrl" placeholder="https://… product link" style="flex:1;box-sizing:border-box">
+    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+      <div style="text-align:right">
+        <div style="font-family:'DM Mono', monospace;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Total Qty</div>
+        <div style="font-family:'DM Mono', monospace;font-size:9px;color:#8a8578" id="chipTotalHint">enter directly</div>
+      </div>
+      <input type="number" id="matDirectQty" min="0" step="1" placeholder="0"
+        style="font-family:'DM Mono', monospace;font-size:22px;font-weight:700;text-align:center;padding:2px 6px;width:72px;box-sizing:border-box;border-radius:8px"
+        oninput="syncDirectQty()">
     </div>
-    <input type="number" id="matDirectQty" min="0" step="1" placeholder="0"
-      style="font-family:'DM Mono', monospace;font-size:26px;font-weight:700;text-align:center;padding:2px 8px;width:90px;box-sizing:border-box;border-radius:8px"
-      oninput="syncDirectQty()">
   </div>
   <div id="chipTotalPreview" style="display:none"></div>
 
-<button class="btn btn-accent" style="width:100%;margin-top:2px" onclick="saveMaterial()" id="saveMatBtn">Save Material</button>
+<button class="btn btn-accent" style="width:100%;margin-top:4px" onclick="saveMaterial()" id="saveMatBtn">Save Material</button>
 
 </div>
 
