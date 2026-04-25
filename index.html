@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Project Manager</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -27,6 +27,11 @@
 }
 
 - { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+overflow-x: hidden;
+width: 100%;
+}
 
 body {
 background: #f5f3ee;
@@ -814,7 +819,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div class="sheet-title" id="addMatTitle">Add Material</div>
 
 <div style="margin-bottom:10px">
-  <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Material Name</label>
+  <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Name</label>
   <input id="matNameInput" placeholder="e.g. Bathroom taps">
 </div>
 
@@ -838,9 +843,9 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   </div>
 </div>
 
-<label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px">Assign to Tasks — tap to select, set quantity per task</label>
+<label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px">Assign to Tasks</label>
 
-<div class="area-chips" id="taskChipsContainer"></div>
+<div class="area-chips" id="taskChipsContainer" style="max-height:160px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:4px"></div>
 
 <div class="divider"></div>
 
@@ -855,7 +860,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <div class="divider"></div>
 
 <div style="margin-bottom:10px">
-  <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Product Link (URL)</label>
+  <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Product Link</label>
   <input id="matProductUrl" placeholder="https://… paste product page link">
 </div>
 
