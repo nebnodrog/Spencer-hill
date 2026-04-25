@@ -204,11 +204,14 @@ backdrop-filter: blur(2px);
 .sheet {
 background: #ffffff;
 border-radius: 16px 16px 0 0;
-width: 100%; max-width: 100vw; max-height: 92vh;
+width: 100%; max-width: 100vw;
+height: 92vh;
 overflow-y: auto; overflow-x: hidden;
-padding: 12px 16px 32px;
+padding: 12px 16px 16px;
 animation: slideUp 0.25s ease;
 box-sizing: border-box;
+display: flex;
+flex-direction: column;
 }
 @keyframes slideUp {
 from { transform: translateY(30px); opacity: 0; }
@@ -815,11 +818,11 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="addMatOverlay" onclick="if(event.target===this)closeAddMat()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span id="addMatTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Material</span><button onclick="closeAddMat()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-shrink:0"><span id="addMatTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Material</span><button onclick="closeAddMat()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
 
-<input id="matNameInput" placeholder="Material name" style="margin-bottom:8px;box-sizing:border-box;width:100%">
+<input id="matNameInput" placeholder="Material name" style="margin-bottom:6px;box-sizing:border-box;width:100%;flex-shrink:0">
 
-<div style="display:flex;gap:8px;margin-bottom:4px;align-items:flex-start">
+<div style="display:flex;gap:8px;margin-bottom:0;align-items:flex-start;flex-shrink:0">
   <div style="flex:1;min-width:0">
     <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px">Unit</label>
     <select id="matUnitInput" style="width:100%;box-sizing:border-box">
@@ -833,38 +836,44 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <div style="flex:1;min-width:0">
     <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px">Category</label>
     <select id="matCatInput" style="width:100%;box-sizing:border-box"></select>
-    <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px;margin-top:4px;width:100%;box-sizing:border-box" onclick="openManageCategories()">+ Edit categories</button>
+    <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px;margin-top:3px;width:100%;box-sizing:border-box" onclick="openManageCategories()">+ Edit categories</button>
   </div>
 </div>
 
-<label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-top:6px;margin-bottom:3px">Assign to Tasks</label>
+<label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-top:6px;margin-bottom:3px;flex-shrink:0">Assign to Tasks</label>
 
-<div style="position:relative;margin-bottom:10px">
-  <div id="taskChipsContainer" style="max-height:260px;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:1px solid #ddd9d0;border-bottom:1px solid #ddd9d0;padding:3px 48px 3px 0;box-sizing:border-box"></div>
+<div style="position:relative;flex:1;min-height:100px;margin-bottom:8px">
+  <div id="taskChipsContainer" style="position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:1px solid #ddd9d0;border-bottom:1px solid #ddd9d0;padding:3px 48px 3px 0;box-sizing:border-box"></div>
   <div style="position:absolute;right:0;top:0;bottom:0;width:44px;background:linear-gradient(to right,transparent,#edeae3 50%);display:flex;align-items:center;justify-content:center;pointer-events:none">
     <span style="font-size:20px;color:#8a8578;user-select:none">⋮</span>
   </div>
 </div>
 
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-  <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578">Suppliers</label>
-  <div style="display:flex;align-items:center;gap:6px">
-    <div id="matSupplierPreview" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"></div>
-    <button class="btn btn-ghost btn-sm" onclick="openPickSupplier()">Select</button>
+<div style="flex-shrink:0">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+    <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578">Suppliers</label>
+    <div style="display:flex;align-items:center;gap:6px">
+      <div id="matSupplierPreview" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"></div>
+      <button class="btn btn-ghost btn-sm" onclick="openPickSupplier()">Select</button>
+    </div>
   </div>
+
+  <input id="matProductUrl" placeholder="https://… product link" style="width:100%;box-sizing:border-box;margin-bottom:6px">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+    <div>
+      <div style="font-family:'DM Mono', monospace;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Total Qty</div>
+      <div style="font-family:'DM Mono', monospace;font-size:10px;color:#8a8578" id="chipTotalHint">enter directly</div>
+    </div>
+    <input type="number" id="matDirectQty" min="0" step="1" placeholder="0"
+      style="font-family:'DM Mono', monospace;font-size:26px;font-weight:700;text-align:center;padding:2px 8px;width:90px;box-sizing:border-box;border-radius:8px"
+      oninput="syncDirectQty()">
+  </div>
+  <div id="chipTotalPreview" style="display:none"></div>
+
+<button class="btn btn-accent" style="width:100%;margin-top:2px" onclick="saveMaterial()" id="saveMatBtn">Save Material</button>
+
 </div>
-
-<input id="matProductUrl" placeholder="https://… product link" style="width:100%;box-sizing:border-box;margin-bottom:6px">
-
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-  <span style="font-family:'DM Mono', monospace;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Total Qty <span id="chipTotalHint" style="font-weight:400;color:#8a8578;font-size:10px"></span></span>
-  <input type="number" id="matDirectQty" min="0" step="1" placeholder="0"
-    style="font-family:'DM Mono', monospace;font-size:20px;font-weight:600;text-align:center;padding:4px 8px;width:80px;box-sizing:border-box"
-    oninput="syncDirectQty()">
-</div>
-<div id="chipTotalPreview" style="display:none"></div>
-
-<button class="btn btn-accent" style="width:100%;margin-top:4px" onclick="saveMaterial()" id="saveMatBtn">Save Material</button>
 
   </div>
 </div>
@@ -2135,10 +2144,10 @@ function updateTotalPreview() {
   const hintEl = document.getElementById('chipTotalHint');
   if (taskTotal > 0) {
     if (directEl) { directEl.value = taskTotal; directEl.readOnly = true; directEl.style.opacity = '0.6'; }
-    if (hintEl) hintEl.textContent = '(from tasks)';
+    if (hintEl) hintEl.textContent = 'from tasks';
   } else {
     if (directEl) { directEl.readOnly = false; directEl.style.opacity = '1'; }
-    if (hintEl) hintEl.textContent = '';
+    if (hintEl) hintEl.textContent = 'enter directly';
   }
 }
 
