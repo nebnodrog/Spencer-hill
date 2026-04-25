@@ -819,7 +819,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <input id="matNameInput" placeholder="Material name" style="margin-bottom:8px;box-sizing:border-box;width:100%">
 
-<div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start">
+<div style="display:flex;gap:8px;margin-bottom:4px;align-items:flex-start">
   <div style="flex:1;min-width:0">
     <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px">Unit</label>
     <select id="matUnitInput" style="width:100%;box-sizing:border-box">
@@ -837,28 +837,30 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   </div>
 </div>
 
-<label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px">Assign to Tasks</label>
+<label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px;margin-top:8px">Assign to Tasks</label>
 
-<div class="area-chips" id="taskChipsContainer" style="max-height:220px;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-bottom:8px"></div>
+<div class="area-chips" id="taskChipsContainer" style="max-height:260px;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:1px solid #ddd9d0;border-bottom:1px solid #ddd9d0;padding:8px 0 8px 0;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start"></div>
 
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
   <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578">Suppliers</label>
-  <button class="btn btn-ghost btn-sm" onclick="openPickSupplier()">Select</button>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div id="matSupplierPreview" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"></div>
+    <button class="btn btn-ghost btn-sm" onclick="openPickSupplier()">Select</button>
+  </div>
 </div>
-<div id="matSupplierPreview" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
 
-<input id="matProductUrl" placeholder="https://… product link" style="margin-bottom:8px;box-sizing:border-box;width:100%">
-
-<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;margin-bottom:4px">
-  <span style="font-family:'DM Mono', monospace;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Total Qty <span id="chipTotalHint" style="font-weight:400;color:#8a8578"></span></span>
-  <input type="number" id="matDirectQty" min="0" step="1" placeholder="0"
-    style="font-family:'DM Mono', monospace;font-size:20px;font-weight:600;text-align:center;padding:4px 8px;width:80px;box-sizing:border-box;flex-shrink:0"
-    oninput="syncDirectQty()">
+<div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+  <input id="matProductUrl" placeholder="https://… product link" style="flex:1;box-sizing:border-box;font-size:12px;padding:6px 10px">
+  <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+    <span style="font-family:'DM Mono', monospace;font-size:11px;font-weight:600;color:#1a1916;white-space:nowrap">Total Qty <span id="chipTotalHint" style="font-weight:400;color:#8a8578"></span></span>
+    <input type="number" id="matDirectQty" min="0" step="1" placeholder="0"
+      style="font-family:'DM Mono', monospace;font-size:18px;font-weight:600;text-align:center;padding:4px 6px;width:70px;box-sizing:border-box"
+      oninput="syncDirectQty()">
+  </div>
 </div>
 <div id="chipTotalPreview" style="display:none"></div>
 
-<div class="divider"></div>
-<button class="btn btn-accent" style="width:100%;margin-top:4px" onclick="saveMaterial()" id="saveMatBtn">Save Material</button>
+<button class="btn btn-accent" style="width:100%;margin-top:10px" onclick="saveMaterial()" id="saveMatBtn">Save Material</button>
 
   </div>
 </div>
@@ -2348,12 +2350,7 @@ function renderMatSupplierPreview() {
   el.innerHTML = matSelectedSuppliers.map((entry,i)=>{
     const s = S.suppliers.find(x=>x.id===entry.supplierId);
     if (!s) return '';
-    return `
-      <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:7px;padding:7px 10px">
-        <span style="font-family:var(--mono);font-size:10px;background:${i===0?'var(--ink)':'var(--border)'};color:${i===0?'#fff':'var(--muted)'};padding:1px 6px;border-radius:3px;flex-shrink:0">${i===0?'PRIMARY':'ALT'}</span>
-        <span style="font-size:13px;font-weight:600;flex:1">${s.name}</span>
-        ${entry.productUrl?`<a href="${entry.productUrl}" target="_blank" style="font-family:var(--mono);font-size:10px;color:var(--accent)">🔗</a>`:''}
-      </div>`;
+    return `<span style="font-family:'DM Mono', monospace;font-size:11px;background:${i===0?'#1a1916':'#ddd9d0'};color:${i===0?'#fff':'#8a8578'};padding:2px 8px;border-radius:4px">${i===0?'✓ ':''} ${s.name}</span>`;
   }).join('');
 }
 // ═══════════════ DIARY ═══════════════
