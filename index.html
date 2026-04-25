@@ -815,16 +815,13 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="addMatOverlay" onclick="if(event.target===this)closeAddMat()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="addMatTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Material</span><button onclick="closeAddMat()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><span id="addMatTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Material</span><button onclick="closeAddMat()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
 
-<div style="margin-bottom:10px">
-  <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Name</label>
-  <input id="matNameInput" placeholder="e.g. Bathroom taps">
-</div>
+<input id="matNameInput" placeholder="Material name" style="margin-bottom:8px">
 
-<div class="row" style="margin-bottom:14px;gap:8px">
+<div class="row" style="margin-bottom:8px;gap:8px">
   <div style="flex:1">
-    <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Unit</label>
+    <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Unit</label>
     <select id="matUnitInput">
       <option>units</option><option>metres</option><option>sqm</option>
       <option>litres</option><option>sheets</option><option>tins</option>
@@ -834,22 +831,20 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     </select>
   </div>
   <div style="flex:1">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-      <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Category</label>
-      <button class="btn btn-ghost btn-sm" style="font-size:11px;padding:2px 8px" onclick="openManageCategories()">+ Edit categories</button>
-    </div>
+    <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Category</label>
     <select id="matCatInput" style="width:100%"></select>
+    <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px;margin-top:4px;width:100%" onclick="openManageCategories()">+ Edit categories</button>
   </div>
 </div>
 
-<label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px">Assign to Tasks</label>
+<label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Assign to Tasks</label>
 
 <div class="area-chips" id="taskChipsContainer" style="max-height:160px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:4px"></div>
 
 <div class="divider"></div>
 
-<div style="margin-bottom:14px">
-  <div class="row" style="justify-content:space-between;margin-bottom:8px">
+<div style="margin-bottom:8px">
+  <div class="row" style="justify-content:space-between;margin-bottom:6px">
     <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Suppliers</label>
     <button class="btn btn-ghost btn-sm" onclick="openPickSupplier()">Select</button>
   </div>
@@ -858,23 +853,17 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="divider"></div>
 
-<div style="margin-bottom:10px">
-  <label style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Product Link</label>
-  <input id="matProductUrl" placeholder="https://… paste product page link">
-</div>
+<input id="matProductUrl" placeholder="https://… product link" style="margin-bottom:8px">
 
 <div class="divider"></div>
 
-<div style="margin-bottom:6px">
-  <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px">
-    <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">TOTAL QUANTITY NEEDED</span>
-    <span style="font-family:var(--mono);font-size:11px;color:var(--muted)" id="chipTotalHint"></span>
-  </div>
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+  <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);flex:1">Total Qty <span id="chipTotalHint" style="opacity:0.6"></span></span>
   <input type="number" id="matDirectQty" min="0" step="1" placeholder="0"
-    style="font-family:var(--mono);font-size:18px;font-weight:500;text-align:center;padding:8px"
+    style="font-family:var(--mono);font-size:16px;font-weight:500;text-align:center;padding:6px;width:80px;flex-shrink:0"
     oninput="syncDirectQty()">
-  <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px" id="chipTotalPreview"></div>
 </div>
+<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:8px" id="chipTotalPreview"></div>
 
 <div class="divider"></div>
 <button class="btn btn-accent" style="width:100%;margin-top:4px" onclick="saveMaterial()" id="saveMatBtn">Save Material</button>
