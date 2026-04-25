@@ -839,7 +839,11 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px;margin-top:8px">Assign to Tasks</label>
 
-<div class="area-chips" id="taskChipsContainer" style="max-height:260px;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:1px solid #ddd9d0;border-bottom:1px solid #ddd9d0;padding:8px 0 8px 0;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start"></div>
+<div id="taskChipsContainer" style="max-height:260px;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:1px solid #ddd9d0;border-bottom:1px solid #ddd9d0;padding:4px 32px 4px 0;margin-bottom:10px;position:relative">
+  <div style="position:absolute;right:0;top:0;bottom:0;width:28px;background:linear-gradient(to right,transparent,#f5f3ee);display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1">
+    <span style="font-size:16px;color:#8a8578;writing-mode:vertical-rl;letter-spacing:2px;user-select:none">⋮⋮</span>
+  </div>
+</div>
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
   <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578">Suppliers</label>
@@ -2076,43 +2080,29 @@ function renderTaskChips() {
     const sel = !!chipState[t.id];
     const qty = chipState[t.id]||1;
     const areas = (t.areaIds||[]).map(id=>areaName(id)).join(', ');
-    return `
-      <div class="area-chip ${sel?'selected':''}" id="chip-${t.id}">
-        <span style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:none;font-size:13px;font-weight:500">${t.text}</span>
-        <span style="font-family:var(--mono);font-size:9px;opacity:0.7;margin-left:2px;pointer-events:none">${areas}</span>
-        <span class="area-chip-qty">
-          <input type="number" min="1" step="1"
-            id="chipqty-${t.id}"
-            value="${qty}"
-            style="width:48px;font-family:var(--mono);font-size:13px;text-align:center;padding:2px 4px;border:1px solid rgba(255,255,255,0.3);border-radius:4px;background:rgba(255,255,255,0.15);color:#fff;-webkit-appearance:none"
-            onclick="event.stopPropagation()"
-            ontouchend="event.stopPropagation()"
-            onchange="event.stopPropagation();setChipQty('${t.id}',this.value)"
-            oninput="event.stopPropagation();setChipQty('${t.id}',this.value)">
-        </span>
-      </div>`;
+    return `<div id="chip-${t.id}" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;margin-bottom:3px;background:${sel?'#1a1916':'#f5f3ee'};box-sizing:border-box;width:100%;cursor:pointer;user-select:none">
+      <div style="flex:1;min-width:0;pointer-events:none">
+        <div style="font-size:13px;font-weight:500;color:${sel?'#fff':'#1a1916'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.text}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:${sel?'#aaa':'#8a8578'};pointer-events:none">${areas}</div>
+      </div>
+      ${sel ? `<input type="number" id="chipqty-${t.id}" value="${qty}" min="1" step="1"
+        style="width:52px;font-family:'DM Mono',monospace;font-size:16px;font-weight:600;text-align:center;padding:2px 4px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;box-sizing:border-box;flex-shrink:0"
+        onclick="event.stopPropagation()" ontouchend="event.stopPropagation()"
+        onchange="setChipQty('${t.id}',this.value)" oninput="setChipQty('${t.id}',this.value)">` : ''}
+    </div>`;
   }).join('');
-  // Use touchend on container with target detection — no re-render on toggle
-  container.ontouchstart = null;
   container.ontouchend = function(e) {
-    const chip = e.target.closest('.area-chip');
+    if (e.target.closest('input[type="number"]')) return;
+    const chip = e.target.closest('[id^="chip-"]');
     if (!chip) return;
-    if (e.target.closest('.chip-qty-btn')) return;
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); e.stopPropagation();
     const now = Date.now();
-    if (now - _lastChipToggle < 500) return;
+    if (now - _lastChipToggle < 400) return;
     _lastChipToggle = now;
-    const id = chip.id.replace('chip-','');
-    if (chipState[id]) {
-      delete chipState[id];
-      chip.classList.remove('selected');
-    } else {
-      chipState[id] = 1;
-      chip.classList.add('selected');
-      const qtyEl = chip.querySelector('input[type="number"]');
-      if (qtyEl) qtyEl.value = 1;
-    }
+    const id = chip.id.slice(5);
+    if (chipState[id]) { delete chipState[id]; }
+    else { chipState[id] = 1; }
+    renderTaskChips();
     updateTotalPreview();
   };
   updateTotalPreview();
