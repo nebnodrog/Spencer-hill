@@ -837,21 +837,19 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   </div>
 </div>
 
-<label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Assign to Tasks</label>
+<label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px">Assign to Tasks</label>
 
-<div class="area-chips" id="taskChipsContainer" style="max-height:160px;overflow-y:auto;-webkit-overflow-scrolling:touch"></div>
-
-<div class="divider"></div>
+<div class="area-chips" id="taskChipsContainer" style="max-height:220px;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-bottom:8px"></div>
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
   <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578">Suppliers</label>
   <button class="btn btn-ghost btn-sm" onclick="openPickSupplier()">Select</button>
 </div>
-<div id="matSupplierPreview" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
+<div id="matSupplierPreview" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
 
-<input id="matProductUrl" placeholder="https://… product link" style="margin-bottom:10px;box-sizing:border-box;width:100%">
+<input id="matProductUrl" placeholder="https://… product link" style="margin-bottom:8px;box-sizing:border-box;width:100%">
 
-<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;margin-bottom:4px">
   <span style="font-family:'DM Mono', monospace;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Total Qty <span id="chipTotalHint" style="font-weight:400;color:#8a8578"></span></span>
   <input type="number" id="matDirectQty" min="0" step="1" placeholder="0"
     style="font-family:'DM Mono', monospace;font-size:20px;font-weight:600;text-align:center;padding:4px 8px;width:80px;box-sizing:border-box;flex-shrink:0"
