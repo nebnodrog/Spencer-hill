@@ -1005,15 +1005,15 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   </div>
 </div>
 
-<div style="display:flex;gap:16px;margin-bottom:6px;flex-shrink:0">
-  <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
-    <input type="radio" name="bulkOrderType" id="bulkIsDelivery" value="delivery" checked style="width:18px;height:18px">
+<div style="display:flex;gap:0;margin-bottom:8px;flex-shrink:0;border:1px solid #ddd9d0;border-radius:8px;overflow:hidden">
+  <button id="bulkTypeDelivery" onclick="setBulkType('delivery')"
+    style="flex:1;padding:8px;font-size:13px;border:none;background:#1a1916;color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif">
     🚚 Delivery
-  </label>
-  <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
-    <input type="radio" name="bulkOrderType" id="bulkIsCollection" value="collection" style="width:18px;height:18px">
+  </button>
+  <button id="bulkTypeCollection" onclick="setBulkType('collection')"
+    style="flex:1;padding:8px;font-size:13px;border:none;background:#fff;color:#1a1916;cursor:pointer;font-family:'DM Sans',sans-serif">
     🚗 Collection
-  </label>
+  </button>
 </div>
 
 <label style="font-family:'DM Mono', monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px;flex-shrink:0">Select Materials to Order</label>
@@ -3133,6 +3133,15 @@ function switchUser(i) { S.currentUser=i; renderHeader(); closeUserModal(); }
 
 // ═══════════════ BULK ORDER ═══════════════
 const bulkSelected = new Set(); // matIds selected
+let bulkOrderType = 'delivery';
+
+function setBulkType(type) {
+  bulkOrderType = type;
+  document.getElementById('bulkTypeDelivery').style.background = type==='delivery' ? '#1a1916' : '#fff';
+  document.getElementById('bulkTypeDelivery').style.color = type==='delivery' ? '#fff' : '#1a1916';
+  document.getElementById('bulkTypeCollection').style.background = type==='collection' ? '#1a1916' : '#fff';
+  document.getElementById('bulkTypeCollection').style.color = type==='collection' ? '#fff' : '#1a1916';
+}
 
 function openBulkOrder() {
   bulkSelected.clear();
@@ -3142,8 +3151,8 @@ function openBulkOrder() {
     S.suppliers.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
   // Default date to today
   document.getElementById('bulkDateInput').value = new Date().toISOString().slice(0,10);
-  document.getElementById('bulkIsDelivery').checked = true;
-  document.getElementById('bulkIsCollection').checked = false;
+  bulkOrderType = 'delivery';
+  setBulkType('delivery');
   renderBulkMaterialList();
   document.getElementById('bulkOrderOverlay').classList.add('open');
 }
@@ -3229,7 +3238,7 @@ async function placeBulkOrder() {
   if (bulkSelected.size === 0) { alert('Please select at least one material'); return; }
   const supplierId = document.getElementById('bulkSupplierInput').value || null;
   const date = document.getElementById('bulkDateInput').value || null;
-  const isCollection = document.getElementById('bulkIsCollection').checked;
+  const isCollection = bulkOrderType === 'collection';
   const today = new Date().toISOString().slice(0,10);
 
   for (const matId of bulkSelected) {
