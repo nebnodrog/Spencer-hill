@@ -144,7 +144,7 @@ margin-bottom: 6px;
 }
 
 /* ── INPUTS ── */
-input, select, textarea {
+input, select:not(.status-sel), textarea {
 font-family: ‘DM Sans’, sans-serif;
 font-size: 14px;
 color: #1a1916;
@@ -287,8 +287,9 @@ font-family: ‘DM Mono’, monospace;
 .status-sel {
 font-family: ‘DM Mono’, monospace; font-size: 11px; font-weight: 500;
 padding: 3px 8px; border-radius: 5px; border: none;
-cursor: pointer; outline: none; -webkit-appearance: none;
+cursor: pointer; outline: none;
 background: #fffbeb; color: #b45309;
+min-width: 72px; width: auto;
 }
 .status-sel.s-ordered { background: #eff3ff; color: #1d4ed8; }
 .status-sel.s-delivered { background: #f0fdf4; color: #15803d; }
@@ -2403,12 +2404,14 @@ function renderMatSupplierPreview() {
 }
 // ═══════════════ DIARY ═══════════════
 function renderDiary() {
-  // All orders with an expected delivery date, not yet delivered, sorted by date
   const today = new Date().toISOString().slice(0,10);
 
   const upcoming = S.orders
-    .filter(o => o.expectedDelivery && o.status !== 'cancelled')
-    .sort((a,b) => (a.expectedDelivery||'').localeCompare(b.expectedDelivery||''));
+    .filter(o => o.status !== 'cancelled' && (o.expectedDelivery || o.deliveredAt))
+    .sort((a,b) => {
+      const da = o => o.status==='delivered' ? (o.deliveredAt||o.expectedDelivery) : o.expectedDelivery;
+      return (da(a)||'').localeCompare(da(b)||'');
+    });
 
   if (!upcoming.length) {
     document.getElementById('diaryList').innerHTML = `
@@ -2420,20 +2423,21 @@ function renderDiary() {
     return;
   }
 
-  // Group by date
+  // Group by date — delivered items use deliveredAt, pending use expectedDelivery
   const byDate = {};
   upcoming.forEach(o => {
-    const d = o.expectedDelivery;
+    const d = o.status==='delivered' ? (o.deliveredAt||o.expectedDelivery) : o.expectedDelivery;
+    if (!d) return;
     (byDate[d]||(byDate[d]=[])).push(o);
   });
 
-  const formatDate = (d) => {
+  const formatDate = (d, allDelivered) => {
     const dt = new Date(d + 'T00:00:00');
     const diff = Math.round((dt - new Date(today + 'T00:00:00')) / 86400000);
     const dayStr = dt.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
     if (diff === 0) return `Today — ${dayStr}`;
     if (diff === 1) return `Tomorrow — ${dayStr}`;
-    if (diff < 0) return `Overdue (${fmtDate(d)}) — ${dayStr}`;
+    if (diff < 0 && !allDelivered) return `Overdue (${fmtDate(d)}) — ${dayStr}`;
     return `${fmtDate(d)} — ${dayStr}`;
   };
 
@@ -2441,9 +2445,10 @@ function renderDiary() {
     const orders = byDate[date];
     const dt = new Date(date + 'T00:00:00');
     const diff = Math.round((dt - new Date(today + 'T00:00:00')) / 86400000);
-    const isOverdue = diff < 0;
+    const allDelivered = orders.every(o => o.status === 'delivered');
+    const isOverdue = diff < 0 && !allDelivered;
     const isToday = diff === 0;
-    const headerColor = isOverdue ? 'var(--accent)' : isToday ? 'var(--green)' : 'var(--ink)';
+    const headerColor = isOverdue ? 'var(--accent)' : isToday ? 'var(--green)' : allDelivered && diff < 0 ? 'var(--muted)' : 'var(--ink)';
 
     return `
       <div style="margin-bottom:16px">
@@ -2456,7 +2461,7 @@ function renderDiary() {
           const sup = o.supplierId ? S.suppliers.find(x=>x.id===o.supplierId) : null;
           const isDelivered = o.status === 'delivered';
           return `
-            <div style="background:var(--surface);border:1px solid ${isDelivered?'var(--green)':isOverdue?'var(--accent)':'var(--border)'};border-radius:10px;padding:12px 14px;margin-bottom:6px;${isDelivered?'opacity:0.6':''}">
+            <div style="background:var(--surface);border:1px solid ${isDelivered?'var(--green)':isOverdue?'var(--accent)':'var(--border)'};border-radius:10px;padding:12px 14px;margin-bottom:6px;${isDelivered?'opacity:0.7':''}">
               <div class="row" style="justify-content:space-between;margin-bottom:6px">
                 <div>
                   <div style="font-size:14px;font-weight:500">${o.isCollection ? '🚗 ' : '🚚 '}${m.name}</div>
@@ -2539,13 +2544,13 @@ function renderOrdersPage() {
   const el = document.getElementById('ordersList');
   let html = '';
 
-  // ── NEEDS ORDERING section ── materials with outstanding qty
+  // ── NEEDS ORDERING section ── only show for 'all' or 'pending' filter
   if (orderFilter === 'all' || orderFilter === 'pending') {
     const needsOrdering = S.materials.filter(m => {
       const needed = totalQty(m);
-      if (needed === 0) return false;
+      if (needed <= 0) return false;
       const accounted = S.orders
-        .filter(o => o.matId === m.id && o.status !== 'cancelled')
+        .filter(o => o.matId === m.id && o.status !== 'cancelled' && o.status !== 'delivered')
         .reduce((s,o) => s + Number(o.qty), 0);
       return accounted < needed;
     });
@@ -2554,18 +2559,19 @@ function renderOrdersPage() {
       html += `<div class="section-head" style="color:#b45309;border-color:#b45309;margin-bottom:8px">Needs Ordering</div>`;
       html += needsOrdering.map(m => {
         const needed = totalQty(m);
-        const accounted = S.orders.filter(o=>o.matId===m.id&&o.status!=='cancelled').reduce((s,o)=>s+Number(o.qty),0);
+        const accounted = S.orders.filter(o=>o.matId===m.id&&o.status!=='cancelled'&&o.status!=='delivered').reduce((s,o)=>s+Number(o.qty),0);
         const outstanding = needed - accounted;
+        if (outstanding <= 0) return '';
         const sup = (m.suppliers||[])[0] ? S.suppliers.find(x=>x.id===m.suppliers[0].supplierId) : null;
         return `
           <div style="background:#fffbeb;border:1px solid #b45309;border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px">
             <div style="flex:1;min-width:0">
               <div style="font-size:14px;font-weight:500">${m.name}</div>
-              <div style="font-family:var(--mono);font-size:11px;color:#b45309;margin-top:2px">${outstanding} ${m.unit} still to order${sup?' · '+sup.name:''}</div>
+              <div style="font-family:var(--mono);font-size:11px;color:#b45309;margin-top:2px">${outstanding} ${m.unit} to order${sup?' · '+sup.name:''}</div>
             </div>
             <button class="btn btn-accent btn-sm" style="flex-shrink:0;font-size:11px" onclick="openOrderModal('${m.id}')">+ Order</button>
           </div>`;
-      }).join('');
+      }).filter(Boolean).join('');
       html += `<div style="height:12px"></div>`;
     }
   }
@@ -2638,18 +2644,20 @@ function renderOrdersBySupplier(orders) {
   const supplierIds = new Set();
   // From active orders
   activeOrders.forEach(o => supplierIds.add(o.supplierId||'none'));
-  // Also add suppliers for materials that need ordering (outstanding qty not covered by active orders)
-  S.materials.forEach(m => {
-    const needed = totalQty(m);
-    if (needed === 0) return;
-    const accounted = S.orders
-      .filter(o=>o.matId===m.id && o.status!=='cancelled' && o.status!=='delivered')
-      .reduce((s,o)=>s+Number(o.qty), 0);
-    if (accounted < needed) {
-      const supId = (m.suppliers||[])[0]?.supplierId || 'none';
-      supplierIds.add(supId);
-    }
-  });
+  // Also add suppliers for materials that need ordering (only when filter allows)
+  if (orderFilter === 'all' || orderFilter === 'pending') {
+    S.materials.forEach(m => {
+      const needed = totalQty(m);
+      if (needed <= 0) return;
+      const accounted = S.orders
+        .filter(o=>o.matId===m.id && o.status!=='cancelled' && o.status!=='delivered')
+        .reduce((s,o)=>s+Number(o.qty), 0);
+      if (accounted < needed) {
+        const supId = (m.suppliers||[])[0]?.supplierId || 'none';
+        supplierIds.add(supId);
+      }
+    });
+  }
 
   if (!supplierIds.size) return `
     <div style="text-align:center;padding:32px 20px;color:#8a8578">
@@ -2670,19 +2678,17 @@ function renderOrdersBySupplier(orders) {
     const supName = sup ? sup.name : 'No Supplier Assigned';
     const isExpanded = expandedOrderGroups.has(supId);
 
-    // Materials needing ordering for this supplier — only show if outstanding qty > 0
-    const needsOrdering = S.materials.filter(m => {
+    // Materials needing ordering for this supplier — only show when filter allows it
+    const needsOrdering = (orderFilter === 'all' || orderFilter === 'pending') ? S.materials.filter(m => {
       const needed = totalQty(m);
-      if (needed === 0) return false;
-      // Only count non-cancelled, non-delivered orders as covering qty
+      if (needed <= 0) return false;
       const accounted = S.orders
         .filter(o => o.matId===m.id && o.status!=='cancelled' && o.status!=='delivered')
         .reduce((s,o)=>s+Number(o.qty), 0);
       if (accounted >= needed) return false;
-      // Assign to supplier group based on primary supplier
       const primarySup = (m.suppliers||[])[0]?.supplierId || 'none';
       return primarySup === supId;
-    });
+    }) : [];
 
     // Active orders for this supplier - split by collection vs delivery
     const supOrders = activeOrders.filter(o => (o.supplierId||'none') === supId);
