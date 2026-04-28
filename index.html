@@ -3293,12 +3293,21 @@ async function sbGet(table, params='') {
 }
 
 async function saveRecord(table, record) {
-  const res = await fetch(`${SB_URL}/${table}`, {
-    method: 'POST',
-    headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-    body: JSON.stringify(record)
-  });
-  if (!res.ok) { const t = await res.text(); console.error(`Save ${table}:`, t); }
+  try {
+    const res = await fetch(`${SB_URL}/${table}`, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(record)
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      console.error(`Save ${table} failed:`, t, record);
+      showToast(`⚠️ Save failed — check connection`);
+    }
+  } catch(e) {
+    console.error(`Save ${table} error:`, e);
+    showToast(`⚠️ Save failed — check connection`);
+  }
 }
 
 async function deleteRecord(table, id) {
