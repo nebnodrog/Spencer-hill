@@ -540,11 +540,11 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <div class="sheet">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Project Settings</span><button onclick="closeProjectSettings()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div style="margin-bottom:14px">
-      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Project Name</label>
+      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Project Name</label>
       <input id="projectNameInput" placeholder="e.g. Spencer Hill">
     </div>
     <div style="margin-bottom:14px">
-      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Project Description</label>
+      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Project Description</label>
       <input id="projectDescInput" placeholder="e.g. Block conversion and refurbishment">
     </div>
     <button class="btn btn-primary" style="width:100%" onclick="saveProjectSettings()">Save</button>
@@ -742,18 +742,18 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <div class="overlay" id="orderModalOverlay" onclick="if(event.target===this)closeOrderModal()">
   <div class="sheet">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="orderModalTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Place Order</span><button onclick="closeOrderModal()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
-    <div style="background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:14px">
+    <div style="background:#edeae3;border-radius:8px;padding:10px 12px;margin-bottom:14px">
       <div style="font-size:13px;font-weight:600" id="orderMatName"></div>
-      <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:2px" id="orderMatMeta"></div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-top:2px" id="orderMatMeta"></div>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
       <div class="row" style="gap:8px">
         <div style="flex:1">
-          <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Quantity *</label>
+          <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Quantity *</label>
           <input id="orderQtyInput" type="number" min="0.1" step="0.1" placeholder="0">
         </div>
         <div style="flex:1">
-          <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Status</label>
+          <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Status</label>
           <select id="orderStatusInput">
             <option value="pending">Pending</option>
             <option value="ordered">Ordered</option>
@@ -763,14 +763,14 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
         </div>
       </div>
       <div>
-        <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Supplier</label>
+        <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Supplier</label>
         <select id="orderSupplierInput"></select>
       </div>
 
 ```
   <!-- Delivery / Collection toggle -->
   <div>
-    <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px">Fulfilment Type</label>
+    <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:8px">Fulfilment Type</label>
     <div style="display:flex;gap:0;border:1px solid #ddd9d0;border-radius:8px;overflow:hidden;margin-bottom:14px">
       <button id="btnDelivery" onclick="setCollectionMode(false)"
         style="flex:1;padding:10px;font-size:14px;border:none;cursor:pointer;background:#1a1916;color:#fff;font-weight:500">
@@ -785,15 +785,15 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   </div>
 
   <div>
-    <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Order Date</label>
+    <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Order Date</label>
     <input id="orderDateInput" type="date" style="margin-bottom:12px">
   </div>
   <div id="deliveryDateRow">
-    <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px" id="deliveryDateLabel">Expected Delivery Date</label>
+    <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px" id="deliveryDateLabel">Expected Delivery Date</label>
     <input id="orderDeliveredInput" type="date">
   </div>
   <div>
-    <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Notes</label>
+    <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Notes</label>
     <input id="orderNotesInput" placeholder="e.g. 2nd fix batch, check colour match">
   </div>
 </div>
@@ -888,23 +888,23 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="addTaskTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Task</span><button onclick="closeAddTask()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
 
 <div style="margin-bottom:10px">
-  <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Description</label>
+  <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Description</label>
   <input id="taskTextInput" placeholder="What needs doing…">
 </div>
 
 <div style="margin-bottom:10px">
-  <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Area</label>
+  <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Area</label>
   <div class="area-chips" id="taskAreaChips"></div>
 </div>
 
 <div style="margin-bottom:14px">
-  <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Assign to</label>
+  <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Assign to</label>
   <div class="area-chips" id="taskPersonChips"></div>
 </div>
 
 <div id="taskMatsSection" style="display:none;margin-bottom:14px">
   <div class="row" style="justify-content:space-between;margin-bottom:8px">
-    <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Materials</label>
+    <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578">Materials</label>
     <button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="openAddMatForCurrentTask()">+ Add material</button>
   </div>
   <div id="taskMatsList"></div>
@@ -920,7 +920,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <div class="overlay" id="reassignOverlay" onclick="if(event.target===this)closeReassign()">
   <div class="sheet">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Reassign Task</span><button onclick="closeReassign()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
-    <div style="font-size:14px;color:var(--muted);margin-bottom:14px;font-style:italic" id="reassignTaskName"></div>
+    <div style="font-size:14px;color:#8a8578;margin-bottom:14px;font-style:italic" id="reassignTaskName"></div>
     <div id="reassignPersonList"></div>
   </div>
 </div>
@@ -1039,23 +1039,23 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="addSupplierTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Supplier</span><button onclick="closeAddSupplier()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
       <div>
-        <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Company Name *</label>
+        <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Company Name *</label>
         <input id="supNameInput" placeholder="e.g. Travis Perkins">
       </div>
       <div>
-        <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Phone</label>
+        <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Phone</label>
         <input id="supPhoneInput" placeholder="e.g. 01234 567890" type="tel">
       </div>
       <div>
-        <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Website</label>
+        <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Website</label>
         <input id="supWebInput" placeholder="e.g. travisperkins.co.uk" type="url">
       </div>
       <div>
-        <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Account Number</label>
+        <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Account Number</label>
         <input id="supAccInput" placeholder="e.g. ACC-12345">
       </div>
       <div>
-        <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px">Notes</label>
+        <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Notes</label>
         <input id="supNotesInput" placeholder="e.g. Ask for Dave, 10% trade discount">
       </div>
     </div>
@@ -1068,7 +1068,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <div class="overlay" id="pickSupplierOverlay" onclick="if(event.target===this)closePickSupplier()">
   <div class="sheet">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Assign Suppliers</span><button onclick="closePickSupplier()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;font-family:'DM Mono',monospace">PRIMARY supplier first, then alternatives</p>
+    <p style="font-size:13px;color:#8a8578;margin-bottom:12px;font-family:'DM Mono',monospace">PRIMARY supplier first, then alternatives</p>
     <div id="pickSupplierList"></div>
     <div class="divider"></div>
     <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px" onclick="closePickSupplier();openAddSupplier('frompicker')">+ Add new supplier</button>
@@ -1223,7 +1223,7 @@ function renderAreaPage() {
     <div class="row" style="justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div>
         <div style="font-size:20px;font-weight:700;line-height:1">${area.name}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:3px">${doneTasks}/${tasks.length} tasks · ${totalMatCount} materials</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-top:3px">${doneTasks}/${tasks.length} tasks · ${totalMatCount} materials</div>
       </div>
       <div class="row" style="gap:6px">
         <button class="btn btn-ghost btn-sm" onclick="openAddMat()">+ Material</button>
@@ -1232,7 +1232,7 @@ function renderAreaPage() {
     </div>
 
     ${tasks.length===0 ? `
-      <div style="text-align:center;padding:48px 20px;color:var(--muted)">
+      <div style="text-align:center;padding:48px 20px;color:#8a8578">
         <div style="font-size:32px;margin-bottom:8px">🧱</div>
         <div style="font-family:'DM Mono',monospace;font-size:13px;letter-spacing:1px">Nothing added yet</div>
       </div>
@@ -1240,7 +1240,7 @@ function renderAreaPage() {
 
     ${tasks.length>0 ? `
       <div class="section-head">Tasks</div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:16px;overflow:hidden">
+      <div style="background:#ffffff;border:1px solid #ddd9d0;border-radius:8px;margin-bottom:16px;overflow:hidden">
         ${tasks.map(t=>renderAreaTaskRow(t)).join('')}
       </div>
     ` : ''}
@@ -1253,7 +1253,7 @@ function renderAreaPage() {
       <div style="margin-bottom:16px">
         ${matByTask.map(({task,mats})=>`
           <div style="margin-bottom:8px">
-            <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:var(--ink);margin-bottom:4px;letter-spacing:0.5px">${task.text}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:#1a1916;margin-bottom:4px;letter-spacing:0.5px">${task.text}</div>
             ${mats.map(m=>{
               const assign = m.assignments.find(a=>a.taskId===task.id);
               const taskQty = assign ? assign.qty : 0;
@@ -1263,7 +1263,7 @@ function renderAreaPage() {
               const totalToCollect = matOrders.filter(o=>o.status==='ordered'&&o.isCollection).reduce((s,o)=>s+o.qty,0);
               const totalPending = matOrders.filter(o=>o.status==='pending').reduce((s,o)=>s+o.qty,0);
               const outstanding = Math.max(0, taskQty - totalDelivered - totalOnOrder - totalToCollect - totalPending);
-              const dotColor = totalDelivered>=taskQty&&taskQty>0&&outstanding===0 ? 'var(--green)' : totalToCollect>0 ? 'var(--green)' : totalOnOrder>0 ? 'var(--blue)' : outstanding>0 ? 'var(--amber)' : 'var(--border)';
+              const dotColor = totalDelivered>=taskQty&&taskQty>0&&outstanding===0 ? '#15803d' : totalToCollect>0 ? '#15803d' : totalOnOrder>0 ? '#1d4ed8' : outstanding>0 ? '#b45309' : '#ddd9d0';
               const rowKey = 't-'+m.id+'-'+task.id;
               const isOpen = expandedAreaMats.has(rowKey);
               const pills = [];
@@ -1272,15 +1272,15 @@ function renderAreaPage() {
               if (totalOnOrder > 0) pills.push(`<span class="tag tag-ordered" style="font-size:11px;padding:1px 5px">${totalOnOrder} ordered</span>`);
               if (totalDelivered >= taskQty && taskQty > 0 && outstanding === 0 && totalOnOrder === 0 && totalToCollect === 0) pills.push(`<span class="tag tag-delivered" style="font-size:11px;padding:1px 5px">✓ delivered</span>`);
               return `
-                <div style="background:var(--surface);border:1px solid ${isOpen?'var(--ink)':'var(--border)'};border-radius:8px;margin-bottom:3px;overflow:hidden">
+                <div style="background:#ffffff;border:1px solid ${isOpen?'#1a1916':'#ddd9d0'};border-radius:8px;margin-bottom:3px;overflow:hidden">
                   <div onclick="toggleAreaMat('${rowKey}')" style="display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;user-select:none">
                     <div style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
                     <div style="font-size:13px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.name}</div>
                     <div style="display:flex;gap:4px;flex-shrink:0">${pills.join('')}</div>
-                    <span style="font-size:11px;color:var(--muted);transition:transform 0.2s;display:inline-block;transform:rotate(${isOpen?'180':'0'}deg)">▼</span>
+                    <span style="font-size:11px;color:#8a8578;transition:transform 0.2s;display:inline-block;transform:rotate(${isOpen?'180':'0'}deg)">▼</span>
                   </div>
                   ${isOpen ? `
-                    <div style="padding:0 12px 9px;display:flex;gap:5px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:7px">
+                    <div style="padding:0 12px 9px;display:flex;gap:5px;flex-wrap:wrap;border-top:1px solid #ddd9d0;padding-top:7px">
                       <button class="btn btn-ghost btn-sm" style="font-size:11px;padding:2px 7px" onclick="openAddMat('${m.id}')">✎ Edit</button>
                       <button class="btn btn-accent btn-sm" style="font-size:11px;padding:2px 7px" onclick="openOrderModal('${m.id}')">+ Order</button>
                       <button class="btn btn-ghost btn-sm" style="font-size:11px;padding:2px 7px" onclick="openOrderHistory('${m.id}')">History${matOrders.length>0?' ('+matOrders.length+')':''}</button>
@@ -1296,7 +1296,7 @@ function renderAreaPage() {
           <span>Materials</span>
           <button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="openAddMat()">+ Add</button>
         </div>
-        <div style="text-align:center;padding:20px;color:var(--muted)">
+        <div style="text-align:center;padding:20px;color:#8a8578">
           <div style="font-family:'DM Mono',monospace;font-size:11px">No materials assigned yet</div>
           <button class="btn btn-ghost btn-sm" style="margin-top:8px;font-size:11px" onclick="openAddMat()">+ Add material</button>
         </div>` : ''}
@@ -1418,7 +1418,7 @@ function renderTaskMatsList(taskId) {
   const el = document.getElementById('taskMatsList');
   if (!el) return;
   if (!mats.length) {
-    el.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);padding:6px 0">No materials assigned yet</div>`;
+    el.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;padding:6px 0">No materials assigned yet</div>`;
     return;
   }
   el.innerHTML = mats.map(m=>{
@@ -1426,12 +1426,12 @@ function renderTaskMatsList(taskId) {
     const matOrders = S.orders.filter(o=>o.matId===m.id);
     const delivered = matOrders.filter(o=>o.status==='delivered').reduce((s,o)=>s+o.qty,0);
     const onOrder = matOrders.filter(o=>o.status==='ordered').reduce((s,o)=>s+o.qty,0);
-    const dotColor = delivered>=(assign?.qty||0)&&(assign?.qty||0)>0 ? 'var(--green)' : onOrder>0 ? 'var(--blue)' : 'var(--amber)';
+    const dotColor = delivered>=(assign?.qty||0)&&(assign?.qty||0)>0 ? '#15803d' : onOrder>0 ? '#1d4ed8' : '#b45309';
     return `
-      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #ddd9d0">
         <div style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
         <div style="flex:1;font-size:13px;font-weight:500">${m.name}</div>
-        <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--muted);flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:13px;color:#8a8578;flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
         <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:11px"
           onclick="event.stopPropagation();closeAddTask();openAddMat('${m.id}','${taskId}')">Edit</button>
         <button class="del-btn" onclick="event.stopPropagation();removeMatFromTaskInline('${m.id}','${taskId}')" title="Remove">×</button>
@@ -1537,20 +1537,20 @@ function renderAreaTaskRow(t) {
   const assignees = t.assignees || [t.assignee ?? 0];
   const taskMats = matsForTask(t.id);
   const avatarHtml = assignees.slice(0,3).map((i,idx)=>`
-    <div class="avatar" style="width:20px;height:20px;font-size:11px;background:${uColor(i)};color:#fff;margin-left:${idx>0?'-5px':'0'};border:2px solid var(--surface);z-index:${3-idx}">${initials(S.users[i]?.name||'?')}</div>
-  `).join('') + (assignees.length>3?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-left:3px">+${assignees.length-3}</span>`:'');
+    <div class="avatar" style="width:20px;height:20px;font-size:11px;background:${uColor(i)};color:#fff;margin-left:${idx>0?'-5px':'0'};border:2px solid #ffffff;z-index:${3-idx}">${initials(S.users[i]?.name||'?')}</div>
+  `).join('') + (assignees.length>3?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-left:3px">+${assignees.length-3}</span>`:'');
 
   return `
     <div onclick="openAddTask(null,'${t.id}')"
-         style="padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;border-bottom:1px solid var(--border);${t.done?'opacity:0.45':''}">
+         style="padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;border-bottom:1px solid #ddd9d0;${t.done?'opacity:0.45':''}">
       <div onclick="event.stopPropagation();toggleTask('${t.id}')"
-           style="width:20px;height:20px;border-radius:50%;border:2px solid ${t.done?'var(--green)':'var(--border)'};background:${t.done?'var(--green)':'transparent'};display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0;cursor:pointer">${t.done?'✓':''}</div>
+           style="width:20px;height:20px;border-radius:50%;border:2px solid ${t.done?'#15803d':'#ddd9d0'};background:${t.done?'#15803d':'transparent'};display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0;cursor:pointer">${t.done?'✓':''}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:500;${t.done?'text-decoration:line-through':''}">${t.text}</div>
-        ${taskMats.length ? `<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:2px">${taskMats.length} material${taskMats.length!==1?'s':''}</div>` : ''}
+        ${taskMats.length ? `<div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-top:2px">${taskMats.length} material${taskMats.length!==1?'s':''}</div>` : ''}
       </div>
       <div style="display:flex;align-items:center">${avatarHtml}</div>
-      <span style="font-size:11px;color:var(--muted)">✎</span>
+      <span style="font-size:11px;color:#8a8578">✎</span>
     </div>`;
 }
 
@@ -1633,7 +1633,7 @@ function renderTasksPage() {
   }).join('');
 
   document.getElementById('taskListGlobal').innerHTML = tasks.length ? html : `
-    <div style="text-align:center;padding:48px 20px;color:var(--muted)">
+    <div style="text-align:center;padding:48px 20px;color:#8a8578">
       <div style="font-size:32px;margin-bottom:8px">✅</div>
       <div style="font-family:'DM Mono',monospace;font-size:13px;letter-spacing:1px">No tasks here</div>
     </div>`;
@@ -1647,19 +1647,19 @@ function renderTaskRow(t) {
   const taskMats = matsForTask(t.id);
 
   // Status dot — mirrors material dot
-  const dotColor = t.done ? 'var(--green)' : 'var(--amber)';
+  const dotColor = t.done ? '#15803d' : '#b45309';
 
   // Status pill
   const statusPill = t.done
-    ? `<span style="font-family:'DM Mono',monospace;font-size:11px;background:var(--green-light);color:var(--green);padding:1px 6px;border-radius:3px;flex-shrink:0">done</span>`
-    : `<span style="font-family:'DM Mono',monospace;font-size:11px;background:var(--amber-light);color:var(--amber);padding:1px 6px;border-radius:3px;flex-shrink:0">open</span>`;
+    ? `<span style="font-family:'DM Mono',monospace;font-size:11px;background:#f0fdf4;color:#15803d;padding:1px 6px;border-radius:3px;flex-shrink:0">done</span>`
+    : `<span style="font-family:'DM Mono',monospace;font-size:11px;background:#fffbeb;color:#b45309;padding:1px 6px;border-radius:3px;flex-shrink:0">open</span>`;
 
   // ── COLLAPSED ROW — mirrors mat-row exactly ──
   const row = `
     <div class="mat-row ${isExpanded?'expanded':''}" onclick="toggleTaskRow('${t.id}',event)" id="trow-${t.id}">
       <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
       <div class="mat-row-name" style="font-weight:500;${t.done?'text-decoration:line-through;opacity:0.5':''}">${t.text}</div>
-      ${taskMats.length ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);flex-shrink:0">${taskMats.length} mat${taskMats.length!==1?'s':''}</span>` : ''}
+      ${taskMats.length ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0">${taskMats.length} mat${taskMats.length!==1?'s':''}</span>` : ''}
       ${statusPill}
       <span class="mat-row-chevron">▼</span>
     </div>`;
@@ -1669,31 +1669,31 @@ function renderTaskRow(t) {
   // ── EXPANDED DETAIL — mirrors mat-detail ──
   // Stacked avatars
   const avatarHtml = assignees.slice(0,3).map((i,idx)=>`
-    <div class="avatar" style="width:20px;height:20px;font-size:11px;background:${uColor(i)};color:#fff;margin-left:${idx>0?'-5px':'0'};border:2px solid var(--surface);z-index:${3-idx}">${initials(S.users[i]?.name||'?')}</div>
-  `).join('') + (assignees.length>3?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-left:3px">+${assignees.length-3}</span>`:'');
+    <div class="avatar" style="width:20px;height:20px;font-size:11px;background:${uColor(i)};color:#fff;margin-left:${idx>0?'-5px':'0'};border:2px solid #ffffff;z-index:${3-idx}">${initials(S.users[i]?.name||'?')}</div>
+  `).join('') + (assignees.length>3?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-left:3px">+${assignees.length-3}</span>`:'');
 
   const matsHtml = taskMats.length ? `
     <div style="margin-bottom:10px">
-      <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Materials</div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;margin-bottom:6px">Materials</div>
       ${taskMats.map(m=>{
         const assign = m.assignments.find(a=>a.taskId===t.id);
         const matOrders = S.orders.filter(o=>o.matId===m.id);
         const activeOrder = matOrders.find(o=>o.status!=='cancelled'&&o.status!=='delivered');
         const delivered = matOrders.filter(o=>o.status==='delivered').reduce((s,o)=>s+o.qty,0);
-        const mdot = delivered>=(assign?.qty||0) ? 'var(--green)' : activeOrder?.status==='ordered' ? 'var(--blue)' : 'var(--amber)';
+        const mdot = delivered>=(assign?.qty||0) ? '#15803d' : activeOrder?.status==='ordered' ? '#1d4ed8' : '#b45309';
         return `
-          <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #ddd9d0">
             <div style="width:7px;height:7px;border-radius:50%;background:${mdot};flex-shrink:0"></div>
             <div style="flex:1;font-size:13px;font-weight:500">${m.name}</div>
-            <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--muted);flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
-            <button class="del-btn" onclick="event.stopPropagation();openAddMat('${m.id}')" style="font-size:13px;color:var(--muted)" title="Edit">✎</button>
+            <span style="font-family:'DM Mono',monospace;font-size:13px;color:#8a8578;flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
+            <button class="del-btn" onclick="event.stopPropagation();openAddMat('${m.id}')" style="font-size:13px;color:#8a8578" title="Edit">✎</button>
             <button class="btn btn-accent btn-sm" style="padding:2px 7px;font-size:11px;flex-shrink:0" onclick="event.stopPropagation();openOrderModal('${m.id}')">Order</button>
           </div>`;
       }).join('')}
       <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;font-size:11px" onclick="event.stopPropagation();openAddMat(null,'${t.id}')">+ Add material</button>
     </div>` : `
     <div style="margin-bottom:10px">
-      <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:6px">No materials assigned</div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-bottom:6px">No materials assigned</div>
       <button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="event.stopPropagation();openAddMat(null,'${t.id}')">+ Add material</button>
     </div>`;
 
@@ -1704,7 +1704,7 @@ function renderTaskRow(t) {
           const u = S.users[i];
           return u ? `<span style="display:flex;align-items:center;gap:4px;font-size:13px"><div class="avatar" style="width:20px;height:20px;font-size:11px;background:${uColor(i)};color:#fff">${initials(u.name)}</div>${u.name}</span>` : '';
         }).join('')}
-        ${areaIds.length>1 ? areaIds.map(id=>`<span style="font-family:'DM Mono',monospace;font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;color:var(--muted)">${areaName(id)}</span>`).join('') : ''}
+        ${areaIds.length>1 ? areaIds.map(id=>`<span style="font-family:'DM Mono',monospace;font-size:11px;background:#edeae3;border:1px solid #ddd9d0;border-radius:3px;padding:1px 5px;color:#8a8578">${areaName(id)}</span>`).join('') : ''}
       </div>
       ${matsHtml}
       <div class="row" style="gap:6px">
@@ -1731,11 +1731,11 @@ function renderReassignList() {
   const t = S.tasks.find(x=>x.id===reassignTaskId);
   const current = new Set(t.assignees || [t.assignee ?? 0]);
   document.getElementById('reassignPersonList').innerHTML = S.users.map((u,i)=>`
-    <div class="team-card" style="cursor:pointer;margin-bottom:6px;${current.has(i)?'border-color:var(--accent)':''}"
+    <div class="team-card" style="cursor:pointer;margin-bottom:6px;${current.has(i)?'border-color:#c8440e':''}"
          onclick="toggleReassign(${i})">
       <div class="avatar team-avatar" style="background:${uColor(i)};color:#fff;width:36px;height:36px;font-size:13px">${initials(u.name)}</div>
       <div class="team-info"><div class="team-name">${u.name}</div><div class="team-role">${u.role}</div></div>
-      ${current.has(i)?'<span style="color:var(--accent);font-size:13px">✓</span>':''}
+      ${current.has(i)?'<span style="color:#c8440e;font-size:13px">✓</span>':''}
     </div>`).join('') +
     `<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="closeReassign()">Done</button>`;
 }
@@ -1944,7 +1944,7 @@ function renderMaterials() {
   `).join('');
 
   document.getElementById('matList').innerHTML = mats.length ? html : `
-    <div style="text-align:center;padding:48px 20px;color:var(--muted)">
+    <div style="text-align:center;padding:48px 20px;color:#8a8578">
       <div style="font-size:32px;margin-bottom:8px">📦</div>
       <div style="font-family:'DM Mono',monospace;font-size:13px;letter-spacing:1px">Nothing to show</div>
     </div>`;
@@ -1973,7 +1973,7 @@ function renderMatCard(m) {
   if (totalDelivered > 0 && totalDelivered >= total && outstanding === 0 && totalOnOrder === 0 && totalToCollect === 0)
     statusPills.push(`<span class="tag tag-delivered" style="font-size:11px;padding:1px 6px">✓ ${totalDelivered} delivered</span>`);
 
-  const dotColor = totalDelivered>=total&&total>0&&outstanding===0 ? 'var(--green)' : totalToCollect>0 ? 'var(--green)' : totalOnOrder>0 ? 'var(--blue)' : outstanding>0 ? 'var(--amber)' : 'var(--border)';
+  const dotColor = totalDelivered>=total&&total>0&&outstanding===0 ? '#15803d' : totalToCollect>0 ? '#15803d' : totalOnOrder>0 ? '#1d4ed8' : outstanding>0 ? '#b45309' : '#ddd9d0';
 
   // ── COLLAPSED ROW ──
   const row = `
@@ -2000,22 +2000,22 @@ function renderMatCard(m) {
 
   const supplierHtml = primary ? `
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-      <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">SUPPLIER:</span>
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">SUPPLIER:</span>
       <span style="font-size:13px;font-weight:600">${primary.name}</span>
-      ${primary.phone?`<a href="tel:${primary.phone}" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--blue);text-decoration:none">📞 ${primary.phone}</a>`:''}
-      ${primary.website?`<a href="https://${primary.website.replace(/^https?:\/\//,'')}" target="_blank" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--blue);text-decoration:none">🌐</a>`:''}
-      ${sups[0].productUrl?`<a href="${sups[0].productUrl}" target="_blank" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);text-decoration:none">🔗 Product</a>`:''}
-      ${altCount>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">+${altCount} alt${altCount>1?'s':''}</span>`:''}
+      ${primary.phone?`<a href="tel:${primary.phone}" style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8;text-decoration:none">📞 ${primary.phone}</a>`:''}
+      ${primary.website?`<a href="https://${primary.website.replace(/^https?:\/\//,'')}" target="_blank" style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8;text-decoration:none">🌐</a>`:''}
+      ${sups[0].productUrl?`<a href="${sups[0].productUrl}" target="_blank" style="font-family:'DM Mono',monospace;font-size:11px;color:#c8440e;text-decoration:none">🔗 Product</a>`:''}
+      ${altCount>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">+${altCount} alt${altCount>1?'s':''}</span>`:''}
     </div>` : '';
 
   const orderSummaryHtml = `
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
-      <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">Need ${total} ${m.unit}</span>
-      ${totalDelivered>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">✓ ${totalDelivered} delivered</span>`:''}
-      ${totalOnOrder>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--blue)">⟳ ${totalOnOrder} on order</span>`:''}
-      ${totalPending>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--amber)">⏳ ${totalPending} pending</span>`:''}
-      ${outstanding>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);font-weight:500">${outstanding} still to order</span>`:`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">fully accounted for</span>`}
-      ${matOrders.length?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline" onclick="openOrderHistory('${m.id}')">${matOrders.length} order${matOrders.length!==1?'s':''}</span>`:'<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">No orders yet</span>'}
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">Need ${total} ${m.unit}</span>
+      ${totalDelivered>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">✓ ${totalDelivered} delivered</span>`:''}
+      ${totalOnOrder>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8">⟳ ${totalOnOrder} on order</span>`:''}
+      ${totalPending>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#b45309">⏳ ${totalPending} pending</span>`:''}
+      ${outstanding>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#c8440e;font-weight:500">${outstanding} still to order</span>`:`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">fully accounted for</span>`}
+      ${matOrders.length?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;cursor:pointer;text-decoration:underline" onclick="openOrderHistory('${m.id}')">${matOrders.length} order${matOrders.length!==1?'s':''}</span>`:`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">No orders yet</span>`}
     </div>`;
 
   const detail = `
@@ -2270,21 +2270,21 @@ function renderSuppliers() {
       <div class="row" style="justify-content:space-between;margin-bottom:6px">
         <div style="font-size:13px;font-weight:700">${s.name}</div>
         <div class="row" style="gap:4px">
-          <button class="del-btn" onclick="openAddSupplier('${s.id}')" style="font-size:13px;color:var(--muted)" title="Edit">✎</button>
+          <button class="del-btn" onclick="openAddSupplier('${s.id}')" style="font-size:13px;color:#8a8578" title="Edit">✎</button>
           <button class="del-btn" onclick="deleteSupplier('${s.id}')">×</button>
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:5px">
-        ${s.phone?`<a href="tel:${s.phone}" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--blue);text-decoration:none;display:flex;align-items:center;gap:5px"><span>📞</span>${s.phone}</a>`:''}
-        ${s.website?`<a href="https://${s.website.replace(/^https?:\/\//,'')}" target="_blank" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--blue);text-decoration:none;display:flex;align-items:center;gap:5px"><span>🌐</span>${s.website}</a>`:''}
-        ${s.account?`<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">Account: ${s.account}</div>`:''}
-        ${s.notes?`<div style="font-size:13px;color:var(--muted);font-style:italic">${s.notes}</div>`:''}
+        ${s.phone?`<a href="tel:${s.phone}" style="font-family:'DM Mono',monospace;font-size:13px;color:#1d4ed8;text-decoration:none;display:flex;align-items:center;gap:5px"><span>📞</span>${s.phone}</a>`:''}
+        ${s.website?`<a href="https://${s.website.replace(/^https?:\/\//,'')}" target="_blank" style="font-family:'DM Mono',monospace;font-size:13px;color:#1d4ed8;text-decoration:none;display:flex;align-items:center;gap:5px"><span>🌐</span>${s.website}</a>`:''}
+        ${s.account?`<div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">Account: ${s.account}</div>`:''}
+        ${s.notes?`<div style="font-size:13px;color:#8a8578;font-style:italic">${s.notes}</div>`:''}
       </div>
-      <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">
+      <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">
         Used in ${S.materials.filter(m=>(m.suppliers||[]).some(x=>x.supplierId===s.id)).length} material(s)
       </div>
     </div>`).join('') : `
-    <div style="text-align:center;padding:48px 20px;color:var(--muted)">
+    <div style="text-align:center;padding:48px 20px;color:#8a8578">
       <div style="font-size:32px;margin-bottom:8px">🏢</div>
       <div style="font-family:'DM Mono',monospace;font-size:13px;letter-spacing:1px">No suppliers yet</div>
     </div>`;
@@ -2369,7 +2369,7 @@ function closePickSupplier() {
 function renderPickSupplierList() {
   if (!S.suppliers.length) {
     document.getElementById('pickSupplierList').innerHTML = `
-      <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">No suppliers yet — add one below</div>`;
+      <div style="text-align:center;padding:24px;color:#8a8578;font-size:13px">No suppliers yet — add one below</div>`;
     return;
   }
   document.getElementById('pickSupplierList').innerHTML = S.suppliers.map(s=>{
@@ -2377,20 +2377,20 @@ function renderPickSupplierList() {
     const isPrimary = existing && matSelectedSuppliers.indexOf(existing)===0;
     const isAlt = existing && !isPrimary;
     return `
-      <div style="background:var(--surface);border:1px solid ${existing?'var(--ink)':'var(--border)'};border-radius:10px;padding:12px;margin-bottom:8px">
+      <div style="background:#ffffff;border:1px solid ${existing?'#1a1916':'#ddd9d0'};border-radius:10px;padding:12px;margin-bottom:8px">
         <div class="row" style="justify-content:space-between;margin-bottom:${existing?'8px':'0'}">
           <div>
             <div style="font-weight:600;font-size:14px">${s.name}</div>
-            ${s.phone?`<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${s.phone}</div>`:''}
+            ${s.phone?`<div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">${s.phone}</div>`:''}
           </div>
           <div class="row" style="gap:6px">
-            ${existing ? `<span style="font-family:'DM Mono',monospace;font-size:11px;background:${isPrimary?'var(--ink)':'var(--surface2)'};color:${isPrimary?'#fff':'var(--muted)'};padding:2px 7px;border-radius:4px">${isPrimary?'PRIMARY':'ALT'}</span>` : ''}
+            ${existing ? `<span style="font-family:'DM Mono',monospace;font-size:11px;background:${isPrimary?'#1a1916':'#edeae3'};color:${isPrimary?'#fff':'#8a8578'};padding:2px 7px;border-radius:4px">${isPrimary?'PRIMARY':'ALT'}</span>` : ''}
             <button class="btn btn-sm ${existing?'btn-ghost':'btn-primary'}" onclick="togglePickSupplier('${s.id}')">${existing?'Remove':'Add'}</button>
           </div>
         </div>
         ${existing ? `
           <div>
-            <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Product Link</label>
+            <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px">Product Link</label>
             <input value="${existing.productUrl||''}" placeholder="https://… product URL" onchange="updateSupplierProductUrl('${s.id}',this.value)" style="font-size:13px">
           </div>` : ''}
       </div>`;
@@ -2416,7 +2416,7 @@ function renderMatSupplierPreview() {
   const el = document.getElementById('matSupplierPreview');
   if (!el) return;
   if (!matSelectedSuppliers.length) {
-    el.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">None selected</div>`;
+    el.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">None selected</div>`;
     return;
   }
   el.innerHTML = matSelectedSuppliers.map((entry,i)=>{
@@ -2438,10 +2438,10 @@ function renderDiary() {
 
   if (!upcoming.length) {
     document.getElementById('diaryList').innerHTML = `
-      <div style="text-align:center;padding:48px 20px;color:var(--muted)">
+      <div style="text-align:center;padding:48px 20px;color:#8a8578">
         <div style="font-size:32px;margin-bottom:8px">📅</div>
         <div style="font-family:'DM Mono',monospace;font-size:13px;letter-spacing:1px">No deliveries scheduled</div>
-        <div style="font-size:13px;margin-top:8px;color:var(--muted)">Add an expected delivery date when placing an order</div>
+        <div style="font-size:13px;margin-top:8px;color:#8a8578">Add an expected delivery date when placing an order</div>
       </div>`;
     return;
   }
@@ -2471,7 +2471,7 @@ function renderDiary() {
     const allDelivered = orders.every(o => o.status === 'delivered');
     const isOverdue = diff < 0 && !allDelivered;
     const isToday = diff === 0;
-    const headerColor = isOverdue ? 'var(--accent)' : isToday ? 'var(--green)' : allDelivered && diff < 0 ? 'var(--muted)' : 'var(--ink)';
+    const headerColor = isOverdue ? '#c8440e' : isToday ? '#15803d' : allDelivered && diff < 0 ? '#8a8578' : '#1a1916';
 
     return `
       <div style="margin-bottom:16px">
@@ -2484,11 +2484,11 @@ function renderDiary() {
           const sup = o.supplierId ? S.suppliers.find(x=>x.id===o.supplierId) : null;
           const isDelivered = o.status === 'delivered';
           return `
-            <div style="background:var(--surface);border:1px solid ${isDelivered?'var(--green)':isOverdue?'var(--accent)':'var(--border)'};border-radius:10px;padding:12px 14px;margin-bottom:6px;${isDelivered?'opacity:0.7':''}">
+            <div style="background:#ffffff;border:1px solid ${isDelivered?'#15803d':isOverdue?'#c8440e':'#ddd9d0'};border-radius:10px;padding:12px 14px;margin-bottom:6px;${isDelivered?'opacity:0.7':''}">
               <div class="row" style="justify-content:space-between;margin-bottom:6px">
                 <div>
                   <div style="font-size:14px;font-weight:500">${o.isCollection ? '🚗 ' : '🚚 '}${m.name}</div>
-                  <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:2px">
+                  <div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-top:2px">
                     ${o.qty} ${m.unit}
                     ${o.isCollection ? ' · Collection' : (sup ? ` · ${sup.name}` : '')}
                     ${o.notes ? ` · "${o.notes}"` : ''}
@@ -2496,16 +2496,16 @@ function renderDiary() {
                 </div>
                 ${!isDelivered ? `
                   <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-                    <button class="btn btn-primary btn-sm" style="background:var(--green);font-size:11px;padding:5px 12px" onclick="markDelivered('${o.id}')">${o.isCollection ? '✓ Collected' : '✓ Delivered'}</button>
-                    <button class="del-btn" onclick="openOrderModal('${m.id}','${o.id}')" style="font-size:13px;color:var(--muted)">✎</button>
+                    <button class="btn btn-primary btn-sm" style="background:#15803d;font-size:11px;padding:5px 12px" onclick="markDelivered('${o.id}')">${o.isCollection ? '✓ Collected' : '✓ Delivered'}</button>
+                    <button class="del-btn" onclick="openOrderModal('${m.id}','${o.id}')" style="font-size:13px;color:#8a8578">✎</button>
                     <button class="del-btn" onclick="deleteOrder('${o.id}');renderDiary()">×</button>
                   </div>` : `
                   <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-                    <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">✓ ${o.isCollection ? 'Collected' : 'Delivered'} ${fmtDate(o.deliveredAt)}</span>
+                    <span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">✓ ${o.isCollection ? 'Collected' : 'Delivered'} ${fmtDate(o.deliveredAt)}</span>
                     <button class="del-btn" onclick="deleteOrder('${o.id}');renderDiary()">×</button>
                   </div>`}
               </div>
-              ${sup&&sup.phone ? `<a href="tel:${sup.phone}" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--blue);text-decoration:none">📞 ${sup.phone}</a>` : ''}
+              ${sup&&sup.phone ? `<a href="tel:${sup.phone}" style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8;text-decoration:none">📞 ${sup.phone}</a>` : ''}
             </div>`;
         }).join('')}
       </div>`;
@@ -2611,7 +2611,7 @@ function renderOrdersPage() {
       html += renderOrdersByMaterial(orders);
     }
   } else if (!html.includes('Needs Ordering')) {
-    html = `<div style="text-align:center;padding:48px 20px;color:var(--muted)">
+    html = `<div style="text-align:center;padding:48px 20px;color:#8a8578">
       <div style="font-size:32px;margin-bottom:8px">📋</div>
       <div style="font-family:'DM Mono',monospace;font-size:13px;letter-spacing:1px">No orders yet</div>
     </div>`;
@@ -2802,7 +2802,7 @@ function renderOrderRow(o, m, showMatName=false) {
       </div>
 
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <span style="font-family:'DM Mono',monospace;font-size:13px;color:#8a8578">Supplier &nbsp;<strong style="color:#1a1916;font-size:13px">${sup?sup.name:'None'}</strong>${o.notes?\` · "${o.notes}"\`:''}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">Supplier &nbsp;<strong style="color:#1a1916;font-size:13px">${sup?sup.name:'None'}</strong>${o.notes?' · "'+o.notes+'"':''}</span>
         <span style="font-family:'DM Mono',monospace;font-size:13px;color:${isDelivered?'#15803d':'#1d4ed8'}">${o.deliveredAt?fmtDate(o.deliveredAt):o.expectedDelivery?fmtDate(o.expectedDelivery):'—'}</span>
       </div>
 
@@ -2984,7 +2984,7 @@ function renderOrderHistory() {
 
   if (!orders.length) {
     document.getElementById('orderHistoryList').innerHTML = `
-      <div style="text-align:center;padding:32px 20px;color:var(--muted)">
+      <div style="text-align:center;padding:32px 20px;color:#8a8578">
         <div style="font-size:28px;margin-bottom:8px">📋</div>
         <div style="font-family:'DM Mono',monospace;font-size:13px">No orders yet</div>
       </div>`;
@@ -2997,39 +2997,39 @@ function renderOrderHistory() {
 
   document.getElementById('orderHistoryList').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
-      <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
-        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:4px">NEEDED</div>
+      <div style="background:#edeae3;border-radius:8px;padding:10px;text-align:center">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:#8a8578;margin-bottom:4px">NEEDED</div>
         <div style="font-family:'DM Mono',monospace;font-size:20px;font-weight:500">${needed}</div>
       </div>
-      <div style="background:var(--blue-light);border-radius:8px;padding:10px;text-align:center">
-        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--blue);margin-bottom:4px">ON ORDER</div>
-        <div style="font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--blue)">${totalOrdered}</div>
+      <div style="background:#eff3ff;border-radius:8px;padding:10px;text-align:center">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:#1d4ed8;margin-bottom:4px">ON ORDER</div>
+        <div style="font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:#1d4ed8">${totalOrdered}</div>
       </div>
-      <div style="background:var(--green-light);border-radius:8px;padding:10px;text-align:center">
-        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--green);margin-bottom:4px">DELIVERED</div>
-        <div style="font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--green)">${totalDelivered}</div>
+      <div style="background:#f0fdf4;border-radius:8px;padding:10px;text-align:center">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:#15803d;margin-bottom:4px">DELIVERED</div>
+        <div style="font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:#15803d">${totalDelivered}</div>
       </div>
     </div>
     ${orders.map(o=>{
       const sup = o.supplierId ? S.suppliers.find(x=>x.id===o.supplierId) : null;
       const orderer = S.users[o.orderedBy]||S.users[0];
       return `
-        <div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px">
+        <div style="border:1px solid #ddd9d0;border-radius:8px;padding:10px 12px;margin-bottom:8px">
           <div class="row" style="justify-content:space-between;margin-bottom:6px">
             <div class="row" style="gap:6px">
               <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:500">${o.qty} ${m.unit}</span>
               <span class="tag tag-${o.status}" style="font-size:11px">${o.status}</span>
             </div>
             <div class="row" style="gap:4px">
-              <button class="del-btn" onclick="closeOrderHistory();openOrderModal('${m.id}','${o.id}')" style="font-size:13px;color:var(--muted)">✎</button>
+              <button class="del-btn" onclick="closeOrderHistory();openOrderModal('${m.id}','${o.id}')" style="font-size:13px;color:#8a8578">✎</button>
               <button class="del-btn" onclick="reorderClone('${o.id}');closeOrderHistory()">↻</button>
               <button class="del-btn" onclick="deleteOrder('${o.id}');renderOrderHistory()">×</button>
             </div>
           </div>
-          <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px">
+          <div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;display:flex;flex-wrap:wrap;gap:8px">
             ${sup?`<span>🏢 ${sup.name}</span>`:''}
             <span>📅 ${fmtDate(o.orderedAt)||'—'}</span>
-            ${o.deliveredAt?`<span style="color:var(--green)">✓ ${fmtDate(o.deliveredAt)}</span>`:''}
+            ${o.deliveredAt?`<span style="color:#15803d">✓ ${fmtDate(o.deliveredAt)}</span>`:''}
             <span>👤 ${orderer.name}</span>
             ${o.notes?`<span style="font-style:italic">"${o.notes}"</span>`:''}
           </div>
@@ -3057,13 +3057,13 @@ function renderOverview() {
       <div class="stat-label">Materials</div>
       <div class="stat-val">${totalMats}</div>
     </div>
-    <div class="stat-box" style="border-color:var(--accent)">
+    <div class="stat-box" style="border-color:#c8440e">
       <div class="stat-label">To Order</div>
-      <div class="stat-val" style="color:var(--accent)" style="cursor:pointer" onclick="showPage('orders')">${pendingOrders}</div>
+      <div class="stat-val" style="color:#c8440e" style="cursor:pointer" onclick="showPage('orders')">${pendingOrders}</div>
     </div>
     <div class="stat-box">
       <div class="stat-label">On Order</div>
-      <div class="stat-val" style="color:var(--blue)">${orderedOrders}</div>
+      <div class="stat-val" style="color:#1d4ed8">${orderedOrders}</div>
     </div>`;
 
   document.getElementById('ovAreas').innerHTML = S.areas.map((area,i)=>{
@@ -3077,11 +3077,11 @@ function renderOverview() {
         <div class="row" style="justify-content:space-between;margin-bottom:6px">
           <div style="font-weight:600">${area.name}</div>
           <div class="row" style="gap:6px">
-            <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${done}/${tasks.length} tasks</span>
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">${done}/${tasks.length} tasks</span>
             ${pendingMats>0?`<span class="tag tag-pending" style="font-size:11px">${pendingMats} to order</span>`:''}
           </div>
         </div>
-        <div class="prog-bar" style="margin-top:0"><div class="prog-fill" style="width:${pct}%;background:${pct===100?'var(--green)':'var(--accent)'}"></div></div>
+        <div class="prog-bar" style="margin-top:0"><div class="prog-fill" style="width:${pct}%;background:${pct===100?'#15803d':'#c8440e'}"></div></div>
       </div>`;
   }).join('');
 }
@@ -3103,7 +3103,7 @@ function renderTeam() {
           <div class="team-role">${u.role}</div>
         </div>
         <div class="team-count">${open} open</div>
-        <button class="del-btn" onclick="openEditUser(${i})" style="font-size:13px;color:var(--muted)">✎</button>
+        <button class="del-btn" onclick="openEditUser(${i})" style="font-size:13px;color:#8a8578">✎</button>
         ${i>0?`<button class="del-btn" onclick="deleteUser(${i})">×</button>`:''}
       </div>`;
   }).join('');
@@ -3149,13 +3149,13 @@ async function addUser() {
 // ═══════════════ USER SWITCHER ═══════════════
 function openUserModal() {
   document.getElementById('userSwitchList').innerHTML = S.users.map((u,i)=>`
-    <div class="team-card" style="cursor:pointer;${i===S.currentUser?'border-color:var(--accent)':''}" onclick="switchUser(${i})">
+    <div class="team-card" style="cursor:pointer;${i===S.currentUser?'border-color:#c8440e':''}" onclick="switchUser(${i})">
       <div class="avatar team-avatar" style="background:${uColor(i)};color:#fff">${initials(u.name)}</div>
       <div class="team-info">
         <div class="team-name">${u.name}</div>
         <div class="team-role">${u.role}</div>
       </div>
-      ${i===S.currentUser?'<span style="color:var(--accent);font-size:20px">✓</span>':''}
+      ${i===S.currentUser?'<span style="color:#c8440e;font-size:20px">✓</span>':''}
     </div>`).join('');
   document.getElementById('userOverlay').classList.add('open');
 }
