@@ -2761,50 +2761,44 @@ function renderOrdersBySupplier(orders) {
 function renderOrderRow(o, m, showMatName=false) {
   const sup = o.supplierId ? S.suppliers.find(x=>x.id===o.supplierId) : null;
   const isDelivered = o.status === 'delivered';
-  const typeLabel = o.isCollection
-    ? `<span style="font-family:'DM Mono',monospace;font-size:10px;background:#eff3ff;color:#1d4ed8;padding:2px 7px;border-radius:4px">🚗 Collection</span>`
-    : `<span style="font-family:'DM Mono',monospace;font-size:10px;background:#f0fdf4;color:#15803d;padding:2px 7px;border-radius:4px">🚚 Delivery</span>`;
   const actionLabel = o.isCollection ? '✓ Collected' : '✓ Delivered';
-  const statusLabel = o.isCollection
-    ? { pending:'Pending', ordered:'Ordered', delivered:'Collected', cancelled:'Cancelled' }
-    : { pending:'Pending', ordered:'Ordered', delivered:'Delivered', cancelled:'Cancelled' };
+
+  // Status pill — top right
+  const statusPill = isDelivered
+    ? `<span style="font-family:'DM Mono',monospace;font-size:10px;background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:4px">✓ ${o.isCollection?'Collected':'Delivered'}</span>`
+    : o.isCollection
+      ? `<span style="font-family:'DM Mono',monospace;font-size:10px;background:#eff3ff;color:#1d4ed8;padding:2px 8px;border-radius:4px">🚗 To Collect</span>`
+      : `<span style="font-family:'DM Mono',monospace;font-size:10px;background:#fffbeb;color:#b45309;padding:2px 8px;border-radius:4px">🚚 On Order</span>`;
 
   return `
     <div style="background:#ffffff;border:1px solid #ddd9d0;border-radius:10px;padding:10px 12px;margin-bottom:8px;margin-top:8px">
 
-      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px">
-        ${showMatName ? `<span style="font-size:13px;font-weight:600;color:#1a1916;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.name}</span>` : ''}
-        <span style="font-family:'DM Mono',monospace;font-size:24px;font-weight:700;color:#1a1916">${o.qty}</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+        <div style="font-size:14px;font-weight:600;color:#1a1916;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px">${m.name}</div>
+        ${statusPill}
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">${sup?sup.name:'No supplier'}${o.notes?` · "${o.notes}"`:''}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:11px;color:${isDelivered?'#15803d':'#1d4ed8'}">
+          ${o.deliveredAt ? fmtDate(o.deliveredAt) : o.expectedDelivery ? fmtDate(o.expectedDelivery) : '—'}
+        </span>
+      </div>
+
+      <div style="display:flex;align-items:baseline;gap:6px;padding-bottom:8px;border-bottom:1px solid #f5f3ee;margin-bottom:8px">
+        <span style="font-family:'DM Mono',monospace;font-size:20px;font-weight:700;color:#1a1916">${o.qty}</span>
         <span style="font-family:'DM Mono',monospace;font-size:12px;color:#8a8578">${m.unit}</span>
+        ${o.orderedAt?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">ordered ${fmtDate(o.orderedAt)}</span>`:''}
+      </div>
+
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="btn btn-ghost btn-sm" onclick="reorderClone('${o.id}')">↻ Reorder</button>
+        <button class="btn btn-ghost btn-sm" onclick="openOrderModal('${m.id}','${o.id}')">✎ Edit</button>
         <div style="flex:1"></div>
-        ${typeLabel}
-      </div>
-
-      <div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
-        ${sup?`<span>🏢 ${sup.name}</span>`:''}
-        ${o.orderedAt?`<span>📅 ${fmtDate(o.orderedAt)}</span>`:''}
-        ${o.expectedDelivery?`<span style="color:${isDelivered?'#8a8578':'#1d4ed8'}">${o.isCollection?'🚗':'🚚'} ${fmtDate(o.expectedDelivery)}</span>`:''}
-        ${o.deliveredAt?`<span style="color:#15803d">✓ ${fmtDate(o.deliveredAt)}</span>`:''}
-        ${o.notes?`<span style="font-style:italic">"${o.notes}"</span>`:''}
-      </div>
-
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="openOrderModal('${m.id}','${o.id}')">✎ Edit</button>
-        <select class="status-sel s-${o.status}" onchange="changeOrderStatus('${o.id}',this.value);this.className='status-sel s-'+this.value" style="font-size:11px">
-          <option value="pending" ${o.status==='pending'?'selected':''}>${statusLabel.pending}</option>
-          <option value="ordered" ${o.status==='ordered'?'selected':''}>${statusLabel.ordered}</option>
-          <option value="delivered" ${o.status==='delivered'?'selected':''}>${statusLabel.delivered}</option>
-          <option value="cancelled" ${o.status==='cancelled'?'selected':''}>${statusLabel.cancelled}</option>
-        </select>
-        ${!isDelivered?`<button class="btn btn-primary btn-sm" style="font-size:11px;padding:4px 12px;background:#15803d;flex:1" onclick="markDelivered('${o.id}')">${actionLabel}</button>`:''}
+        ${!isDelivered?`<button class="btn btn-primary btn-sm" style="background:#15803d;font-size:11px;padding:4px 14px" onclick="markDelivered('${o.id}')">${actionLabel}</button>`:''}
         <button class="del-btn" onclick="deleteOrder('${o.id}')">×</button>
       </div>
 
-      <div style="display:flex;gap:6px;margin-top:6px">
-        <button class="btn btn-ghost btn-sm" onclick="reorderClone('${o.id}')">↻ Reorder</button>
-        ${sup&&sup.phone?`<a href="tel:${sup.phone}" class="btn btn-ghost btn-sm" style="text-decoration:none">📞 Call</a>`:''}
-        ${sup&&sup.website?`<a href="https://${sup.website.replace(/^https?:\/\//,'')}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">🌐 Web</a>`:''}
-      </div>
     </div>`;
 }
 
