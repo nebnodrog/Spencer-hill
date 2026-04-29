@@ -2453,7 +2453,7 @@ function renderDiary() {
     return `
       <div style="margin-bottom:16px">
         <div style="font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:${headerColor};padding:8px 0 6px;border-bottom:2px solid ${headerColor};margin-bottom:8px">
-          ${formatDate(date)}
+          ${formatDate(date, allDelivered)}
         </div>
         ${orders.map(o => {
           const m = S.materials.find(x=>x.id===o.matId);
@@ -2760,37 +2760,47 @@ function renderOrdersBySupplier(orders) {
 
 function renderOrderRow(o, m, showMatName=false) {
   const sup = o.supplierId ? S.suppliers.find(x=>x.id===o.supplierId) : null;
-  const orderer = S.users[o.orderedBy] || S.users[0];
   const isDelivered = o.status === 'delivered';
+  const typeLabel = o.isCollection
+    ? `<span style="font-family:'DM Mono',monospace;font-size:10px;background:#eff3ff;color:#1d4ed8;padding:2px 7px;border-radius:4px">🚗 Collection</span>`
+    : `<span style="font-family:'DM Mono',monospace;font-size:10px;background:#f0fdf4;color:#15803d;padding:2px 7px;border-radius:4px">🚚 Delivery</span>`;
+  const actionLabel = o.isCollection ? '✓ Collected' : '✓ Delivered';
+  const statusLabel = o.isCollection
+    ? { pending:'Pending', ordered:'Ordered', delivered:'Collected', cancelled:'Cancelled' }
+    : { pending:'Pending', ordered:'Ordered', delivered:'Delivered', cancelled:'Cancelled' };
+
   return `
     <div style="background:#ffffff;border:1px solid #ddd9d0;border-radius:10px;padding:10px 12px;margin-bottom:8px;margin-top:8px">
-      ${showMatName ? `<div style="font-size:12px;font-weight:600;color:#8a8578;margin-bottom:4px;font-family:'DM Mono',monospace">${m.name}</div>` : ''}
-      <div class="row" style="justify-content:space-between;margin-bottom:6px">
-        <div class="row" style="gap:6px;align-items:baseline">
-          <span style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600">${o.qty}</span>
-          <span style="font-family:'DM Mono',monospace;font-size:12px;color:#8a8578">${m.unit}</span>
-          ${o.isCollection ? `<span style="font-family:'DM Mono',monospace;font-size:10px;background:#eff3ff;color:#1d4ed8;padding:1px 6px;border-radius:4px">🚗 Collection</span>` : `<span style="font-family:'DM Mono',monospace;font-size:10px;background:#f0fdf4;color:#15803d;padding:1px 6px;border-radius:4px">🚚 Delivery</span>`}
-        </div>
-        <div class="row" style="gap:5px">
-          <button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="openOrderModal('${m.id}','${o.id}')">✎ Edit</button>
-          <select class="status-sel s-${o.status}" onchange="changeOrderStatus('${o.id}',this.value);this.className='status-sel s-'+this.value">
-            <option value="pending" ${o.status==='pending'?'selected':''}>Pending</option>
-            <option value="ordered" ${o.status==='ordered'?'selected':''}>Ordered</option>
-            <option value="delivered" ${o.status==='delivered'?'selected':''}>${o.isCollection?'Collected':'Delivered'}</option>
-            <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Cancelled</option>
-          </select>
-          ${!isDelivered ? `<button class="btn btn-primary btn-sm" style="font-size:11px;padding:3px 10px;background:#15803d" onclick="markDelivered('${o.id}')">${o.isCollection?'✓ Collected':'✓ Delivered'}</button>` : ''}
-          <button class="del-btn" onclick="deleteOrder('${o.id}')">×</button>
-        </div>
+
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px">
+        ${showMatName ? `<span style="font-size:13px;font-weight:600;color:#1a1916;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.name}</span>` : ''}
+        <span style="font-family:'DM Mono',monospace;font-size:24px;font-weight:700;color:#1a1916">${o.qty}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:12px;color:#8a8578">${m.unit}</span>
+        <div style="flex:1"></div>
+        ${typeLabel}
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">
+
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
         ${sup?`<span>🏢 ${sup.name}</span>`:''}
         ${o.orderedAt?`<span>📅 ${fmtDate(o.orderedAt)}</span>`:''}
         ${o.expectedDelivery?`<span style="color:${isDelivered?'#8a8578':'#1d4ed8'}">${o.isCollection?'🚗':'🚚'} ${fmtDate(o.expectedDelivery)}</span>`:''}
         ${o.deliveredAt?`<span style="color:#15803d">✓ ${fmtDate(o.deliveredAt)}</span>`:''}
         ${o.notes?`<span style="font-style:italic">"${o.notes}"</span>`:''}
       </div>
-      <div class="row" style="gap:6px;margin-top:8px">
+
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="openOrderModal('${m.id}','${o.id}')">✎ Edit</button>
+        <select class="status-sel s-${o.status}" onchange="changeOrderStatus('${o.id}',this.value);this.className='status-sel s-'+this.value" style="font-size:11px">
+          <option value="pending" ${o.status==='pending'?'selected':''}>${statusLabel.pending}</option>
+          <option value="ordered" ${o.status==='ordered'?'selected':''}>${statusLabel.ordered}</option>
+          <option value="delivered" ${o.status==='delivered'?'selected':''}>${statusLabel.delivered}</option>
+          <option value="cancelled" ${o.status==='cancelled'?'selected':''}>${statusLabel.cancelled}</option>
+        </select>
+        ${!isDelivered?`<button class="btn btn-primary btn-sm" style="font-size:11px;padding:4px 12px;background:#15803d;flex:1" onclick="markDelivered('${o.id}')">${actionLabel}</button>`:''}
+        <button class="del-btn" onclick="deleteOrder('${o.id}')">×</button>
+      </div>
+
+      <div style="display:flex;gap:6px;margin-top:6px">
         <button class="btn btn-ghost btn-sm" onclick="reorderClone('${o.id}')">↻ Reorder</button>
         ${sup&&sup.phone?`<a href="tel:${sup.phone}" class="btn btn-ghost btn-sm" style="text-decoration:none">📞 Call</a>`:''}
         ${sup&&sup.website?`<a href="https://${sup.website.replace(/^https?:\/\//,'')}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">🌐 Web</a>`:''}
