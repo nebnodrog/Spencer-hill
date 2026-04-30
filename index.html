@@ -1032,6 +1032,20 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   </div>
 </div>
 
+<!-- MODAL: Confirm Delivery/Collection Date -->
+
+<div class="overlay" id="deliveryPickerOverlay" onclick="if(event.target===this)closeDeliveryDatePicker()">
+  <div class="sheet" style="height:auto;max-height:50vh">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-shrink:0">
+      <span id="deliveryPickerTitle" style="font-family:'DM Mono',monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Confirm Delivery Date</span>
+      <button onclick="closeDeliveryDatePicker()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button>
+    </div>
+    <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Date</label>
+    <input type="date" id="deliveryPickerDate" style="margin-bottom:16px;font-size:16px">
+    <button id="deliveryPickerBtn" class="btn btn-primary" style="width:100%;margin-bottom:16px;background:#15803d" onclick="confirmDelivery()">✓ Mark as Delivered</button>
+  </div>
+</div>
+
 <!-- MODAL: Add / Edit Supplier -->
 
 <div class="overlay" id="addSupplierOverlay" onclick="if(event.target===this)closeAddSupplier()">
@@ -2918,8 +2932,36 @@ function saveOrder() {
 function markDelivered(id) {
   const o = S.orders.find(x=>x.id===id);
   if (!o) return;
+  const label = o.isCollection ? 'Collection' : 'Delivery';
+  openDeliveryDatePicker(id, label);
+}
+
+let _pendingDeliveryId = null;
+function openDeliveryDatePicker(orderId, label) {
+  _pendingDeliveryId = orderId;
+  document.getElementById('deliveryPickerTitle').textContent = `Confirm ${label} Date`;
+  document.getElementById('deliveryPickerDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('deliveryPickerBtn').textContent = `✓ Mark as ${label === 'Collection' ? 'Collected' : 'Delivered'}`;
+  document.getElementById('deliveryPickerOverlay').classList.add('open');
+}
+
+function closeDeliveryDatePicker() {
+  document.getElementById('deliveryPickerOverlay').classList.remove('open');
+  _pendingDeliveryId = null;
+}
+
+function confirmDelivery() {
+  const date = document.getElementById('deliveryPickerDate').value;
+  if (!date) return;
+  closeDeliveryDatePicker();
+  confirmMarkDelivered(_pendingDeliveryId, date);
+}
+
+function confirmMarkDelivered(id, date) {
+  const o = S.orders.find(x=>x.id===id);
+  if (!o) return;
   o.status = 'delivered';
-  o.deliveredAt = new Date().toISOString().slice(0,10);
+  o.deliveredAt = date;
   renderOrdersPage();
   renderMaterials();
   if (document.getElementById('page-areas').classList.contains('active')) renderAreaPage();
@@ -3506,11 +3548,11 @@ async function saveOrder() {
 }
 
 const _origMarkDelivered = markDelivered;
-async function markDelivered(id) {
+async function confirmMarkDelivered(id, date) {
   const o = S.orders.find(x=>x.id===id);
   if (!o) return;
   o.status = 'delivered';
-  o.deliveredAt = new Date().toISOString().slice(0,10);
+  o.deliveredAt = date;
   await saveRecord('orders', { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: 'delivered', ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: o.deliveredAt, notes: o.notes, is_collection: o.isCollection||false, project_id: 'spencer-hill' });
   renderOrdersPage(); renderMaterials();
   if (document.getElementById('page-areas').classList.contains('active')) renderAreaPage();
