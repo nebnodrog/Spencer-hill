@@ -2685,7 +2685,7 @@ function renderOrdersBySupplier(orders) {
       const needed = totalQty(m);
       if (needed <= 0) return;
       const accounted = S.orders
-        .filter(o=>o.matId===m.id && o.status!=='cancelled' && o.status!=='delivered')
+        .filter(o=>o.matId===m.id && o.status!=='cancelled')
         .reduce((s,o)=>s+Number(o.qty), 0);
       if (accounted < needed) {
         const supId = (m.suppliers||[])[0]?.supplierId || 'none';
@@ -2718,7 +2718,7 @@ function renderOrdersBySupplier(orders) {
       const needed = totalQty(m);
       if (needed <= 0) return false;
       const accounted = S.orders
-        .filter(o => o.matId===m.id && o.status!=='cancelled' && o.status!=='delivered')
+        .filter(o => o.matId===m.id && o.status!=='cancelled')
         .reduce((s,o)=>s+Number(o.qty), 0);
       if (accounted >= needed) return false;
       const primarySup = (m.suppliers||[])[0]?.supplierId || 'none';
