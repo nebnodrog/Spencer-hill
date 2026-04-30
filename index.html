@@ -651,7 +651,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
       <div class="page-title" style="margin:0">Orders</div>
       <div class="row" style="gap:6px">
         <button class="btn btn-accent btn-sm" onclick="openBulkOrder()">+ Bulk Order</button>
-        <button class="btn btn-ghost btn-sm" id="orderGroupToggle" onclick="toggleOrderGrouping()">By Supplier</button>
+        <button class="btn btn-ghost btn-sm" id="orderGroupToggle" onclick="toggleOrderGrouping()">By Material</button>
         <button class="btn btn-ghost btn-sm" id="orderExpandToggle" onclick="toggleAllOrders()">Expand all</button>
       </div>
     </div>
@@ -2526,7 +2526,7 @@ function renderDiary() {
 
 // ═══════════════ ORDERS PAGE ═══════════════
 let orderFilter = 'all';
-let orderGroupBy = 'material'; // 'material' or 'supplier'
+let orderGroupBy = 'supplier';
 let expandedOrderGroups = new Set();
 
 function setOrderFilter(f) {
