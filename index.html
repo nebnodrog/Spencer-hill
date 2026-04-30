@@ -272,13 +272,17 @@ font-family: ‘DM Mono’, monospace; font-size: 13px; font-weight: 500;
 color: #1a1916; white-space: nowrap;
 }
 .mat-total-unit { font-size: 11px; color: #8a8578; }
-.mat-areas { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.mat-areas { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 4px; }
 .mat-area-pill {
 display: flex; align-items: center; gap: 3px;
 background: #edeae3; border: 1px solid #ddd9d0;
-border-radius: 5px; padding: 2px 7px;
-font-size: 13px; color: #8a8578;
+border-radius: 5px; padding: 3px 8px;
+font-size: 12px; color: #8a8578;
 font-family: ‘DM Mono’, monospace;
+max-width: 100%; overflow: hidden;
+}
+.mat-area-pill span:first-child {
+overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;
 }
 .mat-area-qty { color: #1a1916; font-weight: 500; }
 .mat-bottom { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -2035,35 +2039,29 @@ function renderMatCard(m) {
   const detail = `
     <div class="mat-detail open">
 
-      <!-- Tasks row -->
-      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px;flex-wrap:wrap">
-        <span style="font-family:'DM Mono',monospace;font-size:13px;color:#8a8578;flex-shrink:0">Tasks</span>
-        <div class="mat-areas">${taskList || '<span style="font-family:\'DM Mono\',monospace;font-size:13px;color:#8a8578">No tasks assigned</span>'}</div>
+      <div style="display:flex;gap:6px;align-items:baseline;margin-bottom:8px;flex-wrap:wrap">
+        <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0">Tasks</span>
+        <div class="mat-areas" style="margin-bottom:0">${taskList || '<span style="font-family:\'DM Mono\',monospace;font-size:11px;color:#8a8578">No tasks assigned</span>'}</div>
       </div>
 
-      <!-- Supplier row -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-family:'DM Mono',monospace;font-size:13px;color:#8a8578">Supplier</span>
-          ${primary?`<span style="font-size:14px;font-weight:600">${primary.name}</span>`:'<span style="font-size:13px;color:#8a8578">None assigned</span>'}
-          ${primary&&primary.phone?`<a href="tel:${primary.phone}" style="font-family:'DM Mono',monospace;font-size:13px;color:#1d4ed8;text-decoration:none">📞</a>`:''}
-          ${primary&&primary.website?`<a href="https://${primary.website.replace(/^https?:\/\//,'')}" target="_blank" style="font-family:'DM Mono',monospace;font-size:13px;color:#1d4ed8;text-decoration:none">🌐</a>`:''}
-        </div>
-        ${sups[0]&&sups[0].productUrl?`<a href="${sups[0].productUrl}" target="_blank" style="font-family:'DM Mono',monospace;font-size:13px;color:#c8440e;text-decoration:none">🔗 Link</a>`:''}
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+        <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0">Supplier</span>
+        ${primary ? `<span style="font-size:13px;font-weight:600">${primary.name}</span>` : '<span style="font-size:11px;color:#8a8578">None assigned</span>'}
+        ${primary&&primary.phone ? `<a href="tel:${primary.phone}" style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8;text-decoration:none">📞</a>` : ''}
+        ${primary&&primary.website ? `<a href="https://${primary.website.replace(/^https?:\/\//,'')}" target="_blank" style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8;text-decoration:none">🌐</a>` : ''}
+        ${sups[0]&&sups[0].productUrl ? `<a href="${sups[0].productUrl}" target="_blank" style="font-family:'DM Mono',monospace;font-size:11px;color:#c8440e;text-decoration:none">🔗</a>` : ''}
       </div>
 
-      <!-- Order summary row -->
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-        <span style="font-family:'DM Mono',monospace;font-size:13px;color:#8a8578">Need ${total} ${m.unit}</span>
-        ${totalDelivered>0?`<span style="font-family:'DM Mono',monospace;font-size:13px;color:#15803d">✓ ${totalDelivered} delivered</span>`:''}
-        ${totalToCollect>0?`<span style="font-family:'DM Mono',monospace;font-size:13px;color:#1d4ed8">🚗 ${totalToCollect} to collect</span>`:''}
-        ${totalOnOrder>0?`<span style="font-family:'DM Mono',monospace;font-size:13px;color:#1d4ed8">⟳ ${totalOnOrder} on order</span>`:''}
-        ${outstanding>0?`<span style="font-family:'DM Mono',monospace;font-size:13px;color:#c8440e;font-weight:500">${outstanding} still to order</span>`:`<span style="font-family:'DM Mono',monospace;font-size:13px;color:#15803d">fully accounted for</span>`}
-        ${matOrders.length?`<span style="font-family:'DM Mono',monospace;font-size:13px;color:#8a8578;cursor:pointer;text-decoration:underline" onclick="openOrderHistory('${m.id}')">${matOrders.length} order${matOrders.length!==1?'s':''}</span>`:''}
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">Need ${total} ${m.unit}</span>
+        ${totalDelivered>0 ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">✓ ${totalDelivered} delivered</span>` : ''}
+        ${totalToCollect>0 ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8">🚗 ${totalToCollect} to collect</span>` : ''}
+        ${totalOnOrder>0 ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8">⟳ ${totalOnOrder} on order</span>` : ''}
+        ${outstanding>0 ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#c8440e;font-weight:600">${outstanding} to order</span>` : `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">✓ fully covered</span>`}
+        ${matOrders.length ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;text-decoration:underline;cursor:pointer" onclick="openOrderHistory('${m.id}')">${matOrders.length} order${matOrders.length!==1?'s':''}</span>` : ''}
       </div>
 
-      <!-- Actions -->
-      <div class="row" style="gap:6px;flex-wrap:wrap">
+      <div style="display:flex;gap:6px;align-items:center">
         <button class="btn btn-accent btn-sm" onclick="event.stopPropagation();openOrderModal('${m.id}')">+ Order</button>
         <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openOrderHistory('${m.id}')">History</button>
         <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAddMat('${m.id}')">Edit</button>
