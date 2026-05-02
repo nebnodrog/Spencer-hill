@@ -3481,6 +3481,7 @@ async function doLogin() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
+    console.log('Login response:', JSON.stringify(data).slice(0,200));
     currentSession = data;
     localStorage.setItem('sb_session', JSON.stringify(data));
     hideLoginScreen();
@@ -3531,6 +3532,9 @@ async function checkSession() {
   if (!stored) { showLoginScreen(); return; }
   try {
     const session = JSON.parse(stored);
+    console.log('Stored session keys:', Object.keys(session));
+    console.log('Has access_token:', !!session.access_token);
+    console.log('Has refresh_token:', !!session.refresh_token);
     // First try using the existing access token
     const res = await fetch(`${SB_URL}/users?project_id=eq.spencer-hill&limit=1`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${session.access_token}` }
