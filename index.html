@@ -516,6 +516,34 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 </head>
 <body>
 
+<!-- LOGIN SCREEN -->
+
+<div id="loginScreen" style="display:flex;position:fixed;inset:0;background:#1a1916;z-index:1000;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px">
+  <div style="width:100%;max-width:360px">
+    <div style="text-align:center;margin-bottom:40px">
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:#666;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px">Project Manager</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:28px;font-weight:700;color:#fff">Spencer Hill</div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#666;display:block;margin-bottom:6px">Email</label>
+      <input id="loginEmail" type="email" placeholder="your@email.com" autocomplete="email"
+        style="width:100%;box-sizing:border-box;background:#2a2926;border:1px solid #3a3936;border-radius:8px;color:#fff;font-size:16px;padding:12px 14px"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+    </div>
+    <div style="margin-bottom:24px">
+      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#666;display:block;margin-bottom:6px">Password</label>
+      <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password"
+        style="width:100%;box-sizing:border-box;background:#2a2926;border:1px solid #3a3936;border-radius:8px;color:#fff;font-size:16px;padding:12px 14px"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button onclick="doLogin()" id="loginBtn"
+      style="width:100%;background:#c8440e;color:#fff;border:none;border-radius:8px;padding:14px;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;letter-spacing:1px;cursor:pointer">
+      Sign In
+    </button>
+    <div id="loginError" style="display:none;margin-top:12px;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:#c8440e;letter-spacing:0.5px"></div>
+  </div>
+</div>
+
 <!-- LOADING OVERLAY -->
 
 <div id="loadingOverlay" style="display:none;position:fixed;inset:0;background:rgba(26,25,22,0.85);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:12px">
@@ -3276,7 +3304,9 @@ function openUserModal() {
         <div class="team-role">${u.role}</div>
       </div>
       ${i===S.currentUser?'<span style="color:#c8440e;font-size:20px">✓</span>':''}
-    </div>`).join('');
+    </div>`).join('') +
+    `<div class="divider"></div>
+     <button class="btn btn-ghost" style="width:100%;color:#c8440e" onclick="closeUserModal();doLogout()">Sign Out</button>`;
   document.getElementById('userOverlay').classList.add('open');
 }
 function closeUserModal() { document.getElementById('userOverlay').classList.remove('open'); }
@@ -3425,6 +3455,100 @@ async function placeBulkOrder() {
   renderAreaPage();
   showToast(`${bulkSelected.size} orders placed`);
 }
+// ═══════════════ SUPABASE AUTH ═══════════════
+const SB_AUTH_URL = 'https://qzojobqmjylzgtoqovnv.supabase.co/auth/v1';
+let currentSession = null;
+
+function getAuthHeaders() {
+  const token = currentSession?.access_token || SB_KEY;
+  return { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' };
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('loginError');
+  if (!email || !password) { showLoginError('Please enter your email and password'); return; }
+  btn.textContent = 'Signing in…';
+  btn.disabled = true;
+  err.style.display = 'none';
+  try {
+    const res = await fetch(`${SB_AUTH_URL}/token?grant_type=password`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
+    currentSession = data;
+    localStorage.setItem('sb_session', JSON.stringify(data));
+    hideLoginScreen();
+    loadFromSupabase();
+  } catch(e) {
+    showLoginError(e.message);
+    btn.textContent = 'Sign In';
+    btn.disabled = false;
+  }
+}
+
+function showLoginError(msg) {
+  const err = document.getElementById('loginError');
+  err.textContent = msg;
+  err.style.display = 'block';
+}
+
+function showLoginScreen() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('loginBtn').textContent = 'Sign In';
+  document.getElementById('loginBtn').disabled = false;
+  setTimeout(() => document.getElementById('loginEmail').focus(), 100);
+}
+
+function hideLoginScreen() {
+  document.getElementById('loginScreen').style.display = 'none';
+}
+
+async function doLogout() {
+  try {
+    if (currentSession?.access_token) {
+      await fetch(`${SB_AUTH_URL}/logout`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${currentSession.access_token}` }
+      });
+    }
+  } catch(e) { /* ignore */ }
+  currentSession = null;
+  localStorage.removeItem('sb_session');
+  showLoginScreen();
+}
+
+async function checkSession() {
+  const stored = localStorage.getItem('sb_session');
+  if (!stored) { showLoginScreen(); return; }
+  try {
+    const session = JSON.parse(stored);
+    const res = await fetch(`${SB_AUTH_URL}/token?grant_type=refresh_token`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: session.refresh_token })
+    });
+    if (!res.ok) throw new Error('Session expired');
+    const data = await res.json();
+    currentSession = data;
+    localStorage.setItem('sb_session', JSON.stringify(data));
+    loadFromSupabase();
+  } catch(e) {
+    currentSession = null;
+    localStorage.removeItem('sb_session');
+    showLoginScreen();
+  }
+}
+
+// ═══════════════ SUPABASE BACKEND ═══════════════
 const SB_URL = 'https://qzojobqmjylzgtoqovnv.supabase.co/rest/v1';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6b2pvYnFtanlsemd0b3Fvdm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODM3ODgsImV4cCI6MjA5MjM1OTc4OH0.90igKhaJE_hE8p6ARMm5B3ggj0nOtPG8x55UvmT0dys';
 const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' };
@@ -3726,7 +3850,7 @@ async function saveUserRecord(u, i) {
 
 // ═══════════════ INIT ═══════════════
 renderHeader();
-loadFromSupabase();
+checkSession();
 </script>
 
 </body>
