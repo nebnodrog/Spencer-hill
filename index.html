@@ -586,6 +586,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <button class="btn btn-sm btn-ghost" id="mf-pending" onclick="setMatFilter('pending')">Pending</button>
   <button class="btn btn-sm btn-ghost" id="mf-ordered" onclick="setMatFilter('ordered')">Ordered</button>
   <button class="btn btn-sm btn-ghost" id="mf-delivered" onclick="setMatFilter('delivered')">Delivered</button>
+  <button class="btn btn-sm btn-ghost" id="mf-archived" onclick="setMatFilter('archived')">Archived</button>
 </div>
 
 <div id="matList"></div>
@@ -1867,7 +1868,7 @@ function saveArea() {
 let matFilter = 'all';
 function setMatFilter(f) {
   matFilter = f;
-  ['all','pending','ordered','delivered'].forEach(x=>{
+  ['all','pending','ordered','delivered','archived'].forEach(x=>{
     const b = document.getElementById('mf-'+x);
     if (!b) return;
     b.className = 'btn btn-sm ' + (x===f ? 'btn-primary' : 'btn-ghost');
@@ -1951,7 +1952,12 @@ function renderMaterials() {
   });
 
   let mats = S.materials;
-  if (matFilter !== 'all') mats = mats.filter(m => matEffectiveStatus(m) === matFilter);
+  if (matFilter === 'archived') {
+    mats = mats.filter(m => m.archived);
+  } else {
+    mats = mats.filter(m => !m.archived);
+    if (matFilter !== 'all') mats = mats.filter(m => matEffectiveStatus(m) === matFilter);
+  }
 
   const cats = {};
   mats.forEach(m=>{ (cats[m.cat]||(cats[m.cat]=[])).push(m); });
@@ -2065,6 +2071,7 @@ function renderMatCard(m) {
         <button class="btn btn-accent btn-sm" onclick="event.stopPropagation();openOrderModal('${m.id}')">+ Order</button>
         <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openOrderHistory('${m.id}')">History</button>
         <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAddMat('${m.id}')">Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleArchiveMat('${m.id}')">${m.archived?'Unarchive':'Archive'}</button>
         <button class="del-btn" style="margin-left:auto" onclick="event.stopPropagation();deleteMat('${m.id}')">×</button>
       </div>
     </div>`;
@@ -2582,6 +2589,7 @@ function renderOrdersPage() {
   // ── NEEDS ORDERING section ── only show for 'all' or 'pending' filter
   if (orderFilter === 'all' || orderFilter === 'pending') {
     const needsOrdering = S.materials.filter(m => {
+      if (m.archived) return false;
       const needed = totalQty(m);
       const allOrders = S.orders.filter(o => o.matId === m.id && o.status !== 'cancelled');
       const totalDelivered = allOrders.filter(o => o.status === 'delivered').reduce((s,o) => s + Number(o.qty), 0);
@@ -2717,6 +2725,7 @@ function renderOrdersBySupplier(orders) {
 
     // Materials needing ordering for this supplier — only show when filter allows it
     const needsOrdering = (orderFilter === 'all' || orderFilter === 'pending') ? S.materials.filter(m => {
+      if (m.archived) return false;
       const needed = totalQty(m);
       if (needed <= 0) return false;
       const accounted = S.orders
@@ -3498,7 +3507,16 @@ async function saveMaterial() {
   if (returnToTaskId) openAddTask(null, returnToTaskId);
 }
 
-const _origDeleteMat = deleteMat;
+async function toggleArchiveMat(matId) {
+  const m = S.materials.find(x=>x.id===matId);
+  if (!m) return;
+  m.archived = !m.archived;
+  expandedMats.delete(matId);
+  renderMaterials();
+  renderOrdersPage();
+  await saveRecord('materials', { id: matId, name: m.name, unit: m.unit, cat: m.cat, assignments: m.assignments, product_url: m.productUrl, suppliers: m.suppliers, direct_qty: m.directQty, archived: m.archived, project_id: 'spencer-hill' });
+  showToast(m.archived ? 'Material archived' : 'Material unarchived');
+}
 async function deleteMat(id) {
   const m = S.materials.find(x=>x.id===id);
   if (!m) return;
@@ -3612,7 +3630,7 @@ async function loadFromSupabase() {
 
     S.areas = areasR.map(r=>({ id:r.id, name:r.name }));
     S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false }));
-    S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[], directQty:r.direct_qty||0 }));
+    S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[], directQty:r.direct_qty||0, archived:r.archived||false }));
     S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false }));
     S.suppliers = supsR.map(r=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'' }));
     if (usersR.length) S.users = usersR.map(r=>({ id:r.id, name:r.name, role:r.role||'Team Member' }));
