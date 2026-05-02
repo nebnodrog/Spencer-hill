@@ -720,10 +720,6 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
     Materials
   </button>
-  <button class="nav-btn" id="nav-overview" onclick="showPage('overview')">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.8" d="M3 17l4-8 4 4 4-6 4 4M3 21h18"/></svg>
-    Overview
-  </button>
   <button class="nav-btn" id="nav-diary" onclick="showPage('diary')">
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke-width="1.8"/><path stroke-width="1.8" d="M16 2v4M8 2v4M3 10h18"/><path stroke-width="1.8" d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
     Diary
@@ -1051,6 +1047,22 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   </div>
 </div>
 
+<!-- MODAL: Project Overview -->
+
+<div class="overlay" id="overviewOverlay" onclick="if(event.target===this)closeAreaOverview()">
+  <div class="sheet">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0">
+      <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Project Overview</span>
+      <button onclick="closeAreaOverview()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button>
+    </div>
+    <div style="overflow-y:auto;flex:1">
+      <div class="stat-row" id="ovStatsSheet"></div>
+      <div class="section-head">Areas</div>
+      <div id="ovAreasSheet"></div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: Add / Edit Supplier -->
 
 <div class="overlay" id="addSupplierOverlay" onclick="if(event.target===this)closeAddSupplier()">
@@ -1245,6 +1257,7 @@ function renderAreaPage() {
         <div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-top:3px">${doneTasks}/${tasks.length} tasks · ${totalMatCount} materials</div>
       </div>
       <div class="row" style="gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="openAreaOverview()">Overview</button>
         <button class="btn btn-ghost btn-sm" onclick="openAddMat()">+ Material</button>
         <button class="btn btn-primary btn-sm" onclick="openAddTask('${aId}')">+ Task</button>
       </div>
@@ -3137,11 +3150,58 @@ function renderOverview() {
   }).join('');
 }
 
-function goToArea(i) {
-  S.currentArea = i;
-  showPage('areas');
+function openAreaOverview() {
+  const totalTasks = S.tasks.length;
+  const doneTasks = S.tasks.filter(t=>t.done).length;
+  const pendingOrders = S.orders.filter(o=>o.status==='pending').length;
+  const orderedOrders = S.orders.filter(o=>o.status==='ordered').length;
+  const totalMats = S.materials.filter(m=>!m.archived).length;
+  const pct = totalTasks ? Math.round(doneTasks/totalTasks*100) : 0;
+
+  document.getElementById('ovStatsSheet').innerHTML = `
+    <div class="stat-box">
+      <div class="stat-label">Tasks Done</div>
+      <div class="stat-val">${doneTasks}<small>/${totalTasks}</small></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Materials</div>
+      <div class="stat-val">${totalMats}</div>
+    </div>
+    <div class="stat-box" style="border-color:#c8440e">
+      <div class="stat-label">To Order</div>
+      <div class="stat-val" style="color:#c8440e">${pendingOrders}</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">On Order</div>
+      <div class="stat-val" style="color:#1d4ed8">${orderedOrders}</div>
+    </div>`;
+
+  document.getElementById('ovAreasSheet').innerHTML = S.areas.map((area,i)=>{
+    const tasks = S.tasks.filter(t=>(t.areaIds||[]).includes(area.id));
+    const done = tasks.filter(t=>t.done).length;
+    const mats = matsForArea(area.id);
+    const pendingMats = mats.filter(m=>!m.archived&&!S.orders.some(o=>o.matId===m.id&&o.status!=='cancelled')).length;
+    const pct = tasks.length ? Math.round(done/tasks.length*100) : 0;
+    return `
+      <div class="card-sm" style="cursor:pointer;margin-bottom:6px" onclick="closeAreaOverview();S.currentArea=${i};renderAreaPage();showPage('areas')">
+        <div class="row" style="justify-content:space-between;margin-bottom:6px">
+          <div style="font-weight:600">${area.name}</div>
+          <div class="row" style="gap:6px">
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">${done}/${tasks.length} tasks</span>
+            ${pendingMats>0?`<span class="tag tag-pending" style="font-size:11px">${pendingMats} to order</span>`:''}
+          </div>
+        </div>
+        <div class="prog-bar" style="margin-top:0"><div class="prog-fill" style="width:${pct}%;background:${pct===100?'#15803d':'#c8440e'}"></div></div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('overviewOverlay').classList.add('open');
 }
 
+function closeAreaOverview() {
+  document.getElementById('overviewOverlay').classList.remove('open');
+}
 // ═══════════════ TEAM ═══════════════
 function renderTeam() {
   document.getElementById('teamList').innerHTML = S.users.map((u,i)=>{
