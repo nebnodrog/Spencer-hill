@@ -3481,10 +3481,9 @@ async function doLogin() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
-    // Store session with timestamp
-    const sessionData = { ...data, stored_at: Date.now() };
-    currentSession = sessionData;
-    localStorage.setItem('sb_session', JSON.stringify(sessionData));
+    currentSession = data;
+    // Store credentials for silent re-auth
+    localStorage.setItem('sb_creds', btoa(JSON.stringify({ email, password })));
     hideLoginScreen();
     loadFromSupabase();
   } catch(e) {
@@ -3492,6 +3491,32 @@ async function doLogin() {
     btn.textContent = 'Sign In';
     btn.disabled = false;
   }
+}
+
+async function checkSession() {
+  const stored = localStorage.getItem('sb_creds');
+  if (!stored) { showLoginScreen(); return; }
+  try {
+    const { email, password } = JSON.parse(atob(stored));
+    const res = await fetch(`${SB_AUTH_URL}/token?grant_type=password`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error('Auto login failed');
+    currentSession = data;
+    loadFromSupabase();
+  } catch(e) {
+    localStorage.removeItem('sb_creds');
+    showLoginScreen();
+  }
+}
+
+async function doLogout() {
+  currentSession = null;
+  localStorage.removeItem('sb_creds');
+  showLoginScreen();
 }
 
 function showLoginError(msg) {
