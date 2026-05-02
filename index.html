@@ -527,12 +527,13 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <!-- HEADER -->
 
 <header style="padding:10px 16px;background:#1a1916">
-  <div class="logo-block" onclick="openProjectSettings()" style="cursor:pointer;flex-direction:row;align-items:center;gap:8px;display:flex">
-    <div style="font-family:'DM Mono',monospace;font-size:11px;color:#aaa;letter-spacing:2px;text-transform:uppercase;white-space:nowrap">Project Manager</div>
-    <div style="color:#aaa;font-size:11px">·</div>
-    <div id="projectNameDisplay" style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">Spencer Hill</div>
-    <div style="color:#aaa;font-size:11px">·</div>
-    <div id="headerPageLabel" style="font-family:'DM Mono',monospace;font-size:11px;color:#aaa;letter-spacing:1px;text-transform:uppercase;white-space:nowrap"></div>
+  <div class="logo-block" onclick="openProjectSettings()" style="cursor:pointer;flex-direction:column;align-items:flex-start;gap:2px;display:flex">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:#aaa;letter-spacing:2px;text-transform:uppercase;white-space:nowrap">Project Manager</div>
+      <div style="color:#aaa;font-size:11px">·</div>
+      <div id="projectNameDisplay" style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px">Spencer Hill</div>
+    </div>
+    <div id="headerPageLabel" style="font-family:'DM Mono',monospace;font-size:11px;color:#aaa;letter-spacing:1px;text-transform:uppercase"></div>
   </div>
   <div class="user-pill" onclick="openUserModal()" style="padding:3px 8px 3px 3px;gap:5px">
     <div class="avatar" id="hAvatar" style="width:22px;height:22px;font-size:11px"></div>
