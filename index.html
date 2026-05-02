@@ -1260,8 +1260,10 @@ function renderAreaPage() {
   document.getElementById('areaBody').innerHTML = `
     <div class="row" style="justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div>
-        <div style="font-size:20px;font-weight:700;line-height:1">${area.name}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-top:3px">${doneTasks}/${tasks.length} tasks · ${totalMatCount} materials</div>
+        <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+          <div style="font-size:20px;font-weight:700;line-height:1">${area.name}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:400;color:#8a8578">${doneTasks}/${tasks.length} tasks · ${totalMatCount} materials</div>
+        </div>
       </div>
       <div class="row" style="gap:6px">
         <button class="btn btn-ghost btn-sm" onclick="openAreaOverview()">Overview</button>
