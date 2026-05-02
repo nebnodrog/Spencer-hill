@@ -3531,16 +3531,32 @@ async function checkSession() {
   if (!stored) { showLoginScreen(); return; }
   try {
     const session = JSON.parse(stored);
-    const res = await fetch(`${SB_AUTH_URL}/token?grant_type=refresh_token`, {
-      method: 'POST',
-      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: session.refresh_token })
+    // First try using the existing access token
+    const res = await fetch(`${SB_URL}/users?project_id=eq.spencer-hill&limit=1`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${session.access_token}` }
     });
-    if (!res.ok) throw new Error('Session expired');
-    const data = await res.json();
-    currentSession = data;
-    localStorage.setItem('sb_session', JSON.stringify(data));
-    loadFromSupabase();
+    if (res.ok) {
+      // Token still valid — use it
+      currentSession = session;
+      loadFromSupabase();
+      return;
+    }
+    // Token expired — try refresh
+    if (session.refresh_token) {
+      const rRes = await fetch(`${SB_AUTH_URL}/token?grant_type=refresh_token`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: session.refresh_token })
+      });
+      if (rRes.ok) {
+        const data = await rRes.json();
+        currentSession = data;
+        localStorage.setItem('sb_session', JSON.stringify(data));
+        loadFromSupabase();
+        return;
+      }
+    }
+    throw new Error('Session expired');
   } catch(e) {
     currentSession = null;
     localStorage.removeItem('sb_session');
@@ -3850,6 +3866,8 @@ async function saveUserRecord(u, i) {
 
 // ═══════════════ INIT ═══════════════
 renderHeader();
+// Clear any old pre-auth sessions to ensure login screen shows
+localStorage.removeItem('sb_session');
 checkSession();
 </script>
 
