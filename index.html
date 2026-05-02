@@ -3481,9 +3481,10 @@ async function doLogin() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
-    console.log('Login response:', JSON.stringify(data).slice(0,200));
-    currentSession = data;
-    localStorage.setItem('sb_session', JSON.stringify(data));
+    // Store session with timestamp
+    const sessionData = { ...data, stored_at: Date.now() };
+    currentSession = sessionData;
+    localStorage.setItem('sb_session', JSON.stringify(sessionData));
     hideLoginScreen();
     loadFromSupabase();
   } catch(e) {
@@ -3532,20 +3533,24 @@ async function checkSession() {
   if (!stored) { showLoginScreen(); return; }
   try {
     const session = JSON.parse(stored);
-    console.log('Stored session keys:', Object.keys(session));
-    console.log('Has access_token:', !!session.access_token);
-    console.log('Has refresh_token:', !!session.refresh_token);
-    // First try using the existing access token
-    const res = await fetch(`${SB_URL}/users?project_id=eq.spencer-hill&limit=1`, {
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${session.access_token}` }
-    });
-    if (res.ok) {
-      // Token still valid — use it
-      currentSession = session;
-      loadFromSupabase();
-      return;
+    // Check if session is less than 7 days old
+    const age = Date.now() - (session.stored_at || 0);
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    if (age > sevenDays) {
+      throw new Error('Session too old');
     }
-    // Token expired — try refresh
+    // Try using the token
+    if (session.access_token) {
+      const res = await fetch(`${SB_URL}/users?project_id=eq.spencer-hill&limit=1`, {
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${session.access_token}` }
+      });
+      if (res.ok) {
+        currentSession = session;
+        loadFromSupabase();
+        return;
+      }
+    }
+    // Token expired - try refresh if we have it
     if (session.refresh_token) {
       const rRes = await fetch(`${SB_AUTH_URL}/token?grant_type=refresh_token`, {
         method: 'POST',
@@ -3554,8 +3559,9 @@ async function checkSession() {
       });
       if (rRes.ok) {
         const data = await rRes.json();
-        currentSession = data;
-        localStorage.setItem('sb_session', JSON.stringify(data));
+        const newSession = { ...data, stored_at: Date.now() };
+        currentSession = newSession;
+        localStorage.setItem('sb_session', JSON.stringify(newSession));
         loadFromSupabase();
         return;
       }
