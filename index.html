@@ -530,7 +530,9 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <div class="logo-block" onclick="openProjectSettings()" style="cursor:pointer;flex-direction:row;align-items:center;gap:8px;display:flex">
     <div style="font-family:'DM Mono',monospace;font-size:11px;color:#aaa;letter-spacing:2px;text-transform:uppercase;white-space:nowrap">Project Manager</div>
     <div style="color:#aaa;font-size:11px">·</div>
-    <div id="projectNameDisplay" style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px">Spencer Hill</div>
+    <div id="projectNameDisplay" style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">Spencer Hill</div>
+    <div style="color:#aaa;font-size:11px">·</div>
+    <div id="headerPageLabel" style="font-family:'DM Mono',monospace;font-size:11px;color:#aaa;letter-spacing:1px;text-transform:uppercase;white-space:nowrap"></div>
   </div>
   <div class="user-pill" onclick="openUserModal()" style="padding:3px 8px 3px 3px;gap:5px">
     <div class="avatar" id="hAvatar" style="width:22px;height:22px;font-size:11px"></div>
@@ -571,7 +573,6 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <div id="page-materials" class="page">
   <div class="page-pad">
     <div class="row" style="justify-content:space-between;margin-bottom:16px">
-      <div class="page-title" style="margin:0">All Materials</div>
       <div class="row" style="gap:6px">
         <button class="btn btn-ghost btn-sm" id="matHeadingToggle" onclick="toggleMatHeadings()">Hide categories</button>
         <button class="btn btn-ghost btn-sm" id="matExpandToggle" onclick="toggleAllMats()">Expand all</button>
@@ -601,7 +602,6 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <div id="page-tasks" class="page active">
   <div class="page-pad">
     <div class="row" style="justify-content:space-between;margin-bottom:16px">
-      <div class="page-title" style="margin:0">All Tasks</div>
       <div class="row" style="gap:6px">
         <button class="btn btn-ghost btn-sm" id="taskHeadingToggle" onclick="toggleTaskHeadings()">Hide areas</button>
         <button class="btn btn-ghost btn-sm" id="taskExpandToggle" onclick="toggleAllTasks()">Expand all</button>
@@ -624,8 +624,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div id="page-diary" class="page">
   <div class="page-pad">
-    <div class="page-title">Delivery Diary</div>
-    <div id="diaryList"></div>
+        <div id="diaryList"></div>
   </div>
 </div>
 
@@ -649,7 +648,6 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <div id="page-orders" class="page">
   <div class="page-pad">
     <div class="row" style="justify-content:space-between;margin-bottom:12px">
-      <div class="page-title" style="margin:0">Orders</div>
       <div class="row" style="gap:6px">
         <button class="btn btn-accent btn-sm" onclick="openBulkOrder()">+ Bulk Order</button>
         <button class="btn btn-ghost btn-sm" id="orderGroupToggle" onclick="toggleOrderGrouping()">By Material</button>
@@ -673,7 +671,6 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <div id="page-suppliers" class="page">
   <div class="page-pad">
     <div class="row" style="justify-content:space-between;margin-bottom:16px">
-      <div class="page-title" style="margin:0">Suppliers</div>
       <button class="btn btn-primary btn-sm" onclick="openAddSupplier()">+ Add Supplier</button>
     </div>
     <div id="supplierList"></div>
@@ -686,8 +683,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div id="page-team" class="page">
   <div class="page-pad">
-    <div class="page-title">Team</div>
-    <div id="teamList"></div>
+        <div id="teamList"></div>
     <div class="divider"></div>
     <div class="section-head">Add member</div>
     <div class="row" style="gap:8px;flex-wrap:wrap">
@@ -1197,6 +1193,14 @@ function renderHeader() {
   av.style.color = '#fff';
   document.getElementById('hName').textContent = u.name.split(' ')[0];
   document.getElementById('projectNameDisplay').textContent = S.projectName;
+  // Set label for current active page
+  const active = document.querySelector('.page.active');
+  if (active) {
+    const p = active.id.replace('page-','');
+    const labels = { areas:'Areas', tasks:'Tasks', materials:'Materials', diary:'Diary', orders:'Orders', suppliers:'Suppliers', team:'Team' };
+    const lbl = document.getElementById('headerPageLabel');
+    if (lbl) lbl.textContent = labels[p] || '';
+  }
 }
 
 // ═══════════════ PAGE NAV ═══════════════
@@ -1205,6 +1209,8 @@ function showPage(p) {
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
   document.getElementById('nav-'+p).classList.add('active');
+  const labels = { areas:'Areas', tasks:'All Tasks', materials:'All Materials', diary:'Diary', orders:'Orders', suppliers:'Suppliers', team:'Team' };
+  document.getElementById('headerPageLabel').textContent = labels[p]||'';
   if (p==='areas') renderAreaPage();
   if (p==='tasks') { renderTasksPage(); syncTaskExpandLabel(); const th=document.getElementById('taskHeadingToggle'); if(th) th.textContent=taskHeadingsVisible?'Hide areas':'Show areas'; }
   if (p==='materials') { renderMaterials(); const mh=document.getElementById('matHeadingToggle'); if(mh) mh.textContent=matHeadingsVisible?'Hide categories':'Show categories'; }
