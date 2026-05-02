@@ -2583,10 +2583,12 @@ function renderOrdersPage() {
   if (orderFilter === 'all' || orderFilter === 'pending') {
     const needsOrdering = S.materials.filter(m => {
       const needed = totalQty(m);
+      const allOrders = S.orders.filter(o => o.matId === m.id && o.status !== 'cancelled');
+      const totalDelivered = allOrders.filter(o => o.status === 'delivered').reduce((s,o) => s + Number(o.qty), 0);
+      const accounted = allOrders.reduce((s,o) => s + Number(o.qty), 0);
+      // Never show if fully delivered
+      if (needed > 0 && totalDelivered >= needed) return false;
       if (needed <= 0) return false;
-      const accounted = S.orders
-        .filter(o => o.matId === m.id && o.status !== 'cancelled' && o.status !== 'delivered')
-        .reduce((s,o) => s + Number(o.qty), 0);
       return accounted < needed;
     });
 
@@ -2594,7 +2596,7 @@ function renderOrdersPage() {
       html += `<div class="section-head" style="color:#b45309;border-color:#b45309;margin-bottom:8px">Needs Ordering</div>`;
       html += needsOrdering.map(m => {
         const needed = totalQty(m);
-        const accounted = S.orders.filter(o=>o.matId===m.id&&o.status!=='cancelled'&&o.status!=='delivered').reduce((s,o)=>s+Number(o.qty),0);
+        const accounted = S.orders.filter(o=>o.matId===m.id&&o.status!=='cancelled').reduce((s,o)=>s+Number(o.qty),0);
         const outstanding = needed - accounted;
         if (outstanding <= 0) return '';
         const sup = (m.suppliers||[])[0] ? S.suppliers.find(x=>x.id===m.suppliers[0].supplierId) : null;
