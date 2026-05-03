@@ -607,7 +607,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
       <div class="row" style="gap:6px">
         <button class="btn btn-ghost btn-sm" id="matHeadingToggle" onclick="toggleMatHeadings()">Hide categories</button>
         <button class="btn btn-ghost btn-sm" id="matExpandToggle" onclick="toggleAllMats()">Expand all</button>
-        <button class="btn btn-accent btn-sm" onclick="openAddMat()">+ Add Material</button>
+        ${isEditor() ? `<button class="btn btn-accent btn-sm" onclick="openAddMat()">+ Add Material</button>` : ''}
       </div>
     </div>
 
@@ -636,7 +636,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
       <div class="row" style="gap:6px">
         <button class="btn btn-ghost btn-sm" id="taskHeadingToggle" onclick="toggleTaskHeadings()">Hide areas</button>
         <button class="btn btn-ghost btn-sm" id="taskExpandToggle" onclick="toggleAllTasks()">Expand all</button>
-        <button class="btn btn-primary btn-sm" onclick="openAddTask()">+ Add Task</button>
+        ${isEditor() ? `<button class="btn btn-primary btn-sm" onclick="openAddTask()">+ Add Task</button>` : ''}
       </div>
     </div>
     <!-- Filter row -->
@@ -680,7 +680,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <div class="page-pad">
     <div class="row" style="justify-content:space-between;margin-bottom:12px">
       <div class="row" style="gap:6px">
-        <button class="btn btn-accent btn-sm" onclick="openBulkOrder()">+ Bulk Order</button>
+        ${isEditor() ? `<button class="btn btn-accent btn-sm" onclick="openBulkOrder()">+ Bulk Order</button>` : ''}
         <button class="btn btn-ghost btn-sm" id="orderGroupToggle" onclick="toggleOrderGrouping()">By Material</button>
         <button class="btn btn-ghost btn-sm" id="orderExpandToggle" onclick="toggleAllOrders()">Expand all</button>
       </div>
@@ -1219,6 +1219,12 @@ function saveProjectSettings() {
   renderHeader();
   closeProjectSettings();
 }
+
+function currentPerm() {
+  return S.users[S.currentUser]?.permission || 'viewer';
+}
+function isAdmin() { return currentPerm() === 'admin'; }
+function isEditor() { return currentPerm() === 'admin' || currentPerm() === 'editor'; }
 
 // ═══════════════ HEADER ═══════════════
 function renderHeader() {
@@ -1784,10 +1790,10 @@ function renderTaskRow(t) {
       </div>
       ${matsHtml}
       <div class="row" style="gap:6px">
-        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAddTask(null,'${t.id}')">✎ Edit</button>
-        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openReassign('${t.id}')">👤 Reassign</button>
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAddTask(null,'${t.id}')">✎ Edit</button>` : ''}
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openReassign('${t.id}')">👤 Reassign</button>` : ''}
         <div onclick="event.stopPropagation();toggleTask('${t.id}')" class="btn btn-ghost btn-sm" style="cursor:pointer">${t.done ? '↩ Reopen' : '✓ Done'}</div>
-        <button class="del-btn" style="margin-left:auto" onclick="event.stopPropagation();deleteTask('${t.id}')">×</button>
+        ${isAdmin() ? `<button class="del-btn" style="margin-left:auto" onclick="event.stopPropagation();deleteTask('${t.id}')">×</button>` : ''}
       </div>
     </div>`;
 
@@ -2125,11 +2131,11 @@ function renderMatCard(m) {
       </div>
 
       <div style="display:flex;gap:6px;align-items:center">
-        <button class="btn btn-accent btn-sm" onclick="event.stopPropagation();openOrderModal('${m.id}')">+ Order</button>
+        ${isEditor() ? `<button class="btn btn-accent btn-sm" onclick="event.stopPropagation();openOrderModal('${m.id}')">+ Order</button>` : ''}
         <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openOrderHistory('${m.id}')">History</button>
-        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAddMat('${m.id}')">Edit</button>
-        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleArchiveMat('${m.id}')">${m.archived?'Unarchive':'Archive'}</button>
-        <button class="del-btn" style="margin-left:auto" onclick="event.stopPropagation();deleteMat('${m.id}')">×</button>
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAddMat('${m.id}')">Edit</button>` : ''}
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleArchiveMat('${m.id}')">${m.archived?'Unarchive':'Archive'}</button>` : ''}
+        ${isAdmin() ? `<button class="del-btn" style="margin-left:auto" onclick="event.stopPropagation();deleteMat('${m.id}')">×</button>` : ''}
       </div>
     </div>`;
 
@@ -2893,11 +2899,11 @@ function renderOrderRow(o, m, showMatName=false) {
       </div>
 
       <div style="display:flex;gap:6px;align-items:center">
-        <button class="btn btn-ghost btn-sm" onclick="reorderClone('${o.id}')">↻ Reorder</button>
-        <button class="btn btn-ghost btn-sm" onclick="openOrderModal('${m.id}','${o.id}')">✎ Edit</button>
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="reorderClone('${o.id}')">↻ Reorder</button>` : ''}
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="openOrderModal('${m.id}','${o.id}')">✎ Edit</button>` : ''}
         <div style="flex:1"></div>
-        ${!isDelivered?`<button class="btn btn-primary btn-sm" style="background:#15803d;font-size:13px;padding:4px 14px" onclick="markDelivered('${o.id}')">${actionLabel}</button>`:''}
-        <button class="del-btn" onclick="deleteOrder('${o.id}')">×</button>
+        ${isEditor() && !isDelivered ? `<button class="btn btn-primary btn-sm" style="background:#15803d;font-size:13px;padding:4px 14px" onclick="markDelivered('${o.id}')">${actionLabel}</button>` : ''}
+        ${isAdmin() ? `<button class="del-btn" onclick="deleteOrder('${o.id}')">×</button>` : ''}
       </div>
 
     </div>`;
