@@ -3273,10 +3273,12 @@ function renderTeam() {
           <div class="team-name">${u.name}</div>
           <div class="team-role">${u.role}</div>
         </div>
-        <span style="font-family:'DM Mono',monospace;font-size:11px;background:${permBg};color:${permColor};padding:2px 8px;border-radius:4px;flex-shrink:0">${perm}</span>
-        <div class="team-count">${open} open</div>
-        <button class="del-btn" onclick="openEditUser(${i})" style="font-size:13px;color:#8a8578">✎</button>
-        ${i>0?`<button class="del-btn" onclick="deleteUser(${i})">×</button>`:''}
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <span style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;background:${permBg};color:${permColor};padding:3px 10px;border-radius:6px">${perm}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:13px;color:#8a8578">${open} open</span>
+          <button class="del-btn" onclick="openEditUser(${i})" style="font-size:13px;color:#8a8578">✎</button>
+          ${i>0?`<button class="del-btn" onclick="deleteUser(${i})">×</button>`:''}
+        </div>
       </div>`;
   }).join('');
 }
