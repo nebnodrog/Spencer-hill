@@ -1732,7 +1732,7 @@ function renderTasksPage() {
   });
 
   const html = S.areas.filter(a=>byArea[a.id]).map(area=>{
-    const rows = byArea[area.id];
+    const rows = byArea[area.id].sort((a,b) => (a.done===b.done) ? 0 : a.done ? 1 : -1);
     if (!rows || !rows.length) return '';
     return `
       ${taskHeadingsVisible ? `<div class="section-head">${area.name}</div>` : ''}
