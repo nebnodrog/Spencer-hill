@@ -647,6 +647,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
       <button class="btn btn-sm btn-primary" id="tf-all" onclick="setTaskFilter('all')">All</button>
       <button class="btn btn-sm btn-ghost" id="tf-open" onclick="setTaskFilter('open')">Open</button>
       <button class="btn btn-sm btn-ghost" id="tf-done" onclick="setTaskFilter('done')">Done</button>
+      <button class="btn btn-sm btn-ghost" id="tf-archived" onclick="setTaskFilter('archived')">Archived</button>
     </div>
     <div id="taskListGlobal"></div>
   </div>
@@ -1657,7 +1658,7 @@ function renderAreaTaskRow(t) {
 // ─── TASKS PAGE ───
 function setTaskFilter(f) {
   taskFilter = f;
-  ['all','open','done'].forEach(x=>{
+  ['all','open','done','archived'].forEach(x=>{
     const b=document.getElementById('tf-'+x);
     if(b) b.className='btn btn-sm '+(x===f?'btn-primary':'btn-ghost');
   });
@@ -1719,12 +1720,14 @@ function renderTasksPage() {
   const addTaskBtn = document.getElementById('taskAddBtn');
   if (addTaskBtn) addTaskBtn.innerHTML = isEditor() ? `<button class="btn btn-primary btn-sm" onclick="openAddTask()">+ Add Task</button>` : '';
 
-  // Don't render if data not loaded yet
-  if (!S.tasks || !S.areas) return;
-
   let tasks = [...S.tasks];
-  if (taskFilter==='open') tasks = tasks.filter(t=>!t.done);
-  if (taskFilter==='done') tasks = tasks.filter(t=>t.done);
+  if (taskFilter==='archived') {
+    tasks = tasks.filter(t=>t.archived);
+  } else {
+    tasks = tasks.filter(t=>!t.archived);
+    if (taskFilter==='open') tasks = tasks.filter(t=>!t.done);
+    if (taskFilter==='done') tasks = tasks.filter(t=>t.done);
+  }
 
   // Filter by area if selected
   if (taskAreaFilter !== 'all') {
@@ -1828,6 +1831,7 @@ function renderTaskRow(t) {
         ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAddTask(null,'${t.id}')">✎ Edit</button>` : ''}
         ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openReassign('${t.id}')">👤 Reassign</button>` : ''}
         <div onclick="event.stopPropagation();toggleTask('${t.id}')" class="btn btn-ghost btn-sm" style="cursor:pointer">${t.done ? '↩ Reopen' : '✓ Done'}</div>
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleArchiveTask('${t.id}')">${t.archived?'Unarchive':'Archive'}</button>` : ''}
         ${isAdmin() ? `<button class="del-btn" style="margin-left:auto" onclick="event.stopPropagation();deleteTask('${t.id}')">×</button>` : ''}
       </div>
     </div>`;
@@ -3758,7 +3762,15 @@ async function saveTask() {
   refreshCurrentPage();
 }
 
-const _origToggleTask = toggleTask;
+async function toggleArchiveTask(id) {
+  const t = S.tasks.find(x=>x.id===id);
+  if (!t) return;
+  t.archived = !t.archived;
+  expandedTaskRows.delete(id);
+  refreshCurrentPage();
+  await saveRecord('tasks', { id, text: t.text, area_ids: t.areaIds, assignees: t.assignees, done: t.done, archived: t.archived, project_id: 'spencer-hill' });
+  showToast(t.archived ? 'Task archived' : 'Task unarchived');
+}
 async function toggleTask(id) {
   const t = S.tasks.find(x=>x.id===id);
   if (t) {
@@ -3936,7 +3948,7 @@ async function loadFromSupabase() {
     ]);
 
     S.areas = areasR.map(r=>({ id:r.id, name:r.name }));
-    S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false }));
+    S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false, archived:r.archived||false }));
     S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[], directQty:r.direct_qty||0, archived:r.archived||false }));
     S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false }));
     S.suppliers = supsR.map(r=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'' }));
