@@ -1749,7 +1749,7 @@ function renderTasksPage() {
           ${rows.map(t=>renderTaskRow(t)).join('')}`;
       }).join('');
 
-  document.getElementById('taskListGlobal').innerHTML = tasks.length ? html : `
+  document.getElementById('taskListGlobal').innerHTML = (tasks.length && html) ? html : tasks.length ? tasks.map(t=>renderTaskRow(t)).join('') : `
     <div style="text-align:center;padding:48px 20px;color:#8a8578">
       <div style="font-size:32px;margin-bottom:8px">✅</div>
       <div style="font-family:'DM Mono',monospace;font-size:13px;letter-spacing:1px">No tasks here</div>
