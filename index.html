@@ -1475,7 +1475,7 @@ function setTaskAreaFilter(areaId) {
 
 function populateTaskAreaDropdown() {
   const sel = document.getElementById('taskAreaFilter');
-  if (!sel) return;
+  if (!sel || !S.areas.length) return;
   sel.innerHTML = `<option value="all">All Areas</option>` +
     S.areas.map(a => `<option value="${a.id}" ${taskAreaFilter===a.id?'selected':''}>${a.name}</option>`).join('');
   sel.value = taskAreaFilter;
@@ -1661,6 +1661,10 @@ function setTaskFilter(f) {
     if(b) b.className='btn btn-sm '+(x===f?'btn-primary':'btn-ghost');
   });
   renderTasksPage();
+}
+
+function initTaskFilters() {
+  setTaskFilter(taskFilter);
 }
 
 let collapsedTaskGroups = new Set(); // area ids whose group is collapsed
