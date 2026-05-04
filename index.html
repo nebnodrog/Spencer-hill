@@ -719,6 +719,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div class="section-head">Add member</div>
     <div class="row" style="gap:8px;flex-wrap:wrap">
       <input id="newUserName" placeholder="Name" style="flex:2;min-width:100px">
+      <input id="newUserEmail" type="email" placeholder="Email" style="flex:2;min-width:100px">
       <input id="newUserRole" placeholder="Job title" style="flex:2;min-width:100px">
       <select id="newUserPermission" style="flex:1;min-width:80px">
         <option value="editor">Editor</option>
@@ -3284,6 +3285,7 @@ let editingUserIdx = null;
 function openEditUser(i) {
   editingUserIdx = i;
   document.getElementById('newUserName').value = S.users[i].name;
+  document.getElementById('newUserEmail').value = S.users[i].email || '';
   document.getElementById('newUserRole').value = S.users[i].role;
   document.getElementById('newUserPermission').value = S.users[i].permission || 'editor';
   document.getElementById('addUserBtn').textContent = 'Save';
@@ -3299,22 +3301,22 @@ async function deleteUser(i) {
 }
 async function addUser() {
   const name = document.getElementById('newUserName').value.trim();
+  const email = document.getElementById('newUserEmail').value.trim().toLowerCase();
   const role = document.getElementById('newUserRole').value.trim();
   const permission = document.getElementById('newUserPermission').value || 'editor';
   if (!name) return;
   if (editingUserIdx !== null) {
     const u = S.users[editingUserIdx];
-    u.name = name;
-    u.role = role||'Team Member';
-    u.permission = permission;
+    u.name = name; u.email = email; u.role = role||'Team Member'; u.permission = permission;
     await saveUserRecord(u, editingUserIdx);
     editingUserIdx = null;
   } else {
-    const newUser = { id: uid(), name, role: role||'Team Member', permission };
+    const newUser = { id: uid(), name, email, role: role||'Team Member', permission };
     S.users.push(newUser);
     await saveUserRecord(newUser, S.users.length - 1);
   }
   document.getElementById('newUserName').value='';
+  document.getElementById('newUserEmail').value='';
   document.getElementById('newUserRole').value='';
   document.getElementById('newUserPermission').value='editor';
   document.getElementById('addUserBtn').textContent = 'Add';
@@ -3904,7 +3906,14 @@ async function loadFromSupabase() {
     S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[], directQty:r.direct_qty||0, archived:r.archived||false }));
     S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false }));
     S.suppliers = supsR.map(r=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'' }));
-    if (usersR.length) S.users = usersR.map(r=>({ id:r.id, name:r.name, role:r.role||'Team Member', permission:r.permission||'editor' }));
+    if (usersR.length) S.users = usersR.map(r=>({ id:r.id, name:r.name, email:r.email||'', role:r.role||'Team Member', permission:r.permission||'editor' }));
+
+    // Match logged in user to team member by email
+    const loggedInEmail = currentSession?.user?.email?.toLowerCase();
+    if (loggedInEmail) {
+      const matchIdx = S.users.findIndex(u => u.email?.toLowerCase() === loggedInEmail);
+      if (matchIdx > -1) S.currentUser = matchIdx;
+    }
 
     hideLoading();
     renderHeader();
@@ -3923,7 +3932,7 @@ async function loadFromSupabase() {
 async function saveUserRecord(u, i) {
   const id = u.id || uid();
   if (!u.id) u.id = id;
-  await saveRecord('users', { id, name: u.name, role: u.role, permission: u.permission||'editor', sort_order: i, project_id: 'spencer-hill' });
+  await saveRecord('users', { id, name: u.name, email: u.email||'', role: u.role, permission: u.permission||'editor', sort_order: i, project_id: 'spencer-hill' });
 }
 
 // ═══════════════ INIT ═══════════════
