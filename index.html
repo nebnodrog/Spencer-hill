@@ -632,9 +632,12 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div id="page-tasks" class="page active">
   <div class="page-pad">
-    <div class="row" style="justify-content:space-between;margin-bottom:16px">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <select id="taskAreaFilter" onchange="setTaskAreaFilter(this.value)"
+        style="flex:1;max-width:200px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500">
+        <option value="all">All Areas</option>
+      </select>
       <div class="row" style="gap:6px">
-        <button class="btn btn-ghost btn-sm" id="taskHeadingToggle" onclick="toggleTaskHeadings()">Hide areas</button>
         <button class="btn btn-ghost btn-sm" id="taskExpandToggle" onclick="toggleAllTasks()">Expand all</button>
         <div id="taskAddBtn"></div>
       </div>
@@ -1463,7 +1466,20 @@ function removeMatFromTask(matId, taskId) {
 let taskEditId = null;
 let taskSelectedAreas = new Set();
 let taskSelectedPeople = new Set();
-let taskFilter = 'all';
+let taskAreaFilter = 'all';
+
+function setTaskAreaFilter(areaId) {
+  taskAreaFilter = areaId;
+  renderTasksPage();
+}
+
+function populateTaskAreaDropdown() {
+  const sel = document.getElementById('taskAreaFilter');
+  if (!sel) return;
+  sel.innerHTML = `<option value="all">All Areas</option>` +
+    S.areas.map(a => `<option value="${a.id}" ${taskAreaFilter===a.id?'selected':''}>${a.name}</option>`).join('');
+  sel.value = taskAreaFilter;
+}
 
 function openAddTask(preAreaId=null, editId=null) {
   taskEditId = editId;
@@ -1694,12 +1710,18 @@ function renderTasksPage() {
     const b=document.getElementById('tf-'+x);
     if(b) b.className='btn btn-sm '+(x===taskFilter?'btn-primary':'btn-ghost');
   });
+  populateTaskAreaDropdown();
   const addTaskBtn = document.getElementById('taskAddBtn');
   if (addTaskBtn) addTaskBtn.innerHTML = isEditor() ? `<button class="btn btn-primary btn-sm" onclick="openAddTask()">+ Add Task</button>` : '';
 
   let tasks = [...S.tasks];
   if (taskFilter==='open') tasks = tasks.filter(t=>!t.done);
   if (taskFilter==='done') tasks = tasks.filter(t=>t.done);
+
+  // Filter by area if selected
+  if (taskAreaFilter !== 'all') {
+    tasks = tasks.filter(t => (t.areaIds||[]).includes(taskAreaFilter));
+  }
 
   // Group by area — show task under EACH area it belongs to
   const byArea = {};
