@@ -1735,13 +1735,15 @@ function renderTasksPage() {
     });
   });
 
-  const html = S.areas.filter(a=>byArea[a.id]).map(area=>{
-    const rows = byArea[area.id].sort((a,b) => (a.done===b.done) ? 0 : a.done ? 1 : -1);
-    if (!rows || !rows.length) return '';
-    return `
-      ${taskHeadingsVisible ? `<div class="section-head">${area.name}</div>` : ''}
-      ${rows.map(t=>renderTaskRow(t)).join('')}`;
-  }).join('');
+  const html = S.areas.length === 0
+    ? tasks.map(t => renderTaskRow(t)).join('')
+    : S.areas.filter(a=>byArea[a.id]).map(area=>{
+        const rows = byArea[area.id].sort((a,b) => (a.done===b.done) ? 0 : a.done ? 1 : -1);
+        if (!rows || !rows.length) return '';
+        return `
+          ${taskHeadingsVisible ? `<div class="section-head">${area.name}</div>` : ''}
+          ${rows.map(t=>renderTaskRow(t)).join('')}`;
+      }).join('');
 
   document.getElementById('taskListGlobal').innerHTML = tasks.length ? html : `
     <div style="text-align:center;padding:48px 20px;color:#8a8578">
