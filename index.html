@@ -630,7 +630,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
      PAGE: TASKS
 ═══════════════════════════════════════ -->
 
-<div id="page-tasks" class="page active">
+<div id="page-tasks" class="page">
   <div class="page-pad">
     <div class="row" style="justify-content:space-between;margin-bottom:10px">
       <select id="taskAreaFilter" onchange="setTaskAreaFilter(this.value)"
@@ -748,7 +748,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1" stroke-width="1.8"/><rect x="13" y="3" width="8" height="8" rx="1" stroke-width="1.8"/><rect x="3" y="13" width="8" height="8" rx="1" stroke-width="1.8"/><rect x="13" y="13" width="8" height="8" rx="1" stroke-width="1.8"/></svg>
     Areas
   </button>
-  <button class="nav-btn active" id="nav-tasks" onclick="showPage('tasks')">
+  <button class="nav-btn" id="nav-tasks" onclick="showPage('tasks')">
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.8" d="M9 11l3 3L22 4"/><path stroke-width="1.8" d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
     Tasks
   </button>
@@ -1717,6 +1717,9 @@ function renderTasksPage() {
   populateTaskAreaDropdown();
   const addTaskBtn = document.getElementById('taskAddBtn');
   if (addTaskBtn) addTaskBtn.innerHTML = isEditor() ? `<button class="btn btn-primary btn-sm" onclick="openAddTask()">+ Add Task</button>` : '';
+
+  // Don't render if data not loaded yet
+  if (!S.tasks || !S.areas) return;
 
   let tasks = [...S.tasks];
   if (taskFilter==='open') tasks = tasks.filter(t=>!t.done);
