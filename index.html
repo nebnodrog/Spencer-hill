@@ -715,7 +715,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <div onclick="toggleListSection('areas')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none">
   <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916">Areas</span>
   <div style="display:flex;align-items:center;gap:8px">
-    ${isAdmin() ? `<button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="event.stopPropagation();openAddArea()">+ Add</button>` : ''}
+    <div id="listsAreaAddBtn"></div>
     <span id="lists-chevron-areas" style="font-size:11px;color:#8a8578;transition:transform 0.2s">▼</span>
   </div>
 </div>
@@ -758,7 +758,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <div onclick="toggleListSection('suppliers')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none">
   <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916">Suppliers</span>
   <div style="display:flex;align-items:center;gap:8px">
-    ${isAdmin() ? `<button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="event.stopPropagation();openAddSupplier()">+ Add</button>` : ''}
+    <div id="listsSupplierAddBtn"></div>
     <span id="lists-chevron-suppliers" style="font-size:11px;color:#8a8578;transition:transform 0.2s">▼</span>
   </div>
 </div>
@@ -3574,6 +3574,12 @@ function toggleListSection(section) {
 }
 
 function renderListsPage() {
+  // Populate permission-aware buttons
+  const areaAddBtn = document.getElementById('listsAreaAddBtn');
+  if (areaAddBtn) areaAddBtn.innerHTML = isAdmin() ? `<button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="event.stopPropagation();openAddArea()">+ Add</button>` : '';
+  const supAddBtn = document.getElementById('listsSupplierAddBtn');
+  if (supAddBtn) supAddBtn.innerHTML = isAdmin() ? `<button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="event.stopPropagation();openAddSupplier()">+ Add</button>` : '';
+
   // Set chevron states
   ['areas','team','suppliers'].forEach(s => {
     const body = document.getElementById('lists-body-'+s);
