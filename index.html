@@ -3946,6 +3946,7 @@ async function loadFromSupabase() {
     hideLoading();
     renderHeader();
     showPage('tasks');
+    renderTasksPage();
 
   } catch(e) {
     hideLoading();
@@ -3953,6 +3954,7 @@ async function loadFromSupabase() {
     showToast('Using local data — tap to retry', () => loadFromSupabase());
     renderHeader();
     showPage('tasks');
+    renderTasksPage();
   }
 }
 
