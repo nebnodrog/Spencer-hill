@@ -1868,6 +1868,7 @@ function renderTaskRow(t) {
         ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();openReassign('${t.id}')">Team</button>` : ''}
         <button class="btn btn-ghost btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();toggleTask('${t.id}')">${t.done ? 'Reopen' : 'Done'}</button>
         ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();toggleArchiveTask('${t.id}')">${t.archived?'Unarchive':'Archive'}</button>` : ''}
+        <div style="flex:1"></div>
         ${isAdmin() ? `<button class="btn btn-ghost btn-sm" style="padding:5px 8px;color:#c8440e" onclick="event.stopPropagation();deleteTask('${t.id}')">Delete</button>` : ''}
       </div>
     </div>`;
