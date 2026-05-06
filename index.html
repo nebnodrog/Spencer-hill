@@ -1215,6 +1215,8 @@ let S = {
 // Chip state while modal open
 let chipState = {}; // taskId -> qty
 
+let currentTaskPriority = 'none';
+
 function uid() { return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function initials(name) { return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
 function uColor(i) { return COLORS[i % COLORS.length]; }
@@ -1661,17 +1663,19 @@ function renderTaskPersonChips() {
 }
 
 function saveTask() {
-let currentTaskPriority = 'none';
-
 function setTaskPriority(p) {
   currentTaskPriority = p;
+  const styles = {
+    none:   { bg:'#1a1916', color:'#fff', border:'#1a1916' },
+    low:    { bg:'#f0fdf4', color:'#15803d', border:'#15803d' },
+    medium: { bg:'#fffbeb', color:'#b45309', border:'#b45309' },
+    high:   { bg:'#fef2f2', color:'#dc2626', border:'#dc2626' },
+  };
   ['none','low','medium','high'].forEach(x => {
     const btn = document.getElementById('pri-'+x);
     if (!btn) return;
-    const colors = { none:'#1a1916', low:'#15803d', medium:'#b45309', high:'#dc2626' };
-    btn.style.background = x===p ? '#1a1916' : '#edeae3';
-    btn.style.color = x===p ? '#fff' : colors[x];
-    btn.style.borderColor = x===p ? '#1a1916' : '#ddd9d0';
+    const s = x===p ? { bg: x==='none'?'#1a1916':'#fef2f2', color: x==='none'?'#fff':styles[x].color, border: styles[x].border } : { bg:'#edeae3', color: styles[x].color, border:'#ddd9d0' };
+    btn.style.cssText = `flex:1;background:${x===p?(x==='none'?'#1a1916':styles[x].bg):''};color:${styles[x].color};border:2px solid ${x===p?styles[x].border:'#ddd9d0'};font-weight:${x===p?'700':'400'}`;
   });
 }
 
