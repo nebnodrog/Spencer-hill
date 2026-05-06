@@ -1542,7 +1542,9 @@ function openAddTask(preAreaId=null, editId=null) {
     document.getElementById('taskTextInput').value = t.text;
     document.getElementById('addTaskTitle').textContent = 'Edit Task';
     document.getElementById('saveTaskBtn').textContent = 'Save Changes';
-    currentTaskPriority = t.priority || 'none';
+    currentTaskPriority = (t.priority && typeof t.priority === 'object')
+      ? (t.priority[[...taskSelectedAreas][0]] || 'none')
+      : 'none';
     if (matsSection) { matsSection.style.display = 'block'; renderTaskMatsList(editId); }
   } else {
     if (preAreaId) taskSelectedAreas.add(preAreaId);
@@ -1814,14 +1816,16 @@ function renderTasksPage() {
     : S.areas.filter(a=>byArea[a.id]).map(area=>{
         const rows = byArea[area.id].sort((a,b) => {
           if (a.done !== b.done) return a.done ? 1 : -1;
-          const pa = priorityOrder[a.priority||'none'] ?? 3;
-          const pb = priorityOrder[b.priority||'none'] ?? 3;
-          return pa - pb;
+          const getPri = (t) => {
+            const p = t.priority && typeof t.priority === 'object' ? (t.priority[area.id]||'none') : 'none';
+            return priorityOrder[p] ?? 3;
+          };
+          return getPri(a) - getPri(b);
         });
         if (!rows || !rows.length) return '';
         return `
           ${taskHeadingsVisible ? `<div class="section-head">${area.name}</div>` : ''}
-          ${rows.map(t=>renderTaskRow(t)).join('')}`;
+          ${rows.map(t=>renderTaskRow(t, area.id)).join('')}`;
       }).join('');
 
   document.getElementById('taskListGlobal').innerHTML = (tasks.length && html) ? html : tasks.length ? tasks.map(t=>renderTaskRow(t)).join('') : `
@@ -1832,17 +1836,23 @@ function renderTasksPage() {
   syncTaskExpandLabel();
 }
 
-function renderTaskRow(t) {
+function renderTaskRow(t, areaId=null) {
   const assignees = t.assignees || [t.assignee ?? 0];
   const areaIds = t.areaIds || [];
   const isExpanded = expandedTaskRows.has(t.id);
   const taskMats = matsForTask(t.id);
 
-  const priColor = t.done ? '#15803d' : (t.priority==='high' ? '#dc2626' : t.priority==='medium' ? '#b45309' : t.priority==='low' ? '#15803d' : '#ddd9d0');
+  // Get priority for this specific area
+  const effectiveAreaId = areaId || (areaIds[0] || null);
+  const taskPriority = (t.priority && typeof t.priority === 'object')
+    ? (t.priority[effectiveAreaId] || 'none')
+    : 'none';
+
+  const priColor = t.done ? '#ddd9d0' : (taskPriority==='high' ? '#dc2626' : taskPriority==='medium' ? '#b45309' : taskPriority==='low' ? '#15803d' : '#ddd9d0');
 
   const priorityCfg = { high:['#fef2f2','#dc2626'], medium:['#fffbeb','#b45309'], low:['#f0fdf4','#15803d'] };
-  const priorityPill = (t.priority && t.priority !== 'none' && priorityCfg[t.priority])
-    ? `<span style="font-family:'DM Mono',monospace;font-size:10px;background:${priorityCfg[t.priority][0]};color:${priorityCfg[t.priority][1]};padding:1px 6px;border-radius:3px;flex-shrink:0">${t.priority}</span>`
+  const priorityPill = (taskPriority && taskPriority !== 'none' && priorityCfg[taskPriority])
+    ? `<span style="font-family:'DM Mono',monospace;font-size:10px;background:${priorityCfg[taskPriority][0]};color:${priorityCfg[taskPriority][1]};padding:1px 6px;border-radius:3px;flex-shrink:0">${taskPriority}</span>`
     : '';
 
   const statusPill = t.done
@@ -3862,14 +3872,17 @@ async function saveTask() {
   const areaIds = [...taskSelectedAreas];
   const assignees = taskSelectedPeople.size > 0 ? [...taskSelectedPeople] : [S.currentUser];
   const priority = (document.getElementById('taskPrioritySelect')?.value) || 'none';
+  // Store priority per area
+  const priorityObj = taskEditId ? {...(S.tasks.find(x=>x.id===taskEditId)?.priority||{})} : {};
+  areaIds.forEach(aId => { priorityObj[aId] = priority; });
   if (taskEditId) {
     const t = S.tasks.find(x=>x.id===taskEditId);
-    t.text = text; t.areaIds = areaIds; t.assignees = assignees; t.priority = priority;
-    await saveRecord('tasks', { id: t.id, text, area_ids: areaIds, assignees, done: t.done, archived: t.archived||false, priority, project_id: 'spencer-hill' });
+    t.text = text; t.areaIds = areaIds; t.assignees = assignees; t.priority = priorityObj;
+    await saveRecord('tasks', { id: t.id, text, area_ids: areaIds, assignees, done: t.done, archived: t.archived||false, priority: priorityObj, project_id: 'spencer-hill' });
   } else {
     const id = uid();
-    S.tasks.push({ id, areaIds, text, done: false, archived: false, assignees, priority });
-    await saveRecord('tasks', { id, text, area_ids: areaIds, assignees, done: false, archived: false, priority, project_id: 'spencer-hill' });
+    S.tasks.push({ id, areaIds, text, done: false, archived: false, assignees, priority: priorityObj });
+    await saveRecord('tasks', { id, text, area_ids: areaIds, assignees, done: false, archived: false, priority: priorityObj, project_id: 'spencer-hill' });
   }
   closeAddTask();
   refreshCurrentPage();
@@ -4061,7 +4074,7 @@ async function loadFromSupabase() {
     ]);
 
     S.areas = areasR.map(r=>({ id:r.id, name:r.name }));
-    S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false, archived:r.archived||false, priority:r.priority||'none' }));
+    S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false, archived:r.archived||false, priority:typeof r.priority==='object'&&r.priority!==null ? r.priority : {} }));
     S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[], directQty:r.direct_qty||0, archived:r.archived||false }));
     S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false }));
     S.suppliers = supsR.map(r=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'' }));
