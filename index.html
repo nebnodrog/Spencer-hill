@@ -980,6 +980,16 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <div id="taskMatsList"></div>
 </div>
 
+<div style="margin-bottom:14px">
+  <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Priority</label>
+  <div style="display:flex;gap:8px">
+    <button id="pri-none" onclick="setTaskPriority('none')" class="btn btn-ghost btn-sm" style="flex:1">None</button>
+    <button id="pri-low" onclick="setTaskPriority('low')" class="btn btn-ghost btn-sm" style="flex:1;color:#15803d">Low</button>
+    <button id="pri-medium" onclick="setTaskPriority('medium')" class="btn btn-ghost btn-sm" style="flex:1;color:#b45309">Medium</button>
+    <button id="pri-high" onclick="setTaskPriority('high')" class="btn btn-ghost btn-sm" style="flex:1;color:#dc2626">High</button>
+  </div>
+</div>
+
 <button class="btn btn-primary" style="width:100%" onclick="saveTask()" id="saveTaskBtn">Add Task</button>
 
   </div>
@@ -1530,19 +1540,20 @@ function openAddTask(preAreaId=null, editId=null) {
     document.getElementById('taskTextInput').value = t.text;
     document.getElementById('addTaskTitle').textContent = 'Edit Task';
     document.getElementById('saveTaskBtn').textContent = 'Save Changes';
-    // Show materials section when editing
+    currentTaskPriority = t.priority || 'none';
     if (matsSection) { matsSection.style.display = 'block'; renderTaskMatsList(editId); }
   } else {
     if (preAreaId) taskSelectedAreas.add(preAreaId);
     document.getElementById('taskTextInput').value = '';
     document.getElementById('addTaskTitle').textContent = 'Add Task';
     document.getElementById('saveTaskBtn').textContent = 'Add Task';
-    // Hide materials section for new tasks (no id yet)
+    currentTaskPriority = 'none';
     if (matsSection) matsSection.style.display = 'none';
   }
 
   renderTaskAreaChips();
   renderTaskPersonChips();
+  setTimeout(()=>setTaskPriority(currentTaskPriority), 50);
   document.getElementById('addTaskOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('taskTextInput').focus(), 200);
 }
@@ -1650,6 +1661,20 @@ function renderTaskPersonChips() {
 }
 
 function saveTask() {
+let currentTaskPriority = 'none';
+
+function setTaskPriority(p) {
+  currentTaskPriority = p;
+  ['none','low','medium','high'].forEach(x => {
+    const btn = document.getElementById('pri-'+x);
+    if (!btn) return;
+    const colors = { none:'#1a1916', low:'#15803d', medium:'#b45309', high:'#dc2626' };
+    btn.style.background = x===p ? '#1a1916' : '#edeae3';
+    btn.style.color = x===p ? '#fff' : colors[x];
+    btn.style.borderColor = x===p ? '#1a1916' : '#ddd9d0';
+  });
+}
+
   const text = document.getElementById('taskTextInput').value.trim();
   if (!text) return;
   if (taskSelectedAreas.size === 0) { alert('Please select at least one area'); return; }
@@ -1775,10 +1800,15 @@ function renderTasksPage() {
     });
   });
 
+  const priorityOrder = { high:0, medium:1, low:2, none:3 };
+
   const html = S.areas.length === 0
     ? tasks.map(t => renderTaskRow(t)).join('')
     : S.areas.filter(a=>byArea[a.id]).map(area=>{
-        const rows = byArea[area.id].sort((a,b) => (a.done===b.done) ? 0 : a.done ? 1 : -1);
+        const rows = byArea[area.id].sort((a,b) => {
+          if (a.done !== b.done) return a.done ? 1 : -1;
+          return (priorityOrder[a.priority||'none'] || 3) - (priorityOrder[b.priority||'none'] || 3);
+        });
         if (!rows || !rows.length) return '';
         return `
           ${taskHeadingsVisible ? `<div class="section-head">${area.name}</div>` : ''}
@@ -1802,7 +1832,11 @@ function renderTaskRow(t) {
   // Status dot — mirrors material dot
   const dotColor = t.done ? '#15803d' : '#b45309';
 
-  // Status pill
+  const priorityCfg = { high:['#fef2f2','#dc2626'], medium:['#fffbeb','#b45309'], low:['#f0fdf4','#15803d'] };
+  const priorityPill = (t.priority && t.priority !== 'none' && priorityCfg[t.priority])
+    ? `<span style="font-family:'DM Mono',monospace;font-size:10px;background:${priorityCfg[t.priority][0]};color:${priorityCfg[t.priority][1]};padding:1px 6px;border-radius:3px;flex-shrink:0">${t.priority}</span>`
+    : '';
+
   const statusPill = t.done
     ? `<span style="font-family:'DM Mono',monospace;font-size:11px;background:#f0fdf4;color:#15803d;padding:1px 6px;border-radius:3px;flex-shrink:0">done</span>`
     : `<span style="font-family:'DM Mono',monospace;font-size:11px;background:#fffbeb;color:#b45309;padding:1px 6px;border-radius:3px;flex-shrink:0">open</span>`;
@@ -1815,6 +1849,7 @@ function renderTaskRow(t) {
         ${t.done?'✓':''}
       </div>
       <div class="mat-row-name" onclick="toggleTaskRow('${t.id}',event)" style="font-weight:500;${t.done?'text-decoration:line-through;opacity:0.5':''}">${t.text}</div>
+      ${priorityPill}
       ${taskMats.length ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0" onclick="toggleTaskRow('${t.id}',event)">${taskMats.length} mat${taskMats.length!==1?'s':''}</span>` : ''}
       <span onclick="toggleTaskRow('${t.id}',event)">${statusPill}</span>
       <span class="mat-row-chevron" onclick="toggleTaskRow('${t.id}',event)">▼</span>
@@ -3818,14 +3853,15 @@ async function saveTask() {
   if (taskSelectedAreas.size === 0) { alert('Please select at least one area'); return; }
   const areaIds = [...taskSelectedAreas];
   const assignees = taskSelectedPeople.size > 0 ? [...taskSelectedPeople] : [S.currentUser];
+  const priority = currentTaskPriority || 'none';
   if (taskEditId) {
     const t = S.tasks.find(x=>x.id===taskEditId);
-    t.text = text; t.areaIds = areaIds; t.assignees = assignees;
-    await saveRecord('tasks', { id: t.id, text, area_ids: areaIds, assignees, done: t.done, project_id: 'spencer-hill' });
+    t.text = text; t.areaIds = areaIds; t.assignees = assignees; t.priority = priority;
+    await saveRecord('tasks', { id: t.id, text, area_ids: areaIds, assignees, done: t.done, archived: t.archived||false, priority, project_id: 'spencer-hill' });
   } else {
     const id = uid();
-    S.tasks.push({ id, areaIds, text, done: false, assignees });
-    await saveRecord('tasks', { id, text, area_ids: areaIds, assignees, done: false, project_id: 'spencer-hill' });
+    S.tasks.push({ id, areaIds, text, done: false, archived: false, assignees, priority });
+    await saveRecord('tasks', { id, text, area_ids: areaIds, assignees, done: false, archived: false, priority, project_id: 'spencer-hill' });
   }
   closeAddTask();
   refreshCurrentPage();
@@ -4017,7 +4053,7 @@ async function loadFromSupabase() {
     ]);
 
     S.areas = areasR.map(r=>({ id:r.id, name:r.name }));
-    S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false, archived:r.archived||false }));
+    S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false, archived:r.archived||false, priority:r.priority||'none' }));
     S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[], directQty:r.direct_qty||0, archived:r.archived||false }));
     S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false }));
     S.suppliers = supsR.map(r=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'' }));
