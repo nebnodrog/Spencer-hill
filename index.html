@@ -1848,9 +1848,9 @@ function renderTaskRow(t, areaId=null) {
     ? (t.priority[effectiveAreaId] || 'none')
     : 'none';
 
-  const priColor = t.done ? '#ddd9d0' : (taskPriority==='high' ? '#dc2626' : taskPriority==='medium' ? '#2563eb' : taskPriority==='low' ? '#15803d' : '#ddd9d0');
+  const priColor = t.done ? '#ddd9d0' : (taskPriority==='high' ? '#dc2626' : taskPriority==='medium' ? '#15803d' : taskPriority==='low' ? '#2563eb' : '#ddd9d0');
 
-  const priorityCfg = { high:['#fef2f2','#dc2626'], medium:['#eff3ff','#2563eb'], low:['#f0fdf4','#15803d'] };
+  const priorityCfg = { high:['#fef2f2','#dc2626'], medium:['#f0fdf4','#15803d'], low:['#eff3ff','#2563eb'] };
   const priorityPill = (taskPriority && taskPriority !== 'none' && priorityCfg[taskPriority])
     ? `<span style="font-family:'DM Mono',monospace;font-size:10px;background:${priorityCfg[taskPriority][0]};color:${priorityCfg[taskPriority][1]};padding:1px 6px;border-radius:3px;flex-shrink:0">${taskPriority}</span>`
     : '';
