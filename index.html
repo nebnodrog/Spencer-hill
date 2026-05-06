@@ -982,12 +982,12 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div style="margin-bottom:14px">
   <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Priority</label>
-  <div style="display:flex;gap:8px">
-    <button id="pri-none" onclick="setTaskPriority('none')" class="btn btn-ghost btn-sm" style="flex:1">None</button>
-    <button id="pri-low" onclick="setTaskPriority('low')" class="btn btn-ghost btn-sm" style="flex:1;color:#15803d">Low</button>
-    <button id="pri-medium" onclick="setTaskPriority('medium')" class="btn btn-ghost btn-sm" style="flex:1;color:#b45309">Medium</button>
-    <button id="pri-high" onclick="setTaskPriority('high')" class="btn btn-ghost btn-sm" style="flex:1;color:#dc2626">High</button>
-  </div>
+  <select id="taskPrioritySelect" style="width:100%">
+    <option value="none">None</option>
+    <option value="low">Low</option>
+    <option value="medium">Medium</option>
+    <option value="high">High</option>
+  </select>
 </div>
 
 <button class="btn btn-primary" style="width:100%" onclick="saveTask()" id="saveTaskBtn">Add Task</button>
@@ -1555,7 +1555,10 @@ function openAddTask(preAreaId=null, editId=null) {
 
   renderTaskAreaChips();
   renderTaskPersonChips();
-  setTimeout(()=>setTaskPriority(currentTaskPriority), 50);
+  setTimeout(()=>{
+    const sel = document.getElementById('taskPrioritySelect');
+    if (sel) sel.value = currentTaskPriority;
+  }, 50);
   document.getElementById('addTaskOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('taskTextInput').focus(), 200);
 }
@@ -3859,7 +3862,7 @@ async function saveTask() {
   if (taskSelectedAreas.size === 0) { alert('Please select at least one area'); return; }
   const areaIds = [...taskSelectedAreas];
   const assignees = taskSelectedPeople.size > 0 ? [...taskSelectedPeople] : [S.currentUser];
-  const priority = currentTaskPriority || 'none';
+  const priority = (document.getElementById('taskPrioritySelect')?.value) || 'none';
   if (taskEditId) {
     const t = S.tasks.find(x=>x.id===taskEditId);
     t.text = text; t.areaIds = areaIds; t.assignees = assignees; t.priority = priority;
