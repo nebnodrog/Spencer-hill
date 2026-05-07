@@ -3802,16 +3802,18 @@ function hideLoading() {
 }
 
 async function sbGet(table, params='') {
-  const res = await fetch(`${SB_URL}/${table}?project_id=eq.spencer-hill&order=created_at${params}`, { headers: SB_HEADERS });
+  const headers = getAuthHeaders();
+  const res = await fetch(`${SB_URL}/${table}?project_id=eq.spencer-hill&order=created_at${params}`, { headers });
   if (!res.ok) throw new Error(`GET ${table} failed: ${res.status}`);
   return res.json();
 }
 
 async function saveRecord(table, record) {
   try {
+    const headers = getAuthHeaders();
     const res = await fetch(`${SB_URL}/${table}`, {
       method: 'POST',
-      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      headers: { ...headers, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify(record)
     });
     if (!res.ok) {
@@ -3828,7 +3830,8 @@ async function saveRecord(table, record) {
 }
 
 async function deleteRecord(table, id) {
-  const res = await fetch(`${SB_URL}/${table}?id=eq.${id}`, { method: 'DELETE', headers: SB_HEADERS });
+  const headers = getAuthHeaders();
+  const res = await fetch(`${SB_URL}/${table}?id=eq.${id}`, { method: 'DELETE', headers });
   if (!res.ok) console.error(`Delete ${table} failed`);
 }
 
