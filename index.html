@@ -2430,7 +2430,7 @@ function updateTotalPreview() {
   const directEl = document.getElementById('matDirectQty');
   const hintEl = document.getElementById('chipTotalHint');
   if (taskTotal > 0) {
-    if (directEl) { directEl.value = taskTotal; directEl.readOnly = true; directEl.style.opacity = '0.6'; }
+    if (directEl) { directEl.value = taskTotal; directEl.readOnly = false; directEl.style.opacity = '1'; }
     if (hintEl) hintEl.textContent = 'from tasks';
   } else {
     if (directEl) { directEl.readOnly = false; directEl.style.opacity = '1'; }
@@ -2462,7 +2462,7 @@ function saveMaterial() {
   const assignments = Object.entries(chipState).map(([taskId,qty])=>({taskId,qty:Number(qty)}));
   const productUrl = document.getElementById('matProductUrl').value.trim();
   const suppliers = matSelectedSuppliers;
-  const directQty = assignments.length === 0 ? (parseInt(document.getElementById('matDirectQty').value)||0) : 0;
+  const directQty = parseInt(document.getElementById('matDirectQty').value)||0;
   if (S.editingMatId) {
     const m = S.materials.find(x=>x.id===S.editingMatId);
     m.name=name; m.unit=unit; m.cat=cat; m.assignments=assignments;
@@ -3940,14 +3940,14 @@ async function saveMaterial() {
     closeAddMat();
     renderMaterials(); renderAreaPage();
     if (document.getElementById('page-orders').classList.contains('active')) renderOrdersPage();
-    await saveRecord('materials', { id: S.editingMatId, name, unit, cat, assignments, product_url: productUrl, suppliers, direct_qty: directQty, project_id: 'spencer-hill' });
+    await saveRecord('materials', { id: S.editingMatId, name, unit, cat, assignments, product_url: productUrl, suppliers, direct_qty: directQty, archived: m.archived||false, project_id: 'spencer-hill' });
   } else {
     const id = uid();
-    S.materials.push({ id, name, unit, cat, assignments, productUrl, suppliers, directQty });
+    S.materials.push({ id, name, unit, cat, assignments, productUrl, suppliers, directQty, archived: false });
     closeAddMat();
     renderMaterials(); renderAreaPage();
     if (document.getElementById('page-orders').classList.contains('active')) renderOrdersPage();
-    await saveRecord('materials', { id, name, unit, cat, assignments, product_url: productUrl, suppliers, direct_qty: directQty, project_id: 'spencer-hill' });
+    await saveRecord('materials', { id, name, unit, cat, assignments, product_url: productUrl, suppliers, direct_qty: directQty, archived: false, project_id: 'spencer-hill' });
   }
   if (returnToTaskId) openAddTask(null, returnToTaskId);
 }
