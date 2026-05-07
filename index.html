@@ -3817,7 +3817,9 @@ async function saveRecord(table, record) {
     if (!res.ok) {
       const t = await res.text();
       console.error(`Save ${table} failed:`, t, record);
-      showToast(`⚠️ Save failed — check connection`);
+      let msg = 'Save failed';
+      try { msg = JSON.parse(t).message || msg; } catch(e) {}
+      showToast(`⚠️ ${msg}`);
     }
   } catch(e) {
     console.error(`Save ${table} error:`, e);
