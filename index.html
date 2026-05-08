@@ -2341,8 +2341,8 @@ function openAddMat(matId=null, forTaskId=null) {
     renderCatSelect(m.cat);
     document.getElementById('matProductUrl').value = m.productUrl || '';
 
-    // Show original task assignments in chips
-    m.assignments.forEach(a => { chipState[a.taskId] = a.qty; });
+    // Show original task assignments in chips — filter out zero qtys
+    m.assignments.filter(a => Number(a.qty) > 0).forEach(a => { chipState[a.taskId] = a.qty; });
 
     // Total qty box shows outstanding (total needed minus delivered)
     const totalDelivered = S.orders
