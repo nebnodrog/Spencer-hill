@@ -2350,7 +2350,7 @@ function openAddMat(matId=null, forTaskId=null) {
       .reduce((s,o) => s + Number(o.qty), 0);
     const totalNeeded = totalQty(m);
     const outstanding = Math.max(0, totalNeeded - totalDelivered);
-    document.getElementById('matDirectQty').value = outstanding || '';
+    document.getElementById('matDirectQty').value = outstanding > 0 ? outstanding : '';
 
     matSelectedSuppliers = JSON.parse(JSON.stringify(m.suppliers || []));
   } else {
@@ -2391,10 +2391,10 @@ function renderTaskChips() {
       </div>
       ${sel ? `
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-          <button ontouchend="event.stopPropagation();event.preventDefault();stepChip('${t.id}',-1)"
+          <button onclick="event.stopPropagation();stepChip('${t.id}',-1)" ontouchend="event.stopPropagation();event.preventDefault();stepChip('${t.id}',-1)"
             style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">−</button>
           <span id="chipqty-${t.id}" style="font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:#fff;min-width:24px;text-align:center">${qty}</span>
-          <button ontouchend="event.stopPropagation();event.preventDefault();stepChip('${t.id}',1)"
+          <button onclick="event.stopPropagation();stepChip('${t.id}',1)" ontouchend="event.stopPropagation();event.preventDefault();stepChip('${t.id}',1)"
             style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">＋</button>
         </div>` :
         `<div id="chiptap-${t.id}" style="width:44px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;border-radius:6px;background:rgba(0,0,0,0.06)">
@@ -2403,18 +2403,15 @@ function renderTaskChips() {
     </div>`;
   }).join('');
   container.ontouchend = function(e) {
-    // Only trigger on the + tap button or qty input
+    // Only handle unselected chip tap (+ button)
     const tapBtn = e.target.closest('[id^="chiptap-"]');
-    const qtyInput = e.target.closest('input[type="number"]');
-    if (!tapBtn && !qtyInput) return;
-    if (qtyInput) return; // let input handle itself
+    if (!tapBtn) return;
     e.preventDefault(); e.stopPropagation();
     const now = Date.now();
     if (now - _lastChipToggle < 400) return;
     _lastChipToggle = now;
-    const id = tapBtn.id.slice(8); // remove 'chiptap-'
-    if (chipState[id]) { delete chipState[id]; }
-    else { chipState[id] = 1; }
+    const id = tapBtn.id.slice(8);
+    chipState[id] = 1;
     renderTaskChips();
     updateTotalPreview();
   };
