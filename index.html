@@ -2344,13 +2344,8 @@ function openAddMat(matId=null, forTaskId=null) {
     // Show original task assignments in chips — filter out zero qtys
     m.assignments.filter(a => Number(a.qty) > 0).forEach(a => { chipState[a.taskId] = a.qty; });
 
-    // Total qty box shows outstanding (total needed minus delivered)
-    const totalDelivered = S.orders
-      .filter(o => o.matId === matId && o.status === 'delivered')
-      .reduce((s,o) => s + Number(o.qty), 0);
-    const totalNeeded = totalQty(m);
-    const outstanding = Math.max(0, totalNeeded - totalDelivered);
-    document.getElementById('matDirectQty').value = outstanding > 0 ? outstanding : '';
+    // Leave total qty box empty — user enters what they want to order
+    document.getElementById('matDirectQty').value = '';
 
     matSelectedSuppliers = JSON.parse(JSON.stringify(m.suppliers || []));
   } else {
@@ -2449,10 +2444,9 @@ function syncTotalFromChips() {
 }
 
 function updateTotalPreview() {
-  // Called on render — only updates hint label, never touches the qty box
   const taskTotal = Object.values(chipState).reduce((s,v)=>s+Number(v),0);
   const hintEl = document.getElementById('chipTotalHint');
-  if (hintEl) hintEl.textContent = taskTotal > 0 ? 'from tasks' : 'enter directly';
+  if (hintEl) hintEl.textContent = taskTotal > 0 ? 'from tasks' : 'enter qty to order';
 }
 
 function overrideTotalQty(val) {
