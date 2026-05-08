@@ -2348,18 +2348,22 @@ function openAddMat(matId=null, forTaskId=null) {
       .filter(o => o.matId === matId && o.status === 'delivered')
       .reduce((s,o) => s + Number(o.qty), 0);
     const totalAssigned = m.assignments.reduce((s,a) => s + Number(a.qty), 0);
-    const deliveredRatio = totalAssigned > 0 ? totalDelivered / totalAssigned : 0;
+    let remainingToOrder = Math.max(0, totalAssigned - totalDelivered);
 
-    // Show outstanding qty per task (proportionally reduced by deliveries)
+    // Distribute remaining across tasks proportionally
     m.assignments.forEach(a => {
-      const outstanding = Math.max(0, Math.round(a.qty - (a.qty * deliveredRatio)));
-      chipState[a.taskId] = outstanding > 0 ? outstanding : a.qty;
+      if (totalAssigned === 0) {
+        chipState[a.taskId] = a.qty;
+      } else {
+        const taskShare = (a.qty / totalAssigned) * remainingToOrder;
+        chipState[a.taskId] = Math.max(0, Math.round(taskShare));
+      }
     });
 
-    // Show outstanding direct qty
+    // Handle direct qty materials
     if (m.assignments.length === 0) {
       const directOutstanding = Math.max(0, (m.directQty||0) - totalDelivered);
-      document.getElementById('matDirectQty').value = directOutstanding || m.directQty || '';
+      document.getElementById('matDirectQty').value = directOutstanding;
     }
     matSelectedSuppliers = JSON.parse(JSON.stringify(m.suppliers || []));
   } else {
