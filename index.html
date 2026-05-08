@@ -2425,36 +2425,35 @@ function toggleChip(taskId) {
 }
 
 function stepChip(taskId, delta) {
-  if (!chipState[taskId] && delta < 0) return;
-  if (!chipState[taskId]) chipState[taskId] = 1;
-  const newVal = chipState[taskId] + delta;
+  const current = chipState[taskId] || 0;
+  const newVal = current + delta;
   if (newVal <= 0) {
-    delete chipState[taskId]; // deselect at 0
+    delete chipState[taskId];
   } else {
     chipState[taskId] = newVal;
   }
   renderTaskChips();
-  updateTotalPreview();
+  syncTotalFromChips();
 }
 function adjustChip(taskId, delta) {
   if (!chipState[taskId]) return;
   chipState[taskId] = Math.max(1, (chipState[taskId]||1) + delta);
-  const el = document.getElementById('chipqty-'+taskId);
-  if (el) el.value = chipState[taskId];
-  updateTotalPreview();
+  renderTaskChips();
+  syncTotalFromChips();
+}
+
+function syncTotalFromChips() {
+  // Only called when chips change — sets total box to chip total
+  const taskTotal = Object.values(chipState).reduce((s,v)=>s+Number(v),0);
+  const directEl = document.getElementById('matDirectQty');
+  if (directEl) directEl.value = taskTotal > 0 ? taskTotal : '';
 }
 
 function updateTotalPreview() {
+  // Called on render — only updates hint label, never touches the qty box
   const taskTotal = Object.values(chipState).reduce((s,v)=>s+Number(v),0);
-  const directEl = document.getElementById('matDirectQty');
   const hintEl = document.getElementById('chipTotalHint');
-  if (taskTotal > 0) {
-    if (directEl) directEl.value = taskTotal;
-    if (hintEl) hintEl.textContent = 'from tasks';
-  } else {
-    if (directEl) directEl.value = '';
-    if (hintEl) hintEl.textContent = 'enter directly';
-  }
+  if (hintEl) hintEl.textContent = taskTotal > 0 ? 'from tasks' : 'enter directly';
 }
 
 function overrideTotalQty(val) {
