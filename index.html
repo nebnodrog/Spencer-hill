@@ -915,10 +915,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <label style="font-family:'DM Mono', monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-top:3px;margin-bottom:3px;flex-shrink:0">Assign to Tasks</label>
 
 <div style="position:relative;flex:1;min-height:100px;margin-bottom:8px">
-  <div id="taskChipsContainer" style="position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:1px solid #ddd9d0;border-bottom:1px solid #ddd9d0;padding:3px 48px 3px 0;box-sizing:border-box"></div>
-  <div style="position:absolute;right:0;top:0;bottom:0;width:44px;background:linear-gradient(to right,transparent,#edeae3 50%);display:flex;align-items:center;justify-content:center;pointer-events:none">
-    <span style="font-size:20px;color:#8a8578;user-select:none">⋮</span>
-  </div>
+  <div id="taskChipsContainer" style="position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:1px solid #ddd9d0;border-bottom:1px solid #ddd9d0;padding:3px 0;box-sizing:border-box"></div>
 </div>
 
 <div style="flex-shrink:0;border-top:1px solid #ddd9d0;padding-top:8px">
@@ -2397,26 +2394,31 @@ function renderTaskChips() {
     const sel = !!chipState[t.id];
     const qty = chipState[t.id]||1;
     const areas = (t.areaIds||[]).map(id=>areaName(id)).join(', ');
-    return `<div id="chip-${t.id}" style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;margin-bottom:2px;background:${sel?'#1a1916':'#f5f3ee'};box-sizing:border-box;width:100%;cursor:pointer;user-select:none">
+    return `<div id="chip-${t.id}" style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;margin-bottom:2px;background:${sel?'#1a1916':'#f5f3ee'};box-sizing:border-box;width:100%;user-select:none">
       <div style="flex:1;min-width:0;pointer-events:none">
         <div style="font-size:13px;font-weight:500;color:${sel?'#fff':'#1a1916'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.text}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:${sel?'#aaa':'#8a8578'};pointer-events:none">${areas}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:${sel?'#aaa':'#8a8578'}">${areas}</div>
       </div>
       ${sel ? `<input type="number" id="chipqty-${t.id}" value="${qty}" min="1" step="1"
         style="width:52px;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;text-align:center;padding:2px 4px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;box-sizing:border-box;flex-shrink:0"
         onclick="event.stopPropagation()" ontouchend="event.stopPropagation()"
-        onchange="setChipQty('${t.id}',this.value)" oninput="setChipQty('${t.id}',this.value)">` : ''}
+        onchange="setChipQty('${t.id}',this.value)" oninput="setChipQty('${t.id}',this.value)">` :
+        `<div id="chiptap-${t.id}" style="width:44px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;border-radius:6px;background:rgba(0,0,0,0.06)">
+          <span style="font-size:13px;color:#8a8578;pointer-events:none">＋</span>
+        </div>`}
     </div>`;
   }).join('');
   container.ontouchend = function(e) {
-    if (e.target.closest('input[type="number"]')) return;
-    const chip = e.target.closest('[id^="chip-"]');
-    if (!chip) return;
+    // Only trigger on the + tap button or qty input
+    const tapBtn = e.target.closest('[id^="chiptap-"]');
+    const qtyInput = e.target.closest('input[type="number"]');
+    if (!tapBtn && !qtyInput) return;
+    if (qtyInput) return; // let input handle itself
     e.preventDefault(); e.stopPropagation();
     const now = Date.now();
     if (now - _lastChipToggle < 400) return;
     _lastChipToggle = now;
-    const id = chip.id.slice(5);
+    const id = tapBtn.id.slice(8); // remove 'chiptap-'
     if (chipState[id]) { delete chipState[id]; }
     else { chipState[id] = 1; }
     renderTaskChips();
