@@ -2527,7 +2527,11 @@ function saveMaterial() {
     .map(([taskId, qty]) => ({ taskId, qty: Number(qty) }));
   const productUrl = document.getElementById('matProductUrl').value.trim();
   const suppliers = matSelectedSuppliers;
-  const directQty = parseInt(document.getElementById('matDirectQty').value)||0;
+  const additionalNeeded = parseInt(document.getElementById('matDirectQty').value) || 0;
+  const alreadyDeliveredLocal = S.editingMatId ? S.orders
+    .filter(o => o.matId === S.editingMatId && o.status === 'delivered')
+    .reduce((s,o) => s + Number(o.qty), 0) : 0;
+  const directQty = additionalNeeded + alreadyDeliveredLocal;
   if (S.editingMatId) {
     const m = S.materials.find(x=>x.id===S.editingMatId);
     m.name=name; m.unit=unit; m.cat=cat; m.assignments=assignments;
@@ -4001,18 +4005,27 @@ async function saveMaterial() {
   const suppliers = matSelectedSuppliers;
   const editId = S.editingMatId;
 
-  // Task assignments — just which tasks this material is for
+  // What user typed = additional needed on top of already delivered
+  const additionalNeeded = parseInt(document.getElementById('matDirectQty').value) || 0;
+
+  // Already delivered for this material
+  const alreadyDelivered = editId ? S.orders
+    .filter(o => o.matId === editId && o.status === 'delivered')
+    .reduce((s,o) => s + Number(o.qty), 0) : 0;
+
+  // Total stored = additional needed + already delivered
+  const directQty = additionalNeeded + alreadyDelivered;
+
+  // Task assignments
   const assignments = Object.entries(chipState)
     .filter(([, qty]) => Number(qty) > 0)
     .map(([taskId, qty]) => ({ taskId, qty: Number(qty) }));
 
-  // Total qty is whatever the user typed — simple override
-  const directQty = parseInt(document.getElementById('matDirectQty').value) || 0;
-
   if (editId) {
     const m = S.materials.find(x=>x.id===editId);
     if (!m) return;
-    m.name=name; m.unit=unit; m.cat=cat; m.assignments=assignments; m.productUrl=productUrl; m.suppliers=suppliers; m.directQty=directQty;
+    m.name=name; m.unit=unit; m.cat=cat; m.assignments=assignments;
+    m.productUrl=productUrl; m.suppliers=suppliers; m.directQty=directQty;
     closeAddMat();
     renderMaterials(); renderAreaPage();
     if (document.getElementById('page-orders').classList.contains('active')) renderOrdersPage();
