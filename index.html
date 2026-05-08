@@ -2345,7 +2345,8 @@ function openAddMat(matId=null, forTaskId=null) {
       .filter(o => o.matId === matId && o.status === 'delivered')
       .reduce((s,o) => s + Number(o.qty), 0);
     const totalAssigned = m.assignments.reduce((s,a) => s + Number(a.qty), 0);
-    let remainingToOrder = Math.max(0, totalAssigned - totalDelivered);
+    const totalNeeded = totalQty(m);
+    const remainingToOrder = Math.max(0, totalNeeded - totalDelivered);
 
     // Distribute remaining across tasks proportionally
     m.assignments.forEach(a => {
@@ -2357,11 +2358,8 @@ function openAddMat(matId=null, forTaskId=null) {
       }
     });
 
-    // Handle direct qty materials
-    if (m.assignments.length === 0) {
-      const directOutstanding = Math.max(0, (m.directQty||0) - totalDelivered);
-      document.getElementById('matDirectQty').value = directOutstanding;
-    }
+    // Set the qty display to outstanding
+    document.getElementById('matDirectQty').value = remainingToOrder || '';
     matSelectedSuppliers = JSON.parse(JSON.stringify(m.suppliers || []));
   } else {
     document.getElementById('matNameInput').value = '';
