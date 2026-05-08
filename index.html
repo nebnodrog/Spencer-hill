@@ -2352,6 +2352,7 @@ function openAddMat(matId=null, forTaskId=null) {
     const totalNeeded = totalQty(m);
     const outstanding = Math.max(0, totalNeeded - totalDelivered);
     document.getElementById('matDirectQty').value = outstanding > 0 ? outstanding : '';
+    _userOverriddenQty = true; // lock box — chips should not overwrite it
 
     matSelectedSuppliers = JSON.parse(JSON.stringify(m.suppliers || []));
   } else {
@@ -2360,7 +2361,8 @@ function openAddMat(matId=null, forTaskId=null) {
     renderCatSelect('General');
     document.getElementById('matProductUrl').value = '';
     document.getElementById('matDirectQty').value = '';
-    if (forTaskId) chipState[forTaskId] = 1;
+    if (forTaskId) { chipState[forTaskId] = 1; }
+    _userOverriddenQty = false; // new material — let chips drive the total
   }
 
   renderTaskChips();
