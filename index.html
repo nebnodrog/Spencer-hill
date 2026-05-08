@@ -2352,7 +2352,6 @@ function openAddMat(matId=null, forTaskId=null) {
     const totalNeeded = totalQty(m);
     const outstanding = Math.max(0, totalNeeded - totalDelivered);
     document.getElementById('matDirectQty').value = outstanding > 0 ? outstanding : '';
-    _userOverriddenQty = true; // lock box — chips should not overwrite it
 
     matSelectedSuppliers = JSON.parse(JSON.stringify(m.suppliers || []));
   } else {
@@ -2362,7 +2361,6 @@ function openAddMat(matId=null, forTaskId=null) {
     document.getElementById('matProductUrl').value = '';
     document.getElementById('matDirectQty').value = '';
     if (forTaskId) { chipState[forTaskId] = 1; }
-    _userOverriddenQty = false; // new material — let chips drive the total
   }
 
   renderTaskChips();
@@ -2446,10 +2444,7 @@ function adjustChip(taskId, delta) {
   syncTotalFromChips();
 }
 
-let _userOverriddenQty = false;
-
 function syncTotalFromChips() {
-  if (_userOverriddenQty) return; // user has manually typed — don't override
   const taskTotal = Object.values(chipState).reduce((s,v)=>s+Number(v),0);
   const directEl = document.getElementById('matDirectQty');
   if (directEl) directEl.value = taskTotal > 0 ? taskTotal : '';
