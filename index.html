@@ -3509,7 +3509,7 @@ function renderBulkMaterialList() {
     const needed = totalQty(m);
     if (needed === 0) return false;
     const accounted = S.orders
-      .filter(o=>o.matId===m.id && o.status!=='cancelled' && o.status!=='delivered')
+      .filter(o=>o.matId===m.id && o.status!=='cancelled')
       .reduce((s,o)=>s+Number(o.qty),0);
     return accounted < needed;
   });
@@ -3522,7 +3522,7 @@ function renderBulkMaterialList() {
 
   document.getElementById('bulkMatList').innerHTML = materials.map(m => {
     const needed = totalQty(m);
-    const accounted = S.orders.filter(o=>o.matId===m.id&&o.status!=='cancelled'&&o.status!=='delivered').reduce((s,o)=>s+Number(o.qty),0);
+    const accounted = S.orders.filter(o=>o.matId===m.id&&o.status!=='cancelled').reduce((s,o)=>s+Number(o.qty),0);
     const outstanding = needed - accounted;
     const sel = bulkSelected.has(m.id);
     const primarySup = S.suppliers.find(x=>x.id===(m.suppliers||[])[0]?.supplierId);
