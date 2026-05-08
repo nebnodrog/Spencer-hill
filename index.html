@@ -2449,9 +2449,10 @@ function updateTotalPreview() {
   const directEl = document.getElementById('matDirectQty');
   const hintEl = document.getElementById('chipTotalHint');
   if (taskTotal > 0) {
-    if (directEl) { directEl.value = taskTotal; }
+    if (directEl) directEl.value = taskTotal;
     if (hintEl) hintEl.textContent = 'from tasks';
   } else {
+    if (directEl) directEl.value = '';
     if (hintEl) hintEl.textContent = 'enter directly';
   }
 }
