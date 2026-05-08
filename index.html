@@ -2374,6 +2374,7 @@ function closeAddMat() {
   chipState = {};
   matSelectedSuppliers = [];
   preselectedTaskId = null;
+  _userOverriddenQty = false;
 }
 
 let _lastChipToggle = 0;
@@ -2413,7 +2414,7 @@ function renderTaskChips() {
     const id = tapBtn.id.slice(8);
     chipState[id] = 1;
     renderTaskChips();
-    updateTotalPreview();
+    syncTotalFromChips();
   };
   updateTotalPreview();
 }
@@ -2442,8 +2443,10 @@ function adjustChip(taskId, delta) {
   syncTotalFromChips();
 }
 
+let _userOverriddenQty = false;
+
 function syncTotalFromChips() {
-  // Only called when chips change — sets total box to chip total
+  if (_userOverriddenQty) return; // user has manually typed — don't override
   const taskTotal = Object.values(chipState).reduce((s,v)=>s+Number(v),0);
   const directEl = document.getElementById('matDirectQty');
   if (directEl) directEl.value = taskTotal > 0 ? taskTotal : '';
@@ -2485,7 +2488,7 @@ function overrideTotalQty(val) {
 }
 
 function syncDirectQty() {
-  // Total qty box is independent — just update the preview label
+  _userOverriddenQty = true; // user is typing — don't let chips override this
   updateTotalPreview();
 }
 
