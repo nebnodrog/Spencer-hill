@@ -2397,10 +2397,14 @@ function renderTaskChips() {
         <div style="font-size:13px;font-weight:500;color:${sel?'#fff':'#1a1916'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.text}</div>
         <div style="font-family:'DM Mono',monospace;font-size:11px;color:${sel?'#aaa':'#8a8578'}">${areas}</div>
       </div>
-      ${sel ? `<input type="number" id="chipqty-${t.id}" value="${qty}" min="1" step="1"
-        style="width:52px;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;text-align:center;padding:2px 4px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;box-sizing:border-box;flex-shrink:0"
-        onclick="event.stopPropagation()" ontouchend="event.stopPropagation()"
-        onchange="setChipQty('${t.id}',this.value)" oninput="setChipQty('${t.id}',this.value)">` :
+      ${sel ? `
+        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+          <button ontouchend="event.stopPropagation();event.preventDefault();stepChip('${t.id}',-1)"
+            style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">−</button>
+          <span id="chipqty-${t.id}" style="font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:#fff;min-width:24px;text-align:center">${qty}</span>
+          <button ontouchend="event.stopPropagation();event.preventDefault();stepChip('${t.id}',1)"
+            style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">＋</button>
+        </div>` :
         `<div id="chiptap-${t.id}" style="width:44px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;border-radius:6px;background:rgba(0,0,0,0.06)">
           <span style="font-size:13px;color:#8a8578;pointer-events:none">＋</span>
         </div>`}
@@ -2431,13 +2435,18 @@ function toggleChip(taskId) {
   renderTaskChips();
 }
 
-function setChipQty(taskId, val) {
-  if (!chipState[taskId]) return;
-  const n = Math.max(1, parseInt(val)||1);
-  chipState[taskId] = n;
+function stepChip(taskId, delta) {
+  if (!chipState[taskId] && delta < 0) return;
+  if (!chipState[taskId]) chipState[taskId] = 1;
+  const newVal = chipState[taskId] + delta;
+  if (newVal <= 0) {
+    delete chipState[taskId]; // deselect at 0
+  } else {
+    chipState[taskId] = newVal;
+  }
+  renderTaskChips();
   updateTotalPreview();
 }
-
 function adjustChip(taskId, delta) {
   if (!chipState[taskId]) return;
   chipState[taskId] = Math.max(1, (chipState[taskId]||1) + delta);
@@ -2468,10 +2477,7 @@ function syncDirectQty() {
 }
 
 function syncChipStateFromInputs() {
-  Object.keys(chipState).forEach(taskId => {
-    const el = document.getElementById('chipqty-' + taskId);
-    if (el) chipState[taskId] = Math.max(1, parseInt(el.value)||1);
-  });
+  // No inputs to sync - chipState is maintained directly by stepChip
 }
 
 function saveMaterial() {
@@ -2480,7 +2486,18 @@ function saveMaterial() {
   syncChipStateFromInputs();
   const unit = document.getElementById('matUnitInput').value;
   const cat = document.getElementById('matCatInput').value || 'General';
-  const assignments = Object.entries(chipState).map(([taskId,qty])=>({taskId,qty:Number(qty)}));
+  const originalAssignments = S.editingMatId ? (S.materials.find(x=>x.id===S.editingMatId)?.assignments || []) : [];
+  const assignments = Object.entries(chipState)
+    .filter(([taskId, qty]) => Number(qty) > 0)
+    .map(([taskId, qty]) => {
+      const orig = originalAssignments.find(a => a.taskId === taskId);
+      return { taskId, qty: orig ? orig.qty : Number(qty) };
+    });
+  originalAssignments.forEach(a => {
+    if (!chipState[a.taskId] && !assignments.find(x=>x.taskId===a.taskId)) {
+      assignments.push(a);
+    }
+  });
   const productUrl = document.getElementById('matProductUrl').value.trim();
   const suppliers = matSelectedSuppliers;
   const directQty = parseInt(document.getElementById('matDirectQty').value)||0;
@@ -3955,7 +3972,20 @@ async function saveMaterial() {
   const unit = document.getElementById('matUnitInput').value;
   const cat = document.getElementById('matCatInput').value || 'General';
   syncChipStateFromInputs();
-  const assignments = Object.entries(chipState).map(([taskId,qty])=>({taskId,qty:Number(qty)}));
+  // Filter out zero quantities and merge with original assignments to preserve delivered task links
+  const originalAssignments = S.editingMatId ? (S.materials.find(x=>x.id===S.editingMatId)?.assignments || []) : [];
+  const assignments = Object.entries(chipState)
+    .filter(([taskId, qty]) => Number(qty) > 0)
+    .map(([taskId, qty]) => {
+      const orig = originalAssignments.find(a => a.taskId === taskId);
+      return { taskId, qty: orig ? orig.qty : Number(qty) };
+    });
+  // Also keep original assignments for tasks not in chipState (fully delivered)
+  originalAssignments.forEach(a => {
+    if (!chipState[a.taskId] && !assignments.find(x=>x.taskId===a.taskId)) {
+      assignments.push(a);
+    }
+  });
   const productUrl = document.getElementById('matProductUrl').value.trim();
   const suppliers = matSelectedSuppliers;
   const directQty = assignments.length === 0 ? (parseInt(document.getElementById('matDirectQty').value)||0) : 0;
