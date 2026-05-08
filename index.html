@@ -2485,31 +2485,8 @@ function overrideTotalQty(val) {
 }
 
 function syncDirectQty() {
-  const directEl = document.getElementById('matDirectQty');
-  const newTotal = parseInt(directEl?.value) || 0;
-  const selectedTasks = Object.keys(chipState);
-  if (selectedTasks.length === 0) {
-    updateTotalPreview();
-    return;
-  }
-  // Redistribute new total proportionally across selected tasks
-  const currentTotal = Object.values(chipState).reduce((s,v) => s + Number(v), 0);
-  if (currentTotal === 0) {
-    // Equal split
-    const each = Math.max(1, Math.round(newTotal / selectedTasks.length));
-    selectedTasks.forEach(id => { chipState[id] = each; });
-  } else {
-    // Proportional split
-    selectedTasks.forEach(id => {
-      const share = (chipState[id] / currentTotal) * newTotal;
-      chipState[id] = Math.max(0, Math.round(share));
-    });
-    // Remove tasks that dropped to 0
-    Object.keys(chipState).forEach(id => {
-      if (chipState[id] <= 0) delete chipState[id];
-    });
-  }
-  renderTaskChips();
+  // Total qty box is independent — just update the preview label
+  updateTotalPreview();
 }
 
 function syncChipStateFromInputs() {
@@ -4005,21 +3982,19 @@ async function saveMaterial() {
   const suppliers = matSelectedSuppliers;
   const editId = S.editingMatId;
 
+  // Task assignments — independent of total qty
+  const assignments = Object.entries(chipState)
+    .filter(([, qty]) => Number(qty) > 0)
+    .map(([taskId, qty]) => ({ taskId, qty: Number(qty) }));
+
   // What user typed = additional needed on top of already delivered
   const additionalNeeded = parseInt(document.getElementById('matDirectQty').value) || 0;
-
-  // Already delivered for this material
   const alreadyDelivered = editId ? S.orders
     .filter(o => o.matId === editId && o.status === 'delivered')
     .reduce((s,o) => s + Number(o.qty), 0) : 0;
 
-  // Total stored = additional needed + already delivered
+  // Total stored = additional + delivered
   const directQty = additionalNeeded + alreadyDelivered;
-
-  // Task assignments
-  const assignments = Object.entries(chipState)
-    .filter(([, qty]) => Number(qty) > 0)
-    .map(([taskId, qty]) => ({ taskId, qty: Number(qty) }));
 
   if (editId) {
     const m = S.materials.find(x=>x.id===editId);
