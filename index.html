@@ -936,7 +936,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
       </div>
       <input type="number" id="matDirectQty" min="0" step="1" placeholder="0"
         style="font-family:'DM Mono', monospace;font-size:20px;font-weight:700;text-align:center;padding:2px 6px;width:72px;box-sizing:border-box;border-radius:8px"
-        oninput="syncDirectQty()">
+        oninput="syncDirectQty()" onchange="overrideTotalQty(this.value)">
     </div>
   </div>
   <div id="chipTotalPreview" style="display:none"></div>
@@ -1218,8 +1218,9 @@ function uid() { return 'x' + Date.now().toString(36) + Math.random().toString(3
 function initials(name) { return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
 function uColor(i) { return COLORS[i % COLORS.length]; }
 function totalQty(mat) {
+  const direct = mat.directQty || 0;
   const taskTotal = (mat.assignments||[]).reduce((s,a)=>s+Number(a.qty),0);
-  return taskTotal > 0 ? taskTotal : (mat.directQty || 0);
+  return direct > 0 ? direct : taskTotal;
 }
 function areaName(id) { const a=S.areas.find(x=>x.id===id); return a?a.name:'?'; }
 function taskName(id) { const t=S.tasks.find(x=>x.id===id); return t?t.text:'?'; }
@@ -2339,27 +2340,18 @@ function openAddMat(matId=null, forTaskId=null) {
     document.getElementById('matUnitInput').value = m.unit;
     renderCatSelect(m.cat);
     document.getElementById('matProductUrl').value = m.productUrl || '';
-    document.getElementById('matDirectQty').value = m.directQty || '';
-    // Calculate total delivered/collected for this material
+
+    // Show original task assignments in chips
+    m.assignments.forEach(a => { chipState[a.taskId] = a.qty; });
+
+    // Total qty box shows outstanding (total needed minus delivered)
     const totalDelivered = S.orders
       .filter(o => o.matId === matId && o.status === 'delivered')
       .reduce((s,o) => s + Number(o.qty), 0);
-    const totalAssigned = m.assignments.reduce((s,a) => s + Number(a.qty), 0);
     const totalNeeded = totalQty(m);
-    const remainingToOrder = Math.max(0, totalNeeded - totalDelivered);
+    const outstanding = Math.max(0, totalNeeded - totalDelivered);
+    document.getElementById('matDirectQty').value = outstanding || '';
 
-    // Distribute remaining across tasks proportionally
-    m.assignments.forEach(a => {
-      if (totalAssigned === 0) {
-        chipState[a.taskId] = a.qty;
-      } else {
-        const taskShare = (a.qty / totalAssigned) * remainingToOrder;
-        chipState[a.taskId] = Math.max(0, Math.round(taskShare));
-      }
-    });
-
-    // Set the qty display to outstanding
-    document.getElementById('matDirectQty').value = remainingToOrder || '';
     matSelectedSuppliers = JSON.parse(JSON.stringify(m.suppliers || []));
   } else {
     document.getElementById('matNameInput').value = '';
@@ -2460,20 +2452,67 @@ function updateTotalPreview() {
   const directEl = document.getElementById('matDirectQty');
   const hintEl = document.getElementById('chipTotalHint');
   if (taskTotal > 0) {
-    if (directEl) { directEl.value = taskTotal; directEl.readOnly = false; directEl.style.opacity = '1'; }
+    if (directEl) { directEl.value = taskTotal; }
     if (hintEl) hintEl.textContent = 'from tasks';
   } else {
-    if (directEl) { directEl.readOnly = false; directEl.style.opacity = '1'; }
     if (hintEl) hintEl.textContent = 'enter directly';
   }
 }
 
-function syncDirectQty() {
-  // When user types directly, clear any task assignments if qty is being set manually
-  // (only if no tasks are selected)
-  if (Object.keys(chipState).length === 0) {
-    updateTotalPreview();
+function overrideTotalQty(val) {
+  const total = parseInt(val) || 0;
+  if (total <= 0) return;
+  const taskIds = Object.keys(chipState);
+  if (taskIds.length === 0) return;
+  // Redistribute proportionally across selected tasks
+  const currentTotal = Object.values(chipState).reduce((s,v)=>s+Number(v),0);
+  if (currentTotal === 0) {
+    // Equal distribution if all are 0
+    const share = Math.floor(total / taskIds.length);
+    const remainder = total - (share * taskIds.length);
+    taskIds.forEach((id, i) => { chipState[id] = share + (i === 0 ? remainder : 0); });
+  } else {
+    // Proportional distribution
+    let remaining = total;
+    taskIds.forEach((id, i) => {
+      if (i === taskIds.length - 1) {
+        chipState[id] = remaining; // give remainder to last
+      } else {
+        const share = Math.round((chipState[id] / currentTotal) * total);
+        chipState[id] = share;
+        remaining -= share;
+      }
+    });
   }
+  renderTaskChips();
+}
+
+function syncDirectQty() {
+  const directEl = document.getElementById('matDirectQty');
+  const newTotal = parseInt(directEl?.value) || 0;
+  const selectedTasks = Object.keys(chipState);
+  if (selectedTasks.length === 0) {
+    updateTotalPreview();
+    return;
+  }
+  // Redistribute new total proportionally across selected tasks
+  const currentTotal = Object.values(chipState).reduce((s,v) => s + Number(v), 0);
+  if (currentTotal === 0) {
+    // Equal split
+    const each = Math.max(1, Math.round(newTotal / selectedTasks.length));
+    selectedTasks.forEach(id => { chipState[id] = each; });
+  } else {
+    // Proportional split
+    selectedTasks.forEach(id => {
+      const share = (chipState[id] / currentTotal) * newTotal;
+      chipState[id] = Math.max(0, Math.round(share));
+    });
+    // Remove tasks that dropped to 0
+    Object.keys(chipState).forEach(id => {
+      if (chipState[id] <= 0) delete chipState[id];
+    });
+  }
+  renderTaskChips();
 }
 
 function syncChipStateFromInputs() {
@@ -2486,18 +2525,9 @@ function saveMaterial() {
   syncChipStateFromInputs();
   const unit = document.getElementById('matUnitInput').value;
   const cat = document.getElementById('matCatInput').value || 'General';
-  const originalAssignments = S.editingMatId ? (S.materials.find(x=>x.id===S.editingMatId)?.assignments || []) : [];
   const assignments = Object.entries(chipState)
     .filter(([taskId, qty]) => Number(qty) > 0)
-    .map(([taskId, qty]) => {
-      const orig = originalAssignments.find(a => a.taskId === taskId);
-      return { taskId, qty: orig ? orig.qty : Number(qty) };
-    });
-  originalAssignments.forEach(a => {
-    if (!chipState[a.taskId] && !assignments.find(x=>x.taskId===a.taskId)) {
-      assignments.push(a);
-    }
-  });
+    .map(([taskId, qty]) => ({ taskId, qty: Number(qty) }));
   const productUrl = document.getElementById('matProductUrl').value.trim();
   const suppliers = matSelectedSuppliers;
   const directQty = parseInt(document.getElementById('matDirectQty').value)||0;
@@ -3959,7 +3989,6 @@ async function deleteTask(id) {
   refreshCurrentPage();
   await deleteRecord('tasks', id);
   showToast(`"${t.text.slice(0,30)}" deleted`, async ()=>{
-    S.tasks.splice(idx, 0, snapshot);
     await saveRecord('tasks', { id: snapshot.id, text: snapshot.text, area_ids: snapshot.areaIds, assignees: snapshot.assignees, done: snapshot.done, project_id: 'spencer-hill' });
     refreshCurrentPage();
   });
@@ -3971,26 +4000,18 @@ async function saveMaterial() {
   if (!name) { alert('Please enter a material name'); return; }
   const unit = document.getElementById('matUnitInput').value;
   const cat = document.getElementById('matCatInput').value || 'General';
-  syncChipStateFromInputs();
-  // Filter out zero quantities and merge with original assignments to preserve delivered task links
-  const originalAssignments = S.editingMatId ? (S.materials.find(x=>x.id===S.editingMatId)?.assignments || []) : [];
-  const assignments = Object.entries(chipState)
-    .filter(([taskId, qty]) => Number(qty) > 0)
-    .map(([taskId, qty]) => {
-      const orig = originalAssignments.find(a => a.taskId === taskId);
-      return { taskId, qty: orig ? orig.qty : Number(qty) };
-    });
-  // Also keep original assignments for tasks not in chipState (fully delivered)
-  originalAssignments.forEach(a => {
-    if (!chipState[a.taskId] && !assignments.find(x=>x.taskId===a.taskId)) {
-      assignments.push(a);
-    }
-  });
   const productUrl = document.getElementById('matProductUrl').value.trim();
   const suppliers = matSelectedSuppliers;
-  const directQty = assignments.length === 0 ? (parseInt(document.getElementById('matDirectQty').value)||0) : 0;
   const editId = S.editingMatId;
-  const returnToTaskId = preselectedTaskId;
+
+  // Task assignments — just which tasks this material is for
+  const assignments = Object.entries(chipState)
+    .filter(([, qty]) => Number(qty) > 0)
+    .map(([taskId, qty]) => ({ taskId, qty: Number(qty) }));
+
+  // Total qty is whatever the user typed — simple override
+  const directQty = parseInt(document.getElementById('matDirectQty').value) || 0;
+
   if (editId) {
     const m = S.materials.find(x=>x.id===editId);
     if (!m) return;
@@ -4001,14 +4022,12 @@ async function saveMaterial() {
     await saveRecord('materials', { id: editId, name, unit, cat, assignments, product_url: productUrl, suppliers, direct_qty: directQty, archived: m.archived||false, project_id: 'spencer-hill' });
   } else {
     const id = uid();
-    if (!id) { console.error('uid failed'); return; }
     S.materials.push({ id, name, unit, cat, assignments, productUrl, suppliers, directQty, archived: false });
     closeAddMat();
     renderMaterials(); renderAreaPage();
     if (document.getElementById('page-orders').classList.contains('active')) renderOrdersPage();
     await saveRecord('materials', { id, name, unit, cat, assignments, product_url: productUrl, suppliers, direct_qty: directQty, archived: false, project_id: 'spencer-hill' });
   }
-  if (returnToTaskId) openAddTask(null, returnToTaskId);
 }
 
 async function toggleArchiveMat(matId) {
