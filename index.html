@@ -3938,16 +3938,19 @@ async function saveMaterial() {
   const productUrl = document.getElementById('matProductUrl').value.trim();
   const suppliers = matSelectedSuppliers;
   const directQty = assignments.length === 0 ? (parseInt(document.getElementById('matDirectQty').value)||0) : 0;
+  const editId = S.editingMatId;
   const returnToTaskId = preselectedTaskId;
-  if (S.editingMatId) {
-    const m = S.materials.find(x=>x.id===S.editingMatId);
+  if (editId) {
+    const m = S.materials.find(x=>x.id===editId);
+    if (!m) return;
     m.name=name; m.unit=unit; m.cat=cat; m.assignments=assignments; m.productUrl=productUrl; m.suppliers=suppliers; m.directQty=directQty;
     closeAddMat();
     renderMaterials(); renderAreaPage();
     if (document.getElementById('page-orders').classList.contains('active')) renderOrdersPage();
-    await saveRecord('materials', { id: S.editingMatId, name, unit, cat, assignments, product_url: productUrl, suppliers, direct_qty: directQty, archived: m.archived||false, project_id: 'spencer-hill' });
+    await saveRecord('materials', { id: editId, name, unit, cat, assignments, product_url: productUrl, suppliers, direct_qty: directQty, archived: m.archived||false, project_id: 'spencer-hill' });
   } else {
     const id = uid();
+    if (!id) { console.error('uid failed'); return; }
     S.materials.push({ id, name, unit, cat, assignments, productUrl, suppliers, directQty, archived: false });
     closeAddMat();
     renderMaterials(); renderAreaPage();
