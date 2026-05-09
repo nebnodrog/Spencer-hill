@@ -2472,11 +2472,7 @@ function saveMaterial() {
     .map(([taskId, qty]) => ({ taskId, qty: Number(qty) }));
   const productUrl = document.getElementById('matProductUrl').value.trim();
   const suppliers = matSelectedSuppliers;
-  const additionalNeeded = parseInt(document.getElementById('matDirectQty').value) || 0;
-  const alreadyDeliveredLocal = S.editingMatId ? S.orders
-    .filter(o => o.matId === S.editingMatId && o.status === 'delivered')
-    .reduce((s,o) => s + Number(o.qty), 0) : 0;
-  const directQty = additionalNeeded + alreadyDeliveredLocal;
+  const directQty = parseInt(document.getElementById('matDirectQty').value) || 0;
   if (S.editingMatId) {
     const m = S.materials.find(x=>x.id===S.editingMatId);
     m.name=name; m.unit=unit; m.cat=cat; m.assignments=assignments;
@@ -3950,19 +3946,13 @@ async function saveMaterial() {
   const suppliers = matSelectedSuppliers;
   const editId = S.editingMatId;
 
-  // Task assignments — independent of total qty
+  // Task assignments — exactly what chips show
   const assignments = Object.entries(chipState)
     .filter(([, qty]) => Number(qty) > 0)
     .map(([taskId, qty]) => ({ taskId, qty: Number(qty) }));
 
-  // What user typed = additional needed on top of already delivered
-  const additionalNeeded = parseInt(document.getElementById('matDirectQty').value) || 0;
-  const alreadyDelivered = editId ? S.orders
-    .filter(o => o.matId === editId && o.status === 'delivered')
-    .reduce((s,o) => s + Number(o.qty), 0) : 0;
-
-  // Total stored = additional + delivered
-  const directQty = additionalNeeded + alreadyDelivered;
+  // Total qty = exactly what user sees in box, nothing added
+  const directQty = parseInt(document.getElementById('matDirectQty').value) || 0;
 
   if (editId) {
     const m = S.materials.find(x=>x.id===editId);
