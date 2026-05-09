@@ -3154,7 +3154,7 @@ function saveOrder() {
     qty,
     unit: m.unit,
     supplierId: document.getElementById('orderSupplierInput').value||null,
-    status: document.getElementById('orderStatusInput').value,
+    status: editingOrderId ? document.getElementById('orderStatusInput').value : 'ordered',
     orderedBy: S.currentUser,
     orderedAt: document.getElementById('orderDateInput').value||new Date().toISOString().slice(0,10),
     expectedDelivery: document.getElementById('orderDeliveredInput').value||null,
@@ -4077,7 +4077,7 @@ async function saveOrder() {
   const data = {
     mat_id: orderingMatId, qty, unit: m.unit,
     supplier_id: document.getElementById('orderSupplierInput').value||null,
-    status: document.getElementById('orderStatusInput').value,
+    status: editingOrderId ? document.getElementById('orderStatusInput').value : 'ordered',
     ordered_by: S.currentUser,
     ordered_at: document.getElementById('orderDateInput').value||new Date().toISOString().slice(0,10),
     expected_delivery: document.getElementById('orderDeliveredInput').value||null,
