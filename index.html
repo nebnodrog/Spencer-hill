@@ -2347,7 +2347,6 @@ function openAddMat(matId=null, forTaskId=null) {
       .reduce((s,o) => s + Number(o.qty), 0);
     const totalPlanned = totalQty(m);
     const outstanding = Math.max(0, totalPlanned - totalDelivered);
-    showToast(`planned=${totalPlanned} delivered=${totalDelivered} outstanding=${outstanding}`);
 
     // Load chips showing outstanding qty per task proportionally
     if (outstanding > 0) {
@@ -3209,7 +3208,13 @@ async function confirmMarkDelivered(id, date) {
   if (document.getElementById('page-areas').classList.contains('active')) renderAreaPage();
   if (document.getElementById('page-diary').classList.contains('active')) renderDiary();
   const label = o.isCollection ? 'Marked as collected' : 'Marked as delivered';
-  showToast(label, ()=>{ o.status='ordered'; o.deliveredAt=null; renderOrdersPage(); renderMaterials(); });
+  showToast(label, async ()=>{ 
+    o.status='ordered'; 
+    o.deliveredAt=null; 
+    renderOrdersPage(); 
+    renderMaterials(); 
+    await saveRecord('orders', { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: 'ordered', ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: null, notes: o.notes, is_collection: o.isCollection||false, project_id: 'spencer-hill' });
+  });
   await saveRecord('orders', { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: 'delivered', ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: date, notes: o.notes, is_collection: o.isCollection||false, project_id: 'spencer-hill' });
 }
 
