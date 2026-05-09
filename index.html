@@ -2440,7 +2440,13 @@ function adjustChip(taskId, delta) {
 function syncTotalFromChips() {
   const taskTotal = Object.values(chipState).reduce((s,v)=>s+Number(v),0);
   const directEl = document.getElementById('matDirectQty');
-  if (directEl) directEl.value = taskTotal > 0 ? taskTotal : '';
+  if (directEl) {
+    directEl.value = taskTotal > 0 ? taskTotal : '';
+    directEl.removeAttribute('readonly');
+    directEl.value = taskTotal > 0 ? taskTotal : '';
+    directEl.setAttribute('readonly', '');
+  }
+  updateTotalPreview();
 }
 
 function updateTotalPreview() {
@@ -3965,6 +3971,7 @@ async function saveMaterial() {
 
   // Stored total = needed now + already delivered (all-time total)
   const directQty = neededNow + alreadyDelivered;
+  showToast(`Saving: box=${neededNow} delivered=${alreadyDelivered} total=${directQty}`);
 
   if (editId) {
     const m = S.materials.find(x=>x.id===editId);
