@@ -3199,7 +3199,7 @@ function confirmDelivery() {
   confirmMarkDelivered(_pendingDeliveryId, date);
 }
 
-function confirmMarkDelivered(id, date) {
+async function confirmMarkDelivered(id, date) {
   const o = S.orders.find(x=>x.id===id);
   if (!o) return;
   o.status = 'delivered';
@@ -3210,6 +3210,7 @@ function confirmMarkDelivered(id, date) {
   if (document.getElementById('page-diary').classList.contains('active')) renderDiary();
   const label = o.isCollection ? 'Marked as collected' : 'Marked as delivered';
   showToast(label, ()=>{ o.status='ordered'; o.deliveredAt=null; renderOrdersPage(); renderMaterials(); });
+  await saveRecord('orders', { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: 'delivered', ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: date, notes: o.notes, is_collection: o.isCollection||false, project_id: 'spencer-hill' });
 }
 
 function changeOrderStatus(id, val) {
