@@ -3246,11 +3246,28 @@ async function deleteOrder(id) {
   const snapshot = JSON.parse(JSON.stringify(o));
   const idx = S.orders.findIndex(x=>x.id===id);
   S.orders.splice(idx,1);
+
+  // If delivered, reduce material directQty accordingly
+  if (o.status === 'delivered') {
+    const m = S.materials.find(x=>x.id===o.matId);
+    if (m) {
+      m.directQty = Math.max(0, (m.directQty||0) - Number(o.qty));
+      await saveRecord('materials', { id: m.id, name: m.name, unit: m.unit, cat: m.cat, assignments: m.assignments, product_url: m.productUrl||'', suppliers: m.suppliers, direct_qty: m.directQty, archived: m.archived||false, project_id: 'spencer-hill' });
+    }
+  }
+
   refreshCurrentPage();
   if (document.getElementById('page-orders').classList.contains('active')) renderOrdersPage();
   await deleteRecord('orders', id);
   showToast('Order deleted', async ()=>{
     S.orders.splice(idx,0,snapshot);
+    if (o.status === 'delivered') {
+      const m = S.materials.find(x=>x.id===o.matId);
+      if (m) {
+        m.directQty = (m.directQty||0) + Number(snapshot.qty);
+        await saveRecord('materials', { id: m.id, name: m.name, unit: m.unit, cat: m.cat, assignments: m.assignments, product_url: m.productUrl||'', suppliers: m.suppliers, direct_qty: m.directQty, archived: m.archived||false, project_id: 'spencer-hill' });
+      }
+    }
     await saveRecord('orders', { id: snapshot.id, mat_id: snapshot.matId, qty: snapshot.qty, unit: snapshot.unit, supplier_id: snapshot.supplierId, status: snapshot.status, ordered_by: snapshot.orderedBy, ordered_at: snapshot.orderedAt, expected_delivery: snapshot.expectedDelivery, delivered_at: snapshot.deliveredAt, notes: snapshot.notes, is_collection: snapshot.isCollection||false, project_id: 'spencer-hill' });
     refreshCurrentPage(); renderOrdersPage();
   });
