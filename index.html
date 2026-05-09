@@ -2341,8 +2341,22 @@ function openAddMat(matId=null, forTaskId=null) {
     renderCatSelect(m.cat);
     document.getElementById('matProductUrl').value = m.productUrl || '';
 
-    // Show original task assignments in chips — filter out zero qtys
-    m.assignments.filter(a => Number(a.qty) > 0).forEach(a => { chipState[a.taskId] = a.qty; });
+    // Calculate total delivered
+    const totalDelivered = S.orders
+      .filter(o => o.matId === matId && o.status === 'delivered')
+      .reduce((s,o) => s + Number(o.qty), 0);
+    const totalPlanned = totalQty(m);
+    const outstanding = Math.max(0, totalPlanned - totalDelivered);
+
+    // Load chips showing outstanding qty per task proportionally
+    if (outstanding > 0) {
+      const taskTotal = m.assignments.reduce((s,a) => s + Number(a.qty), 0);
+      m.assignments.filter(a => Number(a.qty) > 0).forEach(a => {
+        const share = taskTotal > 0 ? Math.round((a.qty / taskTotal) * outstanding) : 0;
+        if (share > 0) chipState[a.taskId] = share;
+      });
+    }
+    // If fully delivered — chips stay empty (nothing needed)
 
     // Leave total qty box empty — user enters what they want to order
     document.getElementById('matDirectQty').value = '';
