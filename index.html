@@ -1893,8 +1893,12 @@ function renderTaskRow(t, areaId=null) {
             <div style="width:7px;height:7px;border-radius:50%;background:${mdot};flex-shrink:0"></div>
             <div style="flex:1;font-size:13px;font-weight:500">${m.name}</div>
             <span style="font-family:'DM Mono',monospace;font-size:13px;color:#8a8578;flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
+            ${delivered>=(assign?.qty||0)
+              ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">✓ delivered</span>`
+              : activeOrder?.status==='ordered'
+                ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8">⏳ ordered</span>`
+                : isEditor() ? `<button class="btn btn-accent btn-sm" style="padding:2px 7px;font-size:11px;flex-shrink:0" onclick="event.stopPropagation();openOrderModal('${m.id}')">Order</button>` : ''}
             <button class="del-btn" onclick="event.stopPropagation();openAddMat('${m.id}')" style="font-size:13px;color:#8a8578" title="Edit">✎</button>
-            <button class="btn btn-accent btn-sm" style="padding:2px 7px;font-size:11px;flex-shrink:0" onclick="event.stopPropagation();openOrderModal('${m.id}')">Order</button>
           </div>`;
       }).join('')}
       <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;font-size:11px" onclick="event.stopPropagation();openAddMat(null,'${t.id}')">+ Add material</button>
