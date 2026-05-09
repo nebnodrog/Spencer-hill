@@ -2347,6 +2347,7 @@ function openAddMat(matId=null, forTaskId=null) {
       .reduce((s,o) => s + Number(o.qty), 0);
     const totalPlanned = totalQty(m);
     const outstanding = Math.max(0, totalPlanned - totalDelivered);
+    showToast(`planned=${totalPlanned} delivered=${totalDelivered} outstanding=${outstanding}`);
 
     // Load chips showing outstanding qty per task proportionally
     if (outstanding > 0) {
