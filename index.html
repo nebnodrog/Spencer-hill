@@ -3170,11 +3170,19 @@ function saveOrder() {
   if (document.getElementById('page-overview').classList.contains('active')) renderOverview();
 }
 
-function markDelivered(id) {
+async function markDelivered(id) {
   const o = S.orders.find(x=>x.id===id);
   if (!o) return;
+  const date = new Date().toISOString().slice(0,10);
   const label = o.isCollection ? 'Collection' : 'Delivery';
-  openDeliveryDatePicker(id, label);
+  if (!confirm(`Confirm ${label} received today (${date})?`)) return;
+  o.status = 'delivered';
+  o.deliveredAt = date;
+  renderOrdersPage();
+  renderMaterials();
+  if (document.getElementById('page-diary').classList.contains('active')) renderDiary();
+  showToast(o.isCollection ? 'Marked as collected' : 'Marked as delivered');
+  await saveRecord('orders', { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: 'delivered', ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: date, notes: o.notes, is_collection: o.isCollection||false, project_id: 'spencer-hill' });
 }
 
 let _pendingDeliveryId = null;
