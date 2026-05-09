@@ -2208,7 +2208,11 @@ function renderMatCard(m) {
     const t = S.tasks.find(x=>x.id===a.taskId);
     if (!t) return '';
     const taskAreas = (t.areaIds||[]).map(id=>areaName(id)).join(', ');
-    return `<span class="mat-area-pill"><span>${t.text}</span><span class="mat-area-qty"> ×${a.qty} · ${taskAreas}</span></span>`;
+    // Calculate outstanding per task proportionally
+    const taskTotal = m.assignments.reduce((s,x)=>s+Number(x.qty),0);
+    const outstandingShare = taskTotal > 0 ? Math.round((a.qty/taskTotal)*outstanding) : 0;
+    if (outstandingShare <= 0) return `<span class="mat-area-pill" style="opacity:0.4;text-decoration:line-through"><span>${t.text}</span><span class="mat-area-qty"> ✓ · ${taskAreas}</span></span>`;
+    return `<span class="mat-area-pill"><span>${t.text}</span><span class="mat-area-qty"> ×${outstandingShare} · ${taskAreas}</span></span>`;
   }).join('');
 
   const sups = (m.suppliers||[]);
