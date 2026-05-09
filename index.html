@@ -2496,7 +2496,8 @@ function saveMaterial() {
   const alreadyDeliveredLocal = S.editingMatId ? S.orders
     .filter(o => o.matId === S.editingMatId && o.status === 'delivered')
     .reduce((s,o) => s + Number(o.qty), 0) : 0;
-  const directQty = neededNow + alreadyDeliveredLocal;
+  const existingTotalLocal = S.editingMatId ? (S.materials.find(x=>x.id===S.editingMatId)?.directQty || 0) : 0;
+  const directQty = neededNow > 0 ? neededNow + alreadyDeliveredLocal : existingTotalLocal;
   if (S.editingMatId) {
     const m = S.materials.find(x=>x.id===S.editingMatId);
     m.name=name; m.unit=unit; m.cat=cat; m.assignments=assignments;
@@ -3983,9 +3984,10 @@ async function saveMaterial() {
     .filter(o => o.matId === editId && o.status === 'delivered')
     .reduce((s,o) => s + Number(o.qty), 0) : 0;
 
-  // Stored total = needed now + already delivered (all-time total)
-  const directQty = neededNow + alreadyDelivered;
-  showToast(`Saving: box=${neededNow} delivered=${alreadyDelivered} total=${directQty}`);
+  // Only update total if user has added something new
+  // If box is 0, preserve existing directQty
+  const existingTotal = editId ? (S.materials.find(x=>x.id===editId)?.directQty || 0) : 0;
+  const directQty = neededNow > 0 ? neededNow + alreadyDelivered : existingTotal;
 
   if (editId) {
     const m = S.materials.find(x=>x.id===editId);
