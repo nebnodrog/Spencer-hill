@@ -2235,7 +2235,7 @@ function renderMatCard(m) {
       ${totalDelivered>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">✓ ${totalDelivered} delivered</span>`:''}
       ${totalOnOrder>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8">⟳ ${totalOnOrder} on order</span>`:''}
       ${totalPending>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#b45309">⏳ ${totalPending} pending</span>`:''}
-      ${outstanding>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#c8440e;font-weight:500">${outstanding} still to order</span>`:`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">fully accounted for</span>`}
+      ${outstanding>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#c8440e;font-weight:500">${outstanding} still to order</span>`:totalDelivered >= total?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">fully delivered</span>`:`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8">⏳ on order</span>`}
       ${matOrders.length?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;cursor:pointer;text-decoration:underline" onclick="openOrderHistory('${m.id}')">${matOrders.length} order${matOrders.length!==1?'s':''}</span>`:`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">No orders yet</span>`}
     </div>`;
 
@@ -2260,7 +2260,7 @@ function renderMatCard(m) {
         ${totalDelivered>0 ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">✓ ${totalDelivered} delivered</span>` : ''}
         ${totalToCollect>0 ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8">🚗 ${totalToCollect} to collect</span>` : ''}
         ${totalOnOrder>0 ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8">⟳ ${totalOnOrder} on order</span>` : ''}
-        ${outstanding>0 ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#c8440e;font-weight:600">${outstanding} to order</span>` : `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">✓ fully covered</span>`}
+        ${outstanding>0 ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#c8440e;font-weight:600">${outstanding} to order</span>` : totalDelivered >= total ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">✓ fully delivered</span>` : `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8">⏳ on order</span>`}
         ${matOrders.length ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;text-decoration:underline;cursor:pointer" onclick="openOrderHistory('${m.id}')">${matOrders.length} order${matOrders.length!==1?'s':''}</span>` : ''}
       </div>
 
