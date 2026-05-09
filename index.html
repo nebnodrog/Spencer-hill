@@ -1304,7 +1304,7 @@ function showPage(p) {
   if (p==='tasks') { renderTasksPage(); syncTaskExpandLabel(); const th=document.getElementById('taskHeadingToggle'); if(th) th.textContent=taskHeadingsVisible?'Hide areas':'Show areas'; }
   if (p==='materials') { renderMaterials(); const mh=document.getElementById('matHeadingToggle'); if(mh) mh.textContent=matHeadingsVisible?'Hide categories':'Show categories'; }
   if (p==='diary') renderDiary();
-  if (p==='orders') renderOrdersPage();
+  if (p==='orders') { reloadOrders().then(()=>renderOrdersPage()); }
   if (p==='suppliers') renderSuppliers();
   if (p==='overview') renderOverview();
   if (p==='team') renderTeam();
@@ -2809,6 +2809,13 @@ function syncOrderExpandLabel() {
   if (!btn) return;
   const anyExpanded = getVisibleOrderKeys().some(id => expandedOrderGroups.has(id));
   btn.textContent = anyExpanded ? 'Collapse all' : 'Expand all';
+}
+
+async function reloadOrders() {
+  try {
+    const ordersR = await sbGet('orders');
+    S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false }));
+  } catch(e) { console.error('reloadOrders failed', e); }
 }
 
 function renderOrdersPage() {
