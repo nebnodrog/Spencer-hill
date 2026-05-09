@@ -935,8 +935,8 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
         <div style="font-family:'DM Mono', monospace;font-size:11px;color:#8a8578" id="chipTotalHint">enter directly</div>
       </div>
       <input type="number" id="matDirectQty" min="0" step="1" placeholder="0"
-        style="font-family:'DM Mono', monospace;font-size:20px;font-weight:700;text-align:center;padding:2px 6px;width:72px;box-sizing:border-box;border-radius:8px"
-        onclick="this.select()">
+        style="font-family:'DM Mono', monospace;font-size:20px;font-weight:700;text-align:center;padding:2px 6px;width:72px;box-sizing:border-box;border-radius:8px;background:#edeae3;color:#8a8578"
+        readonly>
     </div>
   </div>
   <div id="chipTotalPreview" style="display:none"></div>
@@ -2472,7 +2472,11 @@ function saveMaterial() {
     .map(([taskId, qty]) => ({ taskId, qty: Number(qty) }));
   const productUrl = document.getElementById('matProductUrl').value.trim();
   const suppliers = matSelectedSuppliers;
-  const directQty = parseInt(document.getElementById('matDirectQty').value) || 0;
+  const neededNow = parseInt(document.getElementById('matDirectQty').value) || 0;
+  const alreadyDeliveredLocal = S.editingMatId ? S.orders
+    .filter(o => o.matId === S.editingMatId && o.status === 'delivered')
+    .reduce((s,o) => s + Number(o.qty), 0) : 0;
+  const directQty = neededNow + alreadyDeliveredLocal;
   if (S.editingMatId) {
     const m = S.materials.find(x=>x.id===S.editingMatId);
     m.name=name; m.unit=unit; m.cat=cat; m.assignments=assignments;
@@ -3951,8 +3955,16 @@ async function saveMaterial() {
     .filter(([, qty]) => Number(qty) > 0)
     .map(([taskId, qty]) => ({ taskId, qty: Number(qty) }));
 
-  // Total qty = exactly what user sees in box, nothing added
-  const directQty = parseInt(document.getElementById('matDirectQty').value) || 0;
+  // What user typed = what they need NOW (on top of already delivered)
+  const neededNow = parseInt(document.getElementById('matDirectQty').value) || 0;
+
+  // Already delivered = historical deliveries
+  const alreadyDelivered = editId ? S.orders
+    .filter(o => o.matId === editId && o.status === 'delivered')
+    .reduce((s,o) => s + Number(o.qty), 0) : 0;
+
+  // Stored total = needed now + already delivered (all-time total)
+  const directQty = neededNow + alreadyDelivered;
 
   if (editId) {
     const m = S.materials.find(x=>x.id===editId);
