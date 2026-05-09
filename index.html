@@ -2717,7 +2717,7 @@ function renderDiary() {
     return `${fmtDate(d)} — ${dayStr}`;
   };
 
-  document.getElementById('diaryList').innerHTML = Object.keys(byDate).sort().map(date => {
+  document.getElementById('diaryList').innerHTML = Object.keys(byDate).sort().reverse().map(date => {
     const orders = byDate[date];
     const dt = new Date(date + 'T00:00:00');
     const diff = Math.round((dt - new Date(today + 'T00:00:00')) / 86400000);
