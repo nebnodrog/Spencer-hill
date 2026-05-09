@@ -4101,6 +4101,17 @@ async function saveOrder() {
     const id = uid();
     S.orders.push({ id, matId: data.mat_id, qty: data.qty, unit: data.unit, supplierId: data.supplier_id, status: data.status, orderedBy: data.ordered_by, orderedAt: data.ordered_at, expectedDelivery: data.expected_delivery, deliveredAt: data.delivered_at, notes: data.notes, isCollection: data.is_collection });
     await saveRecord('orders', { id, ...data });
+    // Increase material's directQty to include this new order
+    const mat = S.materials.find(x=>x.id===data.mat_id);
+    if (mat) {
+      const alreadyDelivered = S.orders.filter(o=>o.matId===data.mat_id&&o.status==='delivered').reduce((s,o)=>s+Number(o.qty),0);
+      const allOrdered = S.orders.filter(o=>o.matId===data.mat_id&&o.status!=='cancelled').reduce((s,o)=>s+Number(o.qty),0);
+      const newTotal = Math.max(allOrdered, mat.directQty||0);
+      if (newTotal > (mat.directQty||0)) {
+        mat.directQty = newTotal;
+        await saveRecord('materials', { id: mat.id, name: mat.name, unit: mat.unit, cat: mat.cat, assignments: mat.assignments, product_url: mat.productUrl||'', suppliers: mat.suppliers, direct_qty: newTotal, archived: mat.archived||false, project_id: 'spencer-hill' });
+      }
+    }
   }
   closeOrderModal();
   renderOrdersPage(); renderMaterials();
