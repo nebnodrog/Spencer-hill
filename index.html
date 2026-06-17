@@ -1199,6 +1199,7 @@ let S = {
 let chipState = {}; // taskId -> qty
 
 let currentTaskPriority = 'none';
+let currentPriorityAreaId = null;
 
 function uid() { return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function initials(name) { return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
@@ -1514,7 +1515,7 @@ function populateTaskAreaDropdown() {
   sel.value = taskAreaFilter;
 }
 
-function openAddTask(preAreaId=null, editId=null) {
+function openAddTask(preAreaId=null, editId=null, priorityAreaId=null) {
   taskEditId = editId;
   taskSelectedAreas = new Set();
   taskSelectedPeople = new Set([S.currentUser]);
@@ -1528,8 +1529,9 @@ function openAddTask(preAreaId=null, editId=null) {
     document.getElementById('taskTextInput').value = t.text;
     document.getElementById('addTaskTitle').textContent = 'Edit Task';
     document.getElementById('saveTaskBtn').textContent = 'Save Changes';
+    currentPriorityAreaId = priorityAreaId || [...taskSelectedAreas][0] || null;
     currentTaskPriority = (t.priority && typeof t.priority === 'object')
-      ? (t.priority[[...taskSelectedAreas][0]] || 'none')
+      ? (t.priority[currentPriorityAreaId] || 'none')
       : 'none';
     if (matsSection) { matsSection.style.display = 'block'; renderTaskMatsList(editId); }
   } else {
@@ -1537,6 +1539,7 @@ function openAddTask(preAreaId=null, editId=null) {
     document.getElementById('taskTextInput').value = '';
     document.getElementById('addTaskTitle').textContent = 'Add Task';
     document.getElementById('saveTaskBtn').textContent = 'Add Task';
+    currentPriorityAreaId = preAreaId || null;
     currentTaskPriority = 'none';
     if (matsSection) matsSection.style.display = 'none';
   }
@@ -1589,7 +1592,7 @@ function openAddMatForCurrentTask() {
   openAddMat(null, id);
 }
 
-function closeAddTask() { document.getElementById('addTaskOverlay').classList.remove('open'); taskEditId=null; }
+function closeAddTask() { document.getElementById('addTaskOverlay').classList.remove('open'); taskEditId=null; currentPriorityAreaId=null; }
 
 function renderTaskAreaChips() {
   const container = document.getElementById('taskAreaChips');
@@ -1916,7 +1919,7 @@ function renderTaskRow(t, areaId=null) {
       </div>
       ${matsHtml}
       <div class="row" style="gap:5px;flex-wrap:nowrap">
-        ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();openAddTask(null,'${t.id}')">Edit</button>` : ''}
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();openAddTask(null,'${t.id}','${areaId||''}')">Edit</button>` : ''}
         ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();openReassign('${t.id}')">Team</button>` : ''}
         <button class="btn btn-ghost btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();toggleTask('${t.id}','${areaId||''}')">${isDoneInArea ? 'Reopen' : 'Done'}</button>
         ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();toggleArchiveTask('${t.id}')">${t.archived?'Unarchive':'Archive'}</button>` : ''}
@@ -4012,9 +4015,12 @@ async function saveTask() {
   const areaIds = [...taskSelectedAreas];
   const assignees = taskSelectedPeople.size > 0 ? [...taskSelectedPeople] : [S.currentUser];
   const priority = (document.getElementById('taskPrioritySelect')?.value) || 'none';
-  // Store priority per area
+  // Store priority per area — only update the area being edited from, leave others untouched
   const priorityObj = taskEditId ? {...(S.tasks.find(x=>x.id===taskEditId)?.priority||{})} : {};
-  areaIds.forEach(aId => { priorityObj[aId] = priority; });
+  const targetAreaId = currentPriorityAreaId || areaIds[0];
+  if (targetAreaId) priorityObj[targetAreaId] = priority;
+  // For brand new areas added to this task that don't have a priority yet, default to 'none'
+  areaIds.forEach(aId => { if (!(aId in priorityObj)) priorityObj[aId] = 'none'; });
   if (taskEditId) {
     const t = S.tasks.find(x=>x.id===taskEditId);
     t.text = text; t.areaIds = areaIds; t.assignees = assignees; t.priority = priorityObj;
