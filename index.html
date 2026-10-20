@@ -2397,7 +2397,7 @@ let _lastChipToggle = 0;
 function renderTaskChips() {
   const container = document.getElementById('taskChipsContainer');
   if (!container) return;
-  container.innerHTML = S.tasks.map(t=>{
+  container.innerHTML = S.tasks.filter(t=>!t.done && !t.archived).map(t=>{
     const sel = !!chipState[t.id];
     const qty = chipState[t.id]||1;
     const areas = (t.areaIds||[]).map(id=>areaName(id)).join(', ');
