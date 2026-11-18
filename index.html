@@ -1999,6 +1999,49 @@ function openTaskMenu(taskId, btn) {
   }, 0);
 }
 
+// ── Material actions dropdown (⋮) ──
+function openMatMenu(matId, btn) {
+  const already = document.getElementById('taskActionMenu');
+  const sameOne = already && already.dataset.taskId === 'mat:' + matId;
+  closeTaskMenu();
+  if (sameOne) return; // second tap on ⋮ just closes it
+  const m = S.materials.find(x=>x.id===matId);
+  if (!m) return;
+  const item = (label, action, color) =>
+    `<button data-act="${action}" style="display:block;width:100%;text-align:left;background:none;border:none;padding:11px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:${color||'#1a1814'};cursor:pointer">${label}</button>`;
+  let html = item('Order history', 'history');
+  if (isEditor()) html += item(m.archived ? 'Unarchive material' : 'Archive material', 'archive');
+  if (isAdmin()) html += `<div style="height:1px;background:#ddd9d0;margin:4px 0"></div>` + item('Delete material', 'delete', '#c8440e');
+  const menu = document.createElement('div');
+  menu.id = 'taskActionMenu';
+  menu.dataset.taskId = 'mat:' + matId;
+  menu.style.cssText = 'position:fixed;z-index:9999;background:#fff;border:1px solid #ddd9d0;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.15);min-width:220px;padding:4px 0';
+  menu.innerHTML = html;
+  document.body.appendChild(menu);
+  const r = btn.getBoundingClientRect();
+  const mh = menu.offsetHeight, mw = menu.offsetWidth;
+  let top = r.bottom + 4;
+  if (top + mh > window.innerHeight - 8) top = Math.max(8, r.top - mh - 4);
+  menu.style.top = top + 'px';
+  menu.style.left = Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8)) + 'px';
+  menu.addEventListener('click', e => {
+    e.stopPropagation();
+    const b = e.target.closest('button[data-act]');
+    if (!b) return;
+    const act = b.dataset.act;
+    closeTaskMenu();
+    if (act === 'history') openOrderHistory(matId);
+    else if (act === 'archive') toggleArchiveMat(matId);
+    else if (act === 'delete') {
+      if (confirm(`Delete material "${m.name}"?`)) deleteMat(matId);
+    }
+  });
+  setTimeout(() => {
+    document.addEventListener('click', e => { if (!menu.contains(e.target) && !btn.contains(e.target)) closeTaskMenu(); }, { capture:true, once:true });
+    window.addEventListener('scroll', closeTaskMenu, true);
+  }, 0);
+}
+
 // ── Archived materials panel in task row ──
 function toggleArchivedMatsPanel(taskId, btn) {
   const detailEl = btn.closest('.mat-detail');
@@ -2377,12 +2420,12 @@ function renderMatCard(m) {
         ${matOrders.length ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;text-decoration:underline;cursor:pointer" onclick="openOrderHistory('${m.id}')">${matOrders.length} order${matOrders.length!==1?'s':''}</span>` : ''}
       </div>
 
-      <div style="display:flex;gap:6px;align-items:center">
-        ${isEditor() ? `<button class="btn btn-accent btn-sm" onclick="event.stopPropagation();openOrderModal('${m.id}')">+ Order</button>` : ''}
-        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openOrderHistory('${m.id}')">History</button>
-        ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAddMat('${m.id}')">Edit</button>` : ''}
-        ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleArchiveMat('${m.id}')">${m.archived?'Unarchive':'Archive'}</button>` : ''}
-        ${isAdmin() ? `<button class="del-btn" style="margin-left:auto" onclick="event.stopPropagation();deleteMat('${m.id}')">×</button>` : ''}
+      <div style="display:flex;gap:6px;align-items:stretch">
+        ${isEditor() ? `
+        <button class="btn btn-accent btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();openOrderModal('${m.id}')">+ Order</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();openAddMat('${m.id}')">Edit</button>
+        <button class="btn btn-ghost btn-sm" style="flex:0 0 auto;align-self:stretch;padding:0 16px;font-size:16px;line-height:1" title="More actions" onclick="event.stopPropagation();openMatMenu('${m.id}',this)">⋮</button>` : `
+        <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();openOrderHistory('${m.id}')">History</button>`}
       </div>
     </div>`;
 
