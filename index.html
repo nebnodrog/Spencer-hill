@@ -1897,7 +1897,7 @@ function renderTaskRow(t, areaId=null) {
   `).join('') + (assignees.length>3?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-left:3px">+${assignees.length-3}</span>`:'');
 
   const matsHtml = `
-    <div style="margin-bottom:10px">
+    <div class="task-mats-block" style="margin-bottom:10px">
       <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;margin-bottom:6px">Materials</div>
       ${liveMats.length ? liveMats.map(m=>{
         const assign = m.assignments.find(a=>a.taskId===t.id);
@@ -1932,17 +1932,71 @@ function renderTaskRow(t, areaId=null) {
       </div>
       ${matsHtml}
       <div class="row" style="gap:5px;flex-wrap:nowrap">
-        ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();openAddTask(null,'${t.id}','${areaId||''}')">Edit</button>` : ''}
-        ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();openReassign('${t.id}')">Team</button>` : ''}
-        <button class="btn btn-ghost btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();toggleTask('${t.id}','${areaId||''}')">${isDoneInArea ? 'Reopen' : 'Done'}</button>
-        ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();toggleArchiveTask('${t.id}')">${t.archived?'Unarchive':'Archive'}</button>` : ''}
-        ${archivedMats.length ? `<button class="btn btn-ghost btn-sm" style="padding:5px 8px;font-size:11px;color:#8a8578" onclick="event.stopPropagation();toggleArchivedMatsPanel('${t.id}',this)">View archived materials</button>` : ''}
-        <div style="flex:1"></div>
-        ${isAdmin() ? `<button class="btn btn-ghost btn-sm" style="padding:5px 8px;color:#c8440e" onclick="event.stopPropagation();deleteTask('${t.id}')">Delete</button>` : ''}
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();openAddTask(null,'${t.id}','${areaId||''}')">Edit</button>` : ''}
+        <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();toggleTask('${t.id}','${areaId||''}')">${isDoneInArea ? 'Reopen' : 'Done'}</button>
+        ${(isEditor() || archivedMats.length) ? `<button class="btn btn-ghost btn-sm" style="flex:0 0 auto;align-self:stretch;padding:0 16px;font-size:16px;line-height:1" title="More actions" onclick="event.stopPropagation();openTaskMenu('${t.id}',this)">⋮</button>` : ''}
       </div>
     </div>`;
 
   return row + detail;
+}
+
+// ── Task actions dropdown (⋮) ──
+function closeTaskMenu() {
+  const m = document.getElementById('taskActionMenu');
+  if (m) m.remove();
+  document.removeEventListener('click', closeTaskMenu, true);
+  window.removeEventListener('scroll', closeTaskMenu, true);
+}
+function openTaskMenu(taskId, btn) {
+  const already = document.getElementById('taskActionMenu');
+  const sameTask = already && already.dataset.taskId === taskId;
+  closeTaskMenu();
+  if (sameTask) return; // second tap on ⋮ just closes it
+  const t = S.tasks.find(x=>x.id===taskId);
+  if (!t) return;
+  const detailEl = btn.closest('.mat-detail');
+  const archivedCount = matsForTask(taskId).filter(m=>m.archived).length;
+  const panelOpen = detailEl && detailEl.querySelector('.archived-mats-panel');
+  const item = (label, action, color) =>
+    `<button data-act="${action}" style="display:block;width:100%;text-align:left;background:none;border:none;padding:11px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:${color||'#1a1814'};cursor:pointer">${label}</button>`;
+  let html = '';
+  if (isEditor()) html += item('Team', 'team');
+  if (isEditor()) html += item(t.archived ? 'Unarchive task' : 'Archive task', 'archive');
+  if (archivedCount) html += item(`${panelOpen ? 'Hide' : 'View'} archived materials (${archivedCount})`, 'archmats');
+  if (isAdmin()) html += `<div style="height:1px;background:#ddd9d0;margin:4px 0"></div>` + item('Delete task', 'delete', '#c8440e');
+  if (!html) return;
+  const menu = document.createElement('div');
+  menu.id = 'taskActionMenu';
+  menu.dataset.taskId = taskId;
+  menu.style.cssText = 'position:fixed;z-index:9999;background:#fff;border:1px solid #ddd9d0;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.15);min-width:220px;padding:4px 0';
+  menu.innerHTML = html;
+  document.body.appendChild(menu);
+  // Position under the ⋮ button, right-aligned, flipping up if near the bottom
+  const r = btn.getBoundingClientRect();
+  const mh = menu.offsetHeight, mw = menu.offsetWidth;
+  let top = r.bottom + 4;
+  if (top + mh > window.innerHeight - 8) top = Math.max(8, r.top - mh - 4);
+  let left = Math.min(r.right - mw, window.innerWidth - mw - 8);
+  menu.style.top = top + 'px';
+  menu.style.left = Math.max(8, left) + 'px';
+  menu.addEventListener('click', e => {
+    e.stopPropagation();
+    const b = e.target.closest('button[data-act]');
+    if (!b) return;
+    const act = b.dataset.act;
+    closeTaskMenu();
+    if (act === 'team') openReassign(taskId);
+    else if (act === 'archive') toggleArchiveTask(taskId);
+    else if (act === 'archmats') toggleArchivedMatsPanel(taskId, btn);
+    else if (act === 'delete') {
+      if (confirm(`Delete task "${t.text}"?`)) deleteTask(taskId);
+    }
+  });
+  setTimeout(() => {
+    document.addEventListener('click', e => { if (!menu.contains(e.target) && !btn.contains(e.target)) closeTaskMenu(); }, { capture:true, once:true });
+    window.addEventListener('scroll', closeTaskMenu, true);
+  }, 0);
 }
 
 // ── Archived materials panel in task row ──
@@ -1950,7 +2004,7 @@ function toggleArchivedMatsPanel(taskId, btn) {
   const detailEl = btn.closest('.mat-detail');
   if (!detailEl) return;
   let panel = detailEl.querySelector('.archived-mats-panel');
-  if (panel) { panel.remove(); btn.textContent = 'View archived materials'; return; }
+  if (panel) { panel.remove(); return; }
   const t = S.tasks.find(x=>x.id===taskId);
   if (!t) return;
   const archivedMats = matsForTask(taskId).filter(m=>m.archived);
@@ -1963,9 +2017,8 @@ function toggleArchivedMatsPanel(taskId, btn) {
         <div style="flex:1;font-size:13px;color:#8a8578;text-decoration:line-through">${m.name}</div>
         ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="font-size:11px;padding:2px 6px" onclick="event.stopPropagation();unarchiveMatFromTask('${m.id}','${taskId}')">Unarchive</button>` : ''}
       </div>`).join('');
-  const matsDiv = detailEl.querySelector('div[style*="margin-bottom:10px"]');
+  const matsDiv = detailEl.querySelector('.task-mats-block');
   if (matsDiv) matsDiv.after(panel); else detailEl.prepend(panel);
-  btn.textContent = 'Hide archived materials';
 }
 async function unarchiveMatFromTask(matId, taskId) {
   const m = S.materials.find(x=>x.id===matId);
