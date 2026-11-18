@@ -613,6 +613,10 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
       </div>
     </div>
 
+<!-- Search box -->
+<div style="margin-bottom:10px">
+  <input id="matSearchBox" type="search" placeholder="Search materials…" style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd9d0;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;background:#faf9f7" oninput="renderMaterials()">
+</div>
 <!-- Filter pills -->
 <div class="row-wrap" style="gap:6px;margin-bottom:14px" id="matFilters">
   <button class="btn btn-sm btn-ghost" id="mf-all" onclick="setMatFilter('all')">All</button>
@@ -1847,6 +1851,8 @@ function renderTaskRow(t, areaId=null) {
   const areaIds = t.areaIds || [];
   const isExpanded = expandedTaskRows.has(t.id);
   const taskMats = matsForTask(t.id);
+  const liveMats = taskMats.filter(m=>!m.archived);
+  const archivedMats = taskMats.filter(m=>m.archived);
 
   // Per-area done state
   const isDoneInArea = areaId ? (t.doneByArea?.[areaId] || false) : t.done;
@@ -1877,7 +1883,7 @@ function renderTaskRow(t, areaId=null) {
       </div>
       <div class="mat-row-name" onclick="toggleTaskRow('${t.id}',event)" style="font-weight:500;${isDoneInArea?'text-decoration:line-through;opacity:0.5':''}">${t.text}</div>
       ${priorityPill}
-      ${taskMats.length ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0" onclick="toggleTaskRow('${t.id}',event)">${taskMats.length} mat${taskMats.length!==1?'s':''}</span>` : ''}
+      ${liveMats.length ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0" onclick="toggleTaskRow('${t.id}',event)">${liveMats.length} mat${liveMats.length!==1?'s':''}</span>` : ''}
       <span onclick="toggleTaskRow('${t.id}',event)">${statusPill}</span>
       <span class="mat-row-chevron" onclick="toggleTaskRow('${t.id}',event)">▼</span>
     </div>`;
@@ -1890,10 +1896,10 @@ function renderTaskRow(t, areaId=null) {
     <div class="avatar" style="width:20px;height:20px;font-size:11px;background:${uColor(i)};color:#fff;margin-left:${idx>0?'-5px':'0'};border:2px solid #ffffff;z-index:${3-idx}">${initials(S.users[i]?.name||'?')}</div>
   `).join('') + (assignees.length>3?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-left:3px">+${assignees.length-3}</span>`:'');
 
-  const matsHtml = taskMats.length ? `
+  const matsHtml = `
     <div style="margin-bottom:10px">
       <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;margin-bottom:6px">Materials</div>
-      ${taskMats.map(m=>{
+      ${liveMats.length ? liveMats.map(m=>{
         const assign = m.assignments.find(a=>a.taskId===t.id);
         const matOrders = S.orders.filter(o=>o.matId===m.id);
         const activeOrder = matOrders.find(o=>o.status!=='cancelled'&&o.status!=='delivered');
@@ -1909,14 +1915,10 @@ function renderTaskRow(t, areaId=null) {
               : activeOrder?.status==='ordered'
                 ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8">⏳ ordered</span>`
                 : isEditor() ? `<button class="btn btn-accent btn-sm" style="padding:2px 7px;font-size:11px;flex-shrink:0" onclick="event.stopPropagation();openOrderModal('${m.id}')">Order</button>` : ''}
-            <button class="del-btn" onclick="event.stopPropagation();openAddMat('${m.id}')" style="font-size:13px;color:#8a8578" title="Edit">✎</button>
+            ${isEditor() ? `<button class="del-btn" onclick="event.stopPropagation();openAddMat('${m.id}')" style="font-size:13px;color:#8a8578" title="Edit">✎</button>` : ''}
           </div>`;
-      }).join('')}
-      <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;font-size:11px" onclick="event.stopPropagation();openAddMat(null,'${t.id}')">+ Add material</button>
-    </div>` : `
-    <div style="margin-bottom:10px">
-      <div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-bottom:6px">No materials assigned</div>
-      <button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="event.stopPropagation();openAddMat(null,'${t.id}')">+ Add material</button>
+      }).join('') : `<div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;padding:4px 0">No active materials</div>`}
+      ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;font-size:11px" onclick="event.stopPropagation();openAddMat(null,'${t.id}')">+ Add material</button>` : ''}
     </div>`;
 
   const detail = `
@@ -1934,12 +1936,43 @@ function renderTaskRow(t, areaId=null) {
         ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();openReassign('${t.id}')">Team</button>` : ''}
         <button class="btn btn-ghost btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();toggleTask('${t.id}','${areaId||''}')">${isDoneInArea ? 'Reopen' : 'Done'}</button>
         ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();toggleArchiveTask('${t.id}')">${t.archived?'Unarchive':'Archive'}</button>` : ''}
+        ${archivedMats.length ? `<button class="btn btn-ghost btn-sm" style="padding:5px 8px;font-size:11px;color:#8a8578" onclick="event.stopPropagation();toggleArchivedMatsPanel('${t.id}',this)">View archived materials</button>` : ''}
         <div style="flex:1"></div>
         ${isAdmin() ? `<button class="btn btn-ghost btn-sm" style="padding:5px 8px;color:#c8440e" onclick="event.stopPropagation();deleteTask('${t.id}')">Delete</button>` : ''}
       </div>
     </div>`;
 
   return row + detail;
+}
+
+// ── Archived materials panel in task row ──
+function toggleArchivedMatsPanel(taskId, btn) {
+  const detailEl = btn.closest('.mat-detail');
+  if (!detailEl) return;
+  let panel = detailEl.querySelector('.archived-mats-panel');
+  if (panel) { panel.remove(); btn.textContent = 'View archived materials'; return; }
+  const t = S.tasks.find(x=>x.id===taskId);
+  if (!t) return;
+  const archivedMats = matsForTask(taskId).filter(m=>m.archived);
+  panel = document.createElement('div');
+  panel.className = 'archived-mats-panel';
+  panel.style.cssText = 'margin:6px 0 10px;padding:8px;background:#f5f3ee;border-radius:6px;border:1px solid #ddd9d0';
+  panel.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;margin-bottom:6px">Archived materials</div>` +
+    archivedMats.map(m=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #ddd9d0">
+        <div style="flex:1;font-size:13px;color:#8a8578;text-decoration:line-through">${m.name}</div>
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="font-size:11px;padding:2px 6px" onclick="event.stopPropagation();unarchiveMatFromTask('${m.id}','${taskId}')">Unarchive</button>` : ''}
+      </div>`).join('');
+  const matsDiv = detailEl.querySelector('div[style*="margin-bottom:10px"]');
+  if (matsDiv) matsDiv.after(panel); else detailEl.prepend(panel);
+  btn.textContent = 'Hide archived materials';
+}
+async function unarchiveMatFromTask(matId, taskId) {
+  const m = S.materials.find(x=>x.id===matId);
+  if (!m) return;
+  m.archived = false;
+  renderMaterials(); refreshCurrentPage();
+  await saveRecord('materials', { id:m.id, name:m.name, unit:m.unit, cat:m.cat, assignments:m.assignments, product_url:m.productUrl||'', suppliers:m.suppliers||[], direct_qty:m.directQty||0, archived:false, project_id:'spencer-hill' });
 }
 
 // ── Reassign (multi-person toggle) ──
@@ -2165,6 +2198,18 @@ function renderMaterials() {
   } else {
     mats = mats.filter(m => !m.archived);
     if (matFilter !== 'all') mats = mats.filter(m => matEffectiveStatus(m) === matFilter);
+  }
+  // Search filter — matches material name or assigned task names
+  const matSearchEl = document.getElementById('matSearchBox');
+  const matSearchQ = matSearchEl ? matSearchEl.value.trim().toLowerCase() : '';
+  if (matSearchQ) {
+    mats = mats.filter(m => {
+      if (m.name.toLowerCase().includes(matSearchQ)) return true;
+      return (m.assignments||[]).some(a => {
+        const t = S.tasks.find(x=>x.id===a.taskId);
+        return t && t.text.toLowerCase().includes(matSearchQ);
+      });
+    });
   }
 
   const cats = {};
