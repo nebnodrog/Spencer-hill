@@ -746,8 +746,8 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
         <div class="row" style="gap:8px;flex-wrap:wrap">
           <input id="newUserRole" placeholder="Job title" style="flex:2;min-width:100px">
           <select id="newUserPermission" style="flex:1;min-width:80px">
-            <option value="editor">Editor</option>
-            <option value="viewer">Viewer</option>
+            <option value="foreman">Foreman</option>
+            <option value="tradesman">Tradesman</option>
             <option value="admin">Admin</option>
           </select>
           <button class="btn btn-primary btn-sm" onclick="addUser()" style="flex-shrink:0" id="addUserBtn">Add</button>
@@ -1255,10 +1255,11 @@ function saveProjectSettings() {
 }
 
 function currentPerm() {
-  return S.users[S.currentUser]?.permission || 'viewer';
+  return S.users[S.currentUser]?.permission || 'tradesman';
 }
 function isAdmin() { return currentPerm() === 'admin'; }
-function isEditor() { return currentPerm() === 'admin' || currentPerm() === 'editor'; }
+function isEditor() { return currentPerm() === 'admin' || currentPerm() === 'foreman'; }
+function isTradesman() { return currentPerm() === 'tradesman'; }
 
 // ═══════════════ HEADER ═══════════════
 function renderHeader() {
@@ -1777,6 +1778,10 @@ function renderTasksPage() {
   if (addTaskBtn) addTaskBtn.innerHTML = isEditor() ? `<button class="btn btn-primary btn-sm" onclick="openAddTask()">+ Add Task</button>` : '';
 
   let tasks = [...S.tasks];
+  // Tradesmen only see tasks assigned to them
+  if (isTradesman()) {
+    tasks = tasks.filter(t => (t.assignees||[t.assignee??0]).includes(S.currentUser));
+  }
   if (taskFilter==='archived') {
     tasks = tasks.filter(t=>t.archived);
   } else {
@@ -3509,9 +3514,10 @@ function closeAreaOverview() {
 function renderTeam() {
   document.getElementById('teamList').innerHTML = S.users.map((u,i)=>{
     const open = S.tasks.filter(t=>!t.done && (t.assignees||[t.assignee??0]).includes(i)).length;
-    const perm = u.permission || 'editor';
-    const permColor = perm==='admin' ? '#c8440e' : perm==='editor' ? '#1d4ed8' : '#8a8578';
-    const permBg = perm==='admin' ? '#fdf0eb' : perm==='editor' ? '#eff3ff' : '#edeae3';
+    const perm = u.permission || 'tradesman';
+    const permLabel = perm==='admin' ? 'Admin' : perm==='foreman' ? 'Foreman' : 'Tradesman';
+    const permColor = perm==='admin' ? '#c8440e' : perm==='foreman' ? '#1d4ed8' : '#8a8578';
+    const permBg = perm==='admin' ? '#fdf0eb' : perm==='foreman' ? '#eff3ff' : '#edeae3';
     return `
       <div class="team-card">
         <div class="avatar team-avatar" style="background:${uColor(i)};color:#fff">${initials(u.name)}</div>
@@ -3520,7 +3526,7 @@ function renderTeam() {
           <div class="team-role">${u.role}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-          <span style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;background:${permBg};color:${permColor};padding:3px 10px;border-radius:6px">${perm}</span>
+          <span style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;background:${permBg};color:${permColor};padding:3px 10px;border-radius:6px">${permLabel}</span>
           <span style="font-family:'DM Mono',monospace;font-size:13px;color:#8a8578">${open} open</span>
           <button class="del-btn" onclick="openEditUser(${i})" style="font-size:13px;color:#8a8578">✎</button>
           ${i>0?`<button class="del-btn" onclick="deleteUser(${i})">×</button>`:''}
@@ -3535,7 +3541,7 @@ function openEditUser(i) {
   document.getElementById('newUserName').value = S.users[i].name;
   document.getElementById('newUserEmail').value = S.users[i].email || '';
   document.getElementById('newUserRole').value = S.users[i].role;
-  document.getElementById('newUserPermission').value = S.users[i].permission || 'editor';
+  document.getElementById('newUserPermission').value = S.users[i].permission || 'foreman';
   document.getElementById('addUserBtn').textContent = 'Save';
   document.getElementById('newUserName').focus();
 }
@@ -3551,7 +3557,7 @@ async function addUser() {
   const name = document.getElementById('newUserName').value.trim();
   const email = document.getElementById('newUserEmail').value.trim().toLowerCase();
   const role = document.getElementById('newUserRole').value.trim();
-  const permission = document.getElementById('newUserPermission').value || 'editor';
+  const permission = document.getElementById('newUserPermission').value || 'foreman';
   if (!name) return;
   if (editingUserIdx !== null) {
     const u = S.users[editingUserIdx];
@@ -3566,7 +3572,7 @@ async function addUser() {
   document.getElementById('newUserName').value='';
   document.getElementById('newUserEmail').value='';
   document.getElementById('newUserRole').value='';
-  document.getElementById('newUserPermission').value='editor';
+  document.getElementById('newUserPermission').value='foreman';
   document.getElementById('addUserBtn').textContent = 'Add';
   renderTeam(); renderHeader();
 }
@@ -4432,7 +4438,8 @@ async function loadFromSupabase() {
     S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[], directQty:r.direct_qty||0, archived:r.archived||false }));
     S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false }));
     S.suppliers = supsR.map(r=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'' }));
-    if (usersR.length) S.users = usersR.map(r=>({ id:r.id, name:r.name, email:r.email||'', role:r.role||'Team Member', permission:r.permission||'editor' }));
+    const normPerm = p => p==='editor' ? 'foreman' : p==='viewer' ? 'tradesman' : (p||'foreman');
+    if (usersR.length) S.users = usersR.map(r=>({ id:r.id, name:r.name, email:r.email||'', role:r.role||'Team Member', permission:normPerm(r.permission) }));
 
     // Match logged in user to team member by email
     const loggedInEmail = currentSession?.user?.email?.toLowerCase();
@@ -4460,7 +4467,7 @@ async function loadFromSupabase() {
 async function saveUserRecord(u, i) {
   const id = u.id || uid();
   if (!u.id) u.id = id;
-  await saveRecord('users', { id, name: u.name, email: u.email||'', role: u.role, permission: u.permission||'editor', sort_order: i, project_id: 'spencer-hill' });
+  await saveRecord('users', { id, name: u.name, email: u.email||'', role: u.role, permission: u.permission||'foreman', sort_order: i, project_id: 'spencer-hill' });
 }
 
 // ═══════════════ INIT ═══════════════
