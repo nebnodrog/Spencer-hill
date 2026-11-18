@@ -522,7 +522,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <body>
 
 <!-- LOGIN SCREEN -->
-<div id="loginScreen" style="display:flex;position:fixed;inset:0;background:#1a1916;z-index:1000;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px">
+<div id="loginScreen" style="display:none;position:fixed;inset:0;background:#1a1916;z-index:1000;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px">
   <div style="width:100%;max-width:360px">
     <div style="text-align:center;margin-bottom:40px">
       <div style="font-family:'DM Mono',monospace;font-size:11px;color:#666;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px">Project Manager</div>
@@ -3730,29 +3730,63 @@ function renderListsPage() {
 const SB_AUTH_URL = 'https://qzojobqmjylzgtoqovnv.supabase.co/auth/v1';
 let currentSession = null;
 
-async function refreshSessionIfNeeded() {
-  if (!currentSession) return;
-  const expiresAt = currentSession.expires_at || 0;
+// Session is kept on the device (access + refresh token), not the password.
+const SESSION_KEY = 'sb_session';
+
+function saveSession(data) {
+  if (!data || !data.access_token) return;
+  if (!data.expires_at && data.expires_in) data.expires_at = Math.floor(Date.now()/1000) + data.expires_in;
+  currentSession = data;
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+function loadStoredSession() {
+  try { const s = localStorage.getItem(SESSION_KEY); return s ? JSON.parse(s) : null; } catch(e) { return null; }
+}
+
+function clearStoredSession() {
+  currentSession = null;
+  try { localStorage.removeItem(SESSION_KEY); localStorage.removeItem('sb_creds'); } catch(e) {}
+}
+
+// Returns 'ok', 'invalid' (must sign in again) or 'offline' (keep session, try later)
+async function refreshWithToken(refreshToken) {
+  try {
+    const res = await fetch(`${SB_AUTH_URL}/token?grant_type=refresh_token`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    });
+    if (res.ok) { saveSession(await res.json()); return 'ok'; }
+    if (res.status === 400 || res.status === 401 || res.status === 403) return 'invalid';
+    return 'offline';
+  } catch(e) { return 'offline'; }
+}
+
+let _refreshing = null;
+async function refreshSessionIfNeeded(force) {
+  if (!currentSession?.refresh_token) return;
   const now = Math.floor(Date.now() / 1000);
-  if (expiresAt - now < 60) {
-    // Token expiring soon — re-authenticate silently
-    try {
-      const stored = localStorage.getItem('sb_creds');
-      if (!stored) return;
-      const { email, password } = JSON.parse(atob(stored));
-      const res = await fetch(`${SB_AUTH_URL}/token?grant_type=password`, {
-        method: 'POST',
-        headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      if (res.ok) currentSession = await res.json();
-    } catch(e) { console.error('Token refresh failed', e); }
-  }
+  if (!force && (currentSession.expires_at || 0) - now > 120) return;
+  if (!_refreshing) _refreshing = refreshWithToken(currentSession.refresh_token).finally(() => { _refreshing = null; });
+  const result = await _refreshing;
+  if (result === 'invalid') { clearStoredSession(); showLoginScreen(); }
 }
 
 function getAuthHeaders() {
   const token = currentSession?.access_token || SB_KEY;
   return { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' };
+}
+
+async function passwordLogin(email, password) {
+  const res = await fetch(`${SB_AUTH_URL}/token?grant_type=password`, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
+  return data;
 }
 
 async function doLogin() {
@@ -3765,16 +3799,8 @@ async function doLogin() {
   btn.disabled = true;
   err.style.display = 'none';
   try {
-    const res = await fetch(`${SB_AUTH_URL}/token?grant_type=password`, {
-      method: 'POST',
-      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
-    currentSession = data;
-    // Store credentials for silent re-auth
-    localStorage.setItem('sb_creds', btoa(JSON.stringify({ email, password })));
+    saveSession(await passwordLogin(email, password));
+    try { localStorage.removeItem('sb_creds'); } catch(e) {}
     hideLoginScreen();
     loadFromSupabase();
   } catch(e) {
@@ -3785,28 +3811,46 @@ async function doLogin() {
 }
 
 async function checkSession() {
-  const stored = localStorage.getItem('sb_creds');
-  if (!stored) { showLoginScreen(); return; }
-  try {
-    const { email, password } = JSON.parse(atob(stored));
-    const res = await fetch(`${SB_AUTH_URL}/token?grant_type=password`, {
-      method: 'POST',
-      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error('Auto login failed');
-    currentSession = data;
+  // 1. Saved session on this device
+  const stored = loadStoredSession();
+  if (stored?.refresh_token) {
+    currentSession = stored;
+    hideLoginScreen();
+    const now = Math.floor(Date.now() / 1000);
+    if ((stored.expires_at || 0) - now < 120) {
+      const result = await refreshWithToken(stored.refresh_token);
+      if (result === 'invalid') { clearStoredSession(); showLoginScreen(); return; }
+      // 'offline': carry on with what we have; it will retry on the next save
+    }
     loadFromSupabase();
-  } catch(e) {
-    localStorage.removeItem('sb_creds');
-    showLoginScreen();
+    return;
   }
+  // 2. One-off upgrade from the old saved-password method
+  let old = null;
+  try { old = localStorage.getItem('sb_creds'); } catch(e) {}
+  if (old) {
+    try {
+      const { email, password } = JSON.parse(atob(old));
+      saveSession(await passwordLogin(email, password));
+      try { localStorage.removeItem('sb_creds'); } catch(e) {}
+      hideLoginScreen();
+      loadFromSupabase();
+      return;
+    } catch(e) {
+      try { localStorage.removeItem('sb_creds'); } catch(e2) {}
+    }
+  }
+  // 3. Nothing saved — sign in
+  showLoginScreen();
 }
 
+// Keep the session fresh when the app comes back to the foreground
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') refreshSessionIfNeeded();
+});
+
 async function doLogout() {
-  currentSession = null;
-  localStorage.removeItem('sb_creds');
+  clearStoredSession();
   showLoginScreen();
 }
 
@@ -3939,8 +3983,10 @@ function hideLoading() {
 }
 
 async function sbGet(table, params='') {
-  const headers = getAuthHeaders();
-  const res = await fetch(`${SB_URL}/${table}?project_id=eq.spencer-hill&order=created_at${params}`, { headers });
+  await refreshSessionIfNeeded();
+  const url = `${SB_URL}/${table}?project_id=eq.spencer-hill&order=created_at${params}`;
+  let res = await fetch(url, { headers: getAuthHeaders() });
+  if (res.status === 401) { await refreshSessionIfNeeded(true); res = await fetch(url, { headers: getAuthHeaders() }); }
   if (!res.ok) throw new Error(`GET ${table} failed: ${res.status}`);
   return res.json();
 }
@@ -3968,6 +4014,7 @@ async function saveRecord(table, record) {
 }
 
 async function deleteRecord(table, id) {
+  await refreshSessionIfNeeded();
   const headers = getAuthHeaders();
   const res = await fetch(`${SB_URL}/${table}?id=eq.${id}`, { method: 'DELETE', headers });
   if (!res.ok) console.error(`Delete ${table} failed`);
