@@ -124,11 +124,8 @@ font-size: 11px; font-weight: 500;
 letter-spacing: 2px; text-transform: uppercase;
 color: #8a8578; margin-bottom: 16px;
 }
-.list-toggle {
-width:52px;height:44px;flex-shrink:0;border:1px solid #ddd9d0;border-radius:10px;background:#fff;
-display:flex;align-items:center;justify-content:center;font-size:16px;color:#1a1916;
-}
-.list-toggle:active { background:#edeae3; }
+.list-btn, .list-toggle { font-size:13px !important; padding:6px 16px !important; min-width:88px; justify-content:center; flex-shrink:0; }
+.list-toggle { width:100px; padding:6px 0 !important; }
 .section-head {
 font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1.5px;
 text-transform: uppercase; color: #8a8578;
@@ -731,76 +728,53 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <div class="page-pad">
 
     <!-- PROJECTS SECTION -->
-    <div onclick="toggleListSection('projects')" style="display:flex;align-items:center;gap:14px;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none;-webkit-user-select:none">
-      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;min-width:92px">Projects</span>
+    <div onclick="toggleListSection('projects')" style="display:flex;align-items:center;cursor:pointer;padding:8px 6px 8px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none;-webkit-user-select:none">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;width:38%;flex-shrink:0">Projects</span>
       <div id="listsEditBtn-projects"></div>
       <div style="flex:1"></div>
-      <div class="list-toggle" aria-label="Open or close list"><span id="lists-chevron-projects" style="display:inline-block;transition:transform 0.2s">▼</span></div>
+      <button class="btn btn-ghost btn-sm list-toggle" id="lists-chevron-projects">Expand</button>
     </div>
     <div id="lists-body-projects" style="margin-bottom:16px;display:none">
       <div id="projEditBox" style="display:none;padding:8px 0 10px">
-        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openNewProject()">+ New project</button>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openNewProject()">+ Add project</button>
       </div>
       <div id="projectList"></div>
     </div>
 
     <!-- AREAS SECTION -->
-    <div onclick="toggleListSection('areas')" style="display:flex;align-items:center;gap:14px;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none;-webkit-user-select:none">
-      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;min-width:92px">Areas</span>
+    <div onclick="toggleListSection('areas')" style="display:flex;align-items:center;cursor:pointer;padding:8px 6px 8px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none;-webkit-user-select:none">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;width:38%;flex-shrink:0">Areas</span>
       <div id="listsEditBtn-areas"></div>
       <div style="flex:1"></div>
-      <div class="list-toggle" aria-label="Open or close list"><span id="lists-chevron-areas" style="display:inline-block;transition:transform 0.2s">▼</span></div>
+      <button class="btn btn-ghost btn-sm list-toggle" id="lists-chevron-areas">Expand</button>
     </div>
     <div id="lists-body-areas" style="margin-bottom:16px;display:none">
-      <div id="newAreaBox" style="display:none;padding:8px 0 10px;border-bottom:1px solid #ddd9d0">
-        <div class="row" style="gap:8px">
-          <input id="newAreaInput" placeholder="New area name" style="flex:1" onkeydown="if(event.key==='Enter')saveArea()">
-          <button class="btn btn-primary btn-sm" style="flex-shrink:0" onclick="saveArea()">Add</button>
-        </div>
+      <div id="newAreaBox" style="display:none;padding:8px 0 10px">
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openNewArea()">+ Add area</button>
       </div>
       <div id="areaManagerList"></div>
     </div>
 
     <!-- TEAM SECTION -->
-    <div onclick="toggleListSection('team')" style="display:flex;align-items:center;gap:14px;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none;-webkit-user-select:none">
-      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;min-width:92px">Team</span>
+    <div onclick="toggleListSection('team')" style="display:flex;align-items:center;cursor:pointer;padding:8px 6px 8px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none;-webkit-user-select:none">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;width:38%;flex-shrink:0">Team</span>
       <div id="listsEditBtn-team"></div>
       <div style="flex:1"></div>
-      <div class="list-toggle" aria-label="Open or close list"><span id="lists-chevron-team" style="display:inline-block;transition:transform 0.2s">▼</span></div>
+      <button class="btn btn-ghost btn-sm list-toggle" id="lists-chevron-team">Expand</button>
     </div>
     <div id="lists-body-team" style="margin-bottom:16px;display:none">
-      <div id="teamEditBox" style="display:none;flex-direction:column;gap:8px;padding:8px 0 12px;border-bottom:1px solid #ddd9d0;margin-bottom:6px">
-        <div id="teamFormTitle" style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Add team member</div>
-        <div class="row" style="gap:8px;flex-wrap:wrap">
-          <input id="newUserName" placeholder="Name" style="flex:2;min-width:100px">
-          <input id="newUserEmail" type="email" placeholder="Email" style="flex:2;min-width:100px">
-        </div>
-        <div class="row" style="gap:8px;flex-wrap:wrap">
-          <input id="newUserRole" placeholder="Job title" style="flex:2;min-width:100px">
-          <select id="newUserPermission" style="flex:1;min-width:80px">
-            <option value="foreman">Foreman</option>
-            <option value="tradesman">Tradesman</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-        <div>
-          <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Projects</label>
-          <div id="newUserProjects"></div>
-        </div>
-        <div class="row" style="gap:8px">
-          <button class="btn btn-ghost btn-sm" id="cancelUserBtn" style="flex:1;display:none" onclick="cancelEditUser()">Cancel</button>
-          <button class="btn btn-primary btn-sm" onclick="addUser()" style="flex:1" id="addUserBtn">Add</button>
-        </div>
+      <div id="teamEditBox" style="display:none;padding:8px 0 10px">
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openAddUser()">+ Add team member</button>
       </div>
       <div id="teamList"></div>
     </div>
 
     <!-- SUPPLIERS SECTION -->
-    <div onclick="toggleListSection('suppliers')" style="display:flex;align-items:center;gap:14px;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none;-webkit-user-select:none">
-      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;min-width:92px">Suppliers</span>
+    <div onclick="toggleListSection('suppliers')" style="display:flex;align-items:center;cursor:pointer;padding:8px 6px 8px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none;-webkit-user-select:none">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;width:38%;flex-shrink:0">Suppliers</span>
       <div id="listsEditBtn-suppliers"></div>
       <div style="flex:1"></div>
-      <div class="list-toggle" aria-label="Open or close list"><span id="lists-chevron-suppliers" style="display:inline-block;transition:transform 0.2s">▼</span></div>
+      <button class="btn btn-ghost btn-sm list-toggle" id="lists-chevron-suppliers">Expand</button>
     </div>
     <div id="lists-body-suppliers" style="margin-bottom:16px;display:none">
       <div id="supEditBox" style="display:none;padding:8px 0 10px">
@@ -1046,17 +1020,44 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <!-- MODAL: Edit Single Area -->
 <div class="overlay" id="editAreaOverlay" onclick="if(event.target===this)closeEditAreaModal()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Edit Area</span><button onclick="closeEditAreaModal()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="editAreaTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Edit Area</span><button onclick="closeEditAreaModal()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
       <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Name</label>
       <input id="editAreaInput" placeholder="Area name" style="margin-bottom:12px">
       <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Description</label>
       <input id="editAreaDesc" placeholder="e.g. First floor, rear" style="margin-bottom:12px">
+      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Project</label>
+      <select id="editAreaProject" style="margin-bottom:12px;font-size:16px"></select>
       <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Notes</label>
       <textarea id="editAreaNotes" oninput="areaNotesChanged()" placeholder="Type notes here…" style="min-height:28vh;width:100%;box-sizing:border-box;font-size:16px;line-height:1.5;padding:12px;border:1px solid #ddd9d0;border-radius:8px;resize:none;font-family:'DM Sans',sans-serif"></textarea>
       <div id="editAreaNotesStatus" style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin:6px 0 12px;min-height:14px"></div>
       <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="saveEditArea()">Save</button>
       <button id="editAreaDeleteBtn" class="btn btn-ghost" style="width:100%;color:#c8440e;margin-bottom:16px" onclick="deleteCurrentArea()">Delete Area</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add / Edit team member -->
+<div class="overlay" id="teamMemberOverlay" onclick="if(event.target===this)closeTeamMember()">
+  <div class="sheet">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0"><span id="teamFormTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Team Member</span><button onclick="closeTeamMember()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
+      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Name</label>
+      <input id="newUserName" placeholder="Name" style="margin-bottom:12px">
+      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Email (their login)</label>
+      <input id="newUserEmail" type="email" placeholder="name@example.com" style="margin-bottom:12px" autocapitalize="off">
+      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Job title</label>
+      <input id="newUserRole" placeholder="e.g. Carpenter" style="margin-bottom:12px">
+      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Access</label>
+      <select id="newUserPermission" style="margin-bottom:12px;font-size:16px">
+        <option value="foreman">Foreman — can add and tick off</option>
+        <option value="tradesman">Tradesman — view only</option>
+        <option value="admin">Admin — everything</option>
+      </select>
+      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Projects they can see</label>
+      <div id="newUserProjects" style="margin-bottom:14px"></div>
+      <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="addUser()" id="addUserBtn">Add</button>
+      <button id="removeUserBtn" class="btn btn-ghost" style="width:100%;color:#c8440e;margin-bottom:16px;display:none" onclick="removeEditingUser()">Remove from team</button>
     </div>
   </div>
 </div>
@@ -2026,7 +2027,6 @@ async function toggleListEdit(sec) {
     return;
   }
   listEdit[sec] = false;
-  if (sec === 'team') { editingUserIdx = null; resetUserForm(); }
   renderListsPage();
   await saveListOrder(sec);
 }
@@ -2471,8 +2471,27 @@ function moveArea(i, dir) {
   renderAreaManagerList();
 }
 
+function fillAreaProjectSelect(selectedId) {
+  const list = (S.projects && S.projects.length) ? S.projects : [{ id: CURRENT_PROJECT, name: S.projectName }];
+  document.getElementById('editAreaProject').innerHTML = list.map(p=>`<option value="${p.id}" ${p.id===selectedId?'selected':''}>${p.name}</option>`).join('');
+}
+function openNewArea() {
+  editingAreaIdx = null;
+  document.getElementById('editAreaTitle').textContent = 'Add Area';
+  document.getElementById('editAreaInput').value = '';
+  document.getElementById('editAreaDesc').value = '';
+  document.getElementById('editAreaNotes').value = '';
+  document.getElementById('editAreaNotesStatus').textContent = '';
+  areaNotesCtx = null;
+  fillAreaProjectSelect(CURRENT_PROJECT);
+  document.getElementById('editAreaDeleteBtn').style.display = 'none';
+  document.getElementById('editAreaOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('editAreaInput').focus(), 200);
+}
 function openEditAreaModal(i) {
   editingAreaIdx = i;
+  document.getElementById('editAreaTitle').textContent = 'Edit Area';
+  fillAreaProjectSelect(CURRENT_PROJECT);
   const a = S.areas[i];
   document.getElementById('editAreaInput').value = a.name;
   document.getElementById('editAreaDesc').value = a.description || '';
@@ -4008,7 +4027,7 @@ function renderTeam() {
     const permColor = perm==='admin' ? '#c8440e' : perm==='foreman' ? '#1d4ed8' : '#8a8578';
     const permBg = perm==='admin' ? '#fdf0eb' : perm==='foreman' ? '#eff3ff' : '#edeae3';
     return `
-      <div class="team-card">
+      <div class="team-card" ${isAdmin() ? `onclick="openEditUser(${i})" style="cursor:pointer"` : ''}>
         <div class="avatar team-avatar" style="background:${uColor(i)};color:#fff">${initials(u.name)}</div>
         <div class="team-info">
           <div class="team-name">${u.name}</div>
@@ -4017,8 +4036,7 @@ function renderTeam() {
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
           <span style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;background:${permBg};color:${permColor};padding:3px 10px;border-radius:6px">${permLabel}</span>
           <span style="font-family:'DM Mono',monospace;font-size:13px;color:#8a8578">${open} open</span>
-          ${editing ? `<button class="del-btn" onclick="openEditUser(${i})" style="font-size:15px;color:#8a8578;padding:4px 6px">✎</button>
-          ${i>0?`<button class="del-btn" onclick="if(confirm('Remove ${u.name.replace(/'/g,'')} from the team?'))deleteUser(${i})" style="padding:4px 6px">×</button>`:''}` : ''}
+          ${isAdmin() ? `<span style="font-size:18px;color:#8a8578;line-height:1">›</span>` : ''}
         </div>
       </div>`;
   }).join('');
@@ -4033,21 +4051,34 @@ function openEditUser(i) {
   document.getElementById('newUserPermission').value = S.users[i].permission || 'foreman';
   renderProjectChecks('newUserProjects', S.users[i].projectIds && S.users[i].projectIds.length ? S.users[i].projectIds : [CURRENT_PROJECT]);
   document.getElementById('addUserBtn').textContent = 'Save';
-  document.getElementById('teamFormTitle').textContent = 'Edit ' + S.users[i].name;
-  document.getElementById('cancelUserBtn').style.display = '';
-  document.getElementById('lists-body-team').scrollIntoView({ behavior:'smooth', block:'start' });
-  setTimeout(()=>document.getElementById('newUserName').focus(), 300);
+  document.getElementById('teamFormTitle').textContent = 'Edit Team Member';
+  document.getElementById('removeUserBtn').style.display = (i > 0 && i !== S.currentUser) ? '' : 'none';
+  document.getElementById('teamMemberOverlay').classList.add('open');
 }
-function cancelEditUser() {
+function openAddUser() {
   editingUserIdx = null;
   resetUserForm();
+  document.getElementById('teamMemberOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('newUserName').focus(), 200);
 }
+function closeTeamMember() {
+  document.getElementById('teamMemberOverlay').classList.remove('open');
+  editingUserIdx = null;
+}
+async function removeEditingUser() {
+  const i = editingUserIdx;
+  if (i === null || i === 0) return;
+  if (!confirm(`Remove ${S.users[i].name} from the team?`)) return;
+  closeTeamMember();
+  await deleteUser(i);
+}
+function cancelEditUser() { closeTeamMember(); }
 function resetUserForm() {
   ['newUserName','newUserEmail','newUserRole'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('newUserPermission').value='foreman';
   document.getElementById('addUserBtn').textContent = 'Add';
-  document.getElementById('teamFormTitle').textContent = 'Add team member';
-  document.getElementById('cancelUserBtn').style.display = 'none';
+  document.getElementById('teamFormTitle').textContent = 'Add Team Member';
+  document.getElementById('removeUserBtn').style.display = 'none';
   renderProjectChecks('newUserProjects', [CURRENT_PROJECT]);
 }
 async function deleteUser(i) {
@@ -4076,7 +4107,7 @@ async function addUser() {
     S.users.push(newUser);
     await saveUserRecord(newUser, S.users.length - 1);
   }
-  resetUserForm();
+  closeTeamMember();
   renderTeam(); renderHeader();
 }
 
@@ -4249,7 +4280,9 @@ function toggleListSection(section) {
   const body = document.getElementById('lists-body-'+section);
   const chevron = document.getElementById('lists-chevron-'+section);
   if (body) body.style.display = listSectionOpen[section] ? 'block' : 'none';
-  if (chevron) chevron.style.transform = listSectionOpen[section] ? 'rotate(180deg)' : '';
+  if (chevron) chevron.textContent = listSectionOpen[section] ? 'Collapse' : 'Expand';
+  // Collapsing a list also leaves edit mode (and saves any re-ordering)
+  if (!listSectionOpen[section] && listEdit[section]) { toggleListEdit(section); return; }
   if (section === 'team' && listSectionOpen[section]) renderTeam();
   if (section === 'suppliers' && listSectionOpen[section]) renderSuppliers();
   if (section === 'areas' && listSectionOpen[section]) renderAreaManagerList();
@@ -4263,21 +4296,20 @@ function renderListsPage() {
     if (!canEdit[sec]) listEdit[sec] = false;
     const holder = document.getElementById('listsEditBtn-'+sec);
     if (holder) holder.innerHTML = canEdit[sec]
-      ? `<button class="btn ${listEdit[sec]?'btn-primary':'btn-ghost'} btn-sm" style="font-size:13px;padding:0 18px;height:40px;min-width:70px;justify-content:center" onclick="event.stopPropagation();toggleListEdit('${sec}')">${listEdit[sec]?'Done':'Edit'}</button>`
+      ? `<button class="btn ${listEdit[sec]?'btn-primary':'btn-ghost'} btn-sm list-btn" onclick="event.stopPropagation();toggleListEdit('${sec}')">${listEdit[sec]?'Done':'Edit'}</button>`
       : '';
   });
   document.getElementById('projEditBox').style.display = listEdit.projects ? '' : 'none';
   document.getElementById('newAreaBox').style.display = listEdit.areas ? '' : 'none';
-  document.getElementById('teamEditBox').style.display = listEdit.team ? 'flex' : 'none';
+  document.getElementById('teamEditBox').style.display = listEdit.team ? '' : 'none';
   document.getElementById('supEditBox').style.display = listEdit.suppliers ? '' : 'none';
-  if (listEdit.team && editingUserIdx === null) renderProjectChecks('newUserProjects', [CURRENT_PROJECT]);
 
   // Set chevron states
   ['projects','areas','team','suppliers'].forEach(s => {
     const body = document.getElementById('lists-body-'+s);
     const chevron = document.getElementById('lists-chevron-'+s);
     if (body) body.style.display = listSectionOpen[s] ? 'block' : 'none';
-    if (chevron) chevron.style.transform = listSectionOpen[s] ? 'rotate(180deg)' : '';
+    if (chevron) chevron.textContent = listSectionOpen[s] ? 'Collapse' : 'Expand';
   });
   renderProjectList();
   renderAreaManagerList();
@@ -4681,11 +4713,33 @@ async function saveArea() {
 const _origSaveEditArea = saveEditArea;
 async function saveEditArea() {
   const name = document.getElementById('editAreaInput').value.trim();
-  if (!name || editingAreaIdx === null) return;
+  if (!name) { alert('Please enter an area name'); return; }
+  const description = document.getElementById('editAreaDesc').value.trim();
+  const projectId = document.getElementById('editAreaProject').value || CURRENT_PROJECT;
+  if (editingAreaIdx === null) {
+    // New area
+    const id = uid();
+    const notes = document.getElementById('editAreaNotes').value;
+    const sortOrder = S.areas.reduce((mx,a)=>Math.max(mx, a.sortOrder||0), 0) + 1;
+    if (projectId === CURRENT_PROJECT) S.areas.push({ id, name, description, notes, sortOrder });
+    await saveRecord('areas', { id, name, description, notes, sort_order: sortOrder, project_id: projectId });
+    if (projectId !== CURRENT_PROJECT) showToast(`"${name}" added to ${(S.projects||[]).find(p=>p.id===projectId)?.name || 'that project'}`);
+    closeEditAreaModal();
+    return;
+  }
   const area = S.areas[editingAreaIdx];
   area.name = name;
-  area.description = document.getElementById('editAreaDesc').value.trim();
-  await saveRecord('areas', { id: area.id, name: area.name, description: area.description, project_id: CURRENT_PROJECT });
+  area.description = description;
+  if (projectId !== CURRENT_PROJECT) {
+    const pName = (S.projects||[]).find(p=>p.id===projectId)?.name || 'the other project';
+    if (!confirm(`Move "${name}" to ${pName}? Its tasks stay in this project.`)) return;
+    await saveRecord('areas', { id: area.id, name, description, project_id: projectId });
+    S.areas.splice(editingAreaIdx, 1);
+    S.currentArea = 0;
+    showToast(`"${name}" moved to ${pName}`);
+  } else {
+    await saveRecord('areas', { id: area.id, name, description, project_id: CURRENT_PROJECT });
+  }
   closeEditAreaModal();
 }
 
@@ -4955,7 +5009,12 @@ async function loadFromSupabase() {
     ]);
     S.projects = projR.map(r=>({ id:r.id, name:r.name, description:r.description||'', sortOrder:r.sort_order||0 }))
       .sort((a,b)=>(a.sortOrder||1e9)-(b.sortOrder||1e9));
-    const curP = S.projects.find(x=>x.id===CURRENT_PROJECT);
+    let curP = S.projects.find(x=>x.id===CURRENT_PROJECT);
+    if (!curP && S.projects.length) {
+      CURRENT_PROJECT = S.projects[0].id;
+      try { localStorage.setItem('sh_project', CURRENT_PROJECT); } catch(e) {}
+      return loadFromSupabase();
+    }
     if (curP) { S.projectName = curP.name; S.projectDesc = curP.description; }
 
     S.areas = areasR.map((r,k)=>({ id:r.id, name:r.name, description:r.description||'', notes:r.notes||'', sortOrder:r.sort_order||0, _k:k }))
