@@ -124,6 +124,11 @@ font-size: 11px; font-weight: 500;
 letter-spacing: 2px; text-transform: uppercase;
 color: #8a8578; margin-bottom: 16px;
 }
+.list-toggle {
+width:52px;height:44px;flex-shrink:0;border:1px solid #ddd9d0;border-radius:10px;background:#fff;
+display:flex;align-items:center;justify-content:center;font-size:16px;color:#1a1916;
+}
+.list-toggle:active { background:#edeae3; }
 .section-head {
 font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1.5px;
 text-transform: uppercase; color: #8a8578;
@@ -579,11 +584,6 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <div class="sheet" style="height:auto;max-height:82vh">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Projects</span><button onclick="closeProjects()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div id="projectsList" style="overflow-y:auto"></div>
-    <div id="projectsAdminBtns" style="flex-shrink:0;padding:8px 0 16px">
-      <div class="divider"></div>
-      <button class="btn btn-ghost" style="width:100%;margin-bottom:8px" onclick="openEditProject()">Edit this project</button>
-      <button class="btn btn-primary" style="width:100%" onclick="openNewProject()">+ New project</button>
-    </div>
   </div>
 </div>
 
@@ -731,12 +731,11 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <div class="page-pad">
 
     <!-- PROJECTS SECTION -->
-    <div onclick="toggleListSection('projects')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none">
-      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916">Projects</span>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div id="listsEditBtn-projects"></div>
-        <span id="lists-chevron-projects" style="font-size:11px;color:#8a8578;transition:transform 0.2s">▼</span>
-      </div>
+    <div onclick="toggleListSection('projects')" style="display:flex;align-items:center;gap:14px;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none;-webkit-user-select:none">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;min-width:92px">Projects</span>
+      <div id="listsEditBtn-projects"></div>
+      <div style="flex:1"></div>
+      <div class="list-toggle" aria-label="Open or close list"><span id="lists-chevron-projects" style="display:inline-block;transition:transform 0.2s">▼</span></div>
     </div>
     <div id="lists-body-projects" style="margin-bottom:16px;display:none">
       <div id="projEditBox" style="display:none;padding:8px 0 10px">
@@ -746,12 +745,11 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     </div>
 
     <!-- AREAS SECTION -->
-    <div onclick="toggleListSection('areas')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none">
-      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916">Areas</span>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div id="listsEditBtn-areas"></div>
-        <span id="lists-chevron-areas" style="font-size:11px;color:#8a8578;transition:transform 0.2s">▼</span>
-      </div>
+    <div onclick="toggleListSection('areas')" style="display:flex;align-items:center;gap:14px;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none;-webkit-user-select:none">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;min-width:92px">Areas</span>
+      <div id="listsEditBtn-areas"></div>
+      <div style="flex:1"></div>
+      <div class="list-toggle" aria-label="Open or close list"><span id="lists-chevron-areas" style="display:inline-block;transition:transform 0.2s">▼</span></div>
     </div>
     <div id="lists-body-areas" style="margin-bottom:16px;display:none">
       <div id="newAreaBox" style="display:none;padding:8px 0 10px;border-bottom:1px solid #ddd9d0">
@@ -764,12 +762,11 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     </div>
 
     <!-- TEAM SECTION -->
-    <div onclick="toggleListSection('team')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none">
-      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916">Team</span>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div id="listsEditBtn-team"></div>
-        <span id="lists-chevron-team" style="font-size:11px;color:#8a8578;transition:transform 0.2s">▼</span>
-      </div>
+    <div onclick="toggleListSection('team')" style="display:flex;align-items:center;gap:14px;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none;-webkit-user-select:none">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;min-width:92px">Team</span>
+      <div id="listsEditBtn-team"></div>
+      <div style="flex:1"></div>
+      <div class="list-toggle" aria-label="Open or close list"><span id="lists-chevron-team" style="display:inline-block;transition:transform 0.2s">▼</span></div>
     </div>
     <div id="lists-body-team" style="margin-bottom:16px;display:none">
       <div id="teamEditBox" style="display:none;flex-direction:column;gap:8px;padding:8px 0 12px;border-bottom:1px solid #ddd9d0;margin-bottom:6px">
@@ -799,12 +796,11 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     </div>
 
     <!-- SUPPLIERS SECTION -->
-    <div onclick="toggleListSection('suppliers')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none">
-      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916">Suppliers</span>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div id="listsEditBtn-suppliers"></div>
-        <span id="lists-chevron-suppliers" style="font-size:11px;color:#8a8578;transition:transform 0.2s">▼</span>
-      </div>
+    <div onclick="toggleListSection('suppliers')" style="display:flex;align-items:center;gap:14px;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none;-webkit-user-select:none">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;min-width:92px">Suppliers</span>
+      <div id="listsEditBtn-suppliers"></div>
+      <div style="flex:1"></div>
+      <div class="list-toggle" aria-label="Open or close list"><span id="lists-chevron-suppliers" style="display:inline-block;transition:transform 0.2s">▼</span></div>
     </div>
     <div id="lists-body-suppliers" style="margin-bottom:16px;display:none">
       <div id="supEditBox" style="display:none;padding:8px 0 10px">
@@ -2149,7 +2145,6 @@ function openProjects() {
       </div>
       ${p.id===CURRENT_PROJECT ? '<span style="color:#c8440e;font-size:20px">✓</span>' : ''}
     </div>`).join('');
-  document.getElementById('projectsAdminBtns').style.display = isAdmin() ? '' : 'none';
   document.getElementById('projectsOverlay').classList.add('open');
 }
 function closeProjects() { document.getElementById('projectsOverlay').classList.remove('open'); }
@@ -4268,7 +4263,7 @@ function renderListsPage() {
     if (!canEdit[sec]) listEdit[sec] = false;
     const holder = document.getElementById('listsEditBtn-'+sec);
     if (holder) holder.innerHTML = canEdit[sec]
-      ? `<button class="btn ${listEdit[sec]?'btn-primary':'btn-ghost'} btn-sm" style="font-size:13px;padding:6px 16px;min-width:64px" onclick="event.stopPropagation();toggleListEdit('${sec}')">${listEdit[sec]?'Done':'Edit'}</button>`
+      ? `<button class="btn ${listEdit[sec]?'btn-primary':'btn-ghost'} btn-sm" style="font-size:13px;padding:0 18px;height:40px;min-width:70px;justify-content:center" onclick="event.stopPropagation();toggleListEdit('${sec}')">${listEdit[sec]?'Done':'Edit'}</button>`
       : '';
   });
   document.getElementById('projEditBox').style.display = listEdit.projects ? '' : 'none';
