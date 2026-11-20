@@ -192,7 +192,9 @@ select.ctl { display: block; font-size: 13px !important; font-weight: 500; paddi
 .toolbar-line { display: flex; gap: 6px; align-items: center; margin-bottom: 4px; }
 .toolbar-line .search { flex: 1; min-width: 0; font-size: 14px !important; padding-left: 10px !important; background: #fff; }
 .toolbar-line .tb-more { width: 36px; flex-shrink: 0; font-size: 16px; padding-left: 0 !important; padding-right: 0 !important; }
-.tb-summary { font-family: 'DM Mono', monospace; font-size: 11px; color: #8a8578; margin: 2px 0 10px; cursor: pointer; user-select: none; }
+.tb-summary { display: none; }
+.toolbar-line { margin-bottom: 12px !important; }
+.lozenge { font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1; padding: 4px 8px; border-radius: 6px; border: 1px solid; flex-shrink: 0; white-space: nowrap; }
 .toolbar-grid { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; margin-bottom: 12px; align-items: center; }
 .toolbar-grid .row-fill { display: flex; gap: 6px; }
 .toolbar-grid .row-fill > * { flex: 1; }
@@ -663,6 +665,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div style="display:none" id="taskFilters">
       <select id="taskAreaFilter" onchange="setTaskAreaFilter(this.value)"><option value="all">All Areas</option></select>
       <button class="btn btn-ghost btn-sm" id="taskExpandToggle" onclick="toggleAllTasks()">Expand all</button>
+      <button class="btn btn-ghost btn-sm" id="taskHeadingToggle" onclick="toggleTaskHeadings()">Hide areas</button>
       <button class="btn btn-sm btn-ghost" id="tf-all" onclick="setTaskFilter('all')">All</button>
       <button class="btn btn-sm btn-primary" id="tf-open" onclick="setTaskFilter('open')">Open</button>
       <button class="btn btn-sm btn-ghost" id="tf-done" onclick="setTaskFilter('done')">Done</button>
@@ -1990,8 +1993,9 @@ function renderTaskRow(t, areaId=null) {
     : '';
 
   const statusPill = isDoneInArea
-    ? `<span style="font-family:'DM Mono',monospace;font-size:11px;background:#f0fdf4;color:#15803d;padding:1px 6px;border-radius:3px;flex-shrink:0">done</span>`
-    : `<span style="font-family:'DM Mono',monospace;font-size:11px;background:#fffbeb;color:#b45309;padding:1px 6px;border-radius:3px;flex-shrink:0">open</span>`;
+    ? `<span class="lozenge" style="background:#f0fdf4;color:#15803d;border-color:#15803d">Done</span>`
+    : `<span class="lozenge" style="background:#fffbeb;color:#b45309;border-color:#b45309">Open</span>`;
+  const areaTag = (!taskHeadingsVisible && areaId) ? `<span style="font-family:'DM Mono',monospace;font-size:10px;color:#8a8578;background:#f5f3ee;border:1px solid #ddd9d0;border-radius:4px;padding:1px 5px;flex-shrink:0;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" onclick="toggleTaskRow('${t.id}',event)">${areaName(areaId)}</span>` : '';
 
   // ── COLLAPSED ROW — mirrors mat-row exactly ──
   const row = `
@@ -2001,11 +2005,11 @@ function renderTaskRow(t, areaId=null) {
         ${isDoneInArea?'✓':''}
       </div>
       <div class="mat-row-name" onclick="toggleTaskRow('${t.id}',event)" style="font-weight:500;${isDoneInArea?'text-decoration:line-through;opacity:0.5':''}">${t.text}</div>
+      ${areaTag}
       ${t.notes&&t.notes.trim() ? `<span title="Has notes" style="font-size:12px;flex-shrink:0;opacity:.7" onclick="toggleTaskRow('${t.id}',event)">📝</span>` : ''}
       ${priorityPill}
       ${liveMats.length ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0" onclick="toggleTaskRow('${t.id}',event)">${liveMats.length} mat${liveMats.length!==1?'s':''}</span>` : ''}
-      <span onclick="toggleTaskRow('${t.id}',event)">${statusPill}</span>
-      <span class="mat-row-chevron" onclick="toggleTaskRow('${t.id}',event)">▼</span>
+      <span onclick="toggleTaskRow('${t.id}',event)" style="display:flex">${statusPill}</span>
     </div>`;
 
   if (!isExpanded) return row;
@@ -2024,17 +2028,12 @@ function renderTaskRow(t, areaId=null) {
         const matOrders = S.orders.filter(o=>o.matId===m.id);
         const activeOrder = matOrders.find(o=>o.status!=='cancelled'&&o.status!=='delivered');
         const delivered = matOrders.filter(o=>o.status==='delivered').reduce((s,o)=>s+o.qty,0);
-        const mdot = delivered>=(assign?.qty||0) ? '#15803d' : activeOrder?.status==='ordered' ? '#1d4ed8' : '#b45309';
+        const mst = matOrderStatus(m);
         return `
           <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #ddd9d0">
-            <div style="width:7px;height:7px;border-radius:50%;background:${mdot};flex-shrink:0"></div>
             <div style="flex:1;font-size:13px;font-weight:500">${m.name}</div>
-            <span style="font-family:'DM Mono',monospace;font-size:13px;color:#8a8578;flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
-            ${delivered>=(assign?.qty||0)
-              ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">✓ delivered</span>`
-              : activeOrder?.status==='ordered'
-                ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8">⏳ ordered</span>`
-                : isEditor() ? `<button class="btn btn-accent btn-sm" style="padding:2px 7px;font-size:11px;flex-shrink:0" onclick="event.stopPropagation();openOrderModal('${m.id}')">Order</button>` : ''}
+            <span style="font-family:'DM Mono',monospace;font-size:12px;color:#8a8578;flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
+            ${statusLozenge(mst, (mst==='toorder' && isEditor()) ? `openOrderModal('${m.id}')` : '')}
             ${isEditor() ? `<button class="del-btn" onclick="event.stopPropagation();openAddMat('${m.id}')" style="font-size:13px;color:#8a8578" title="Edit">✎</button>` : ''}
           </div>`;
       }).join('') : `<div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;padding:4px 0">No active materials</div>`}
@@ -2063,7 +2062,7 @@ function renderTaskRow(t, areaId=null) {
 
 // ── Page toolbars: ⋮ menu holds the filters ──
 const TB_MENUS = {
-  tasks:     [{ t:'Show', ids:['tf-all','tf-open','tf-done','tf-archived'] }, { t:'Area', area:true }, { t:'', ids:['taskExpandToggle'] }],
+  tasks:     [{ t:'', ids:['taskExpandToggle'] }, { t:'Show', ids:['tf-all','tf-open','tf-done','tf-archived'] }, { t:'Area', area:true }],
   materials: [{ t:'Show', ids:['mf-all','mf-pending','mf-ordered','mf-delivered','mf-archived'] }, { t:'', ids:['matHeadingToggle','matExpandToggle'] }],
   orders:    [{ t:'Show', ids:['of-all','of-pending','of-ordered','of-collect','of-delivered'] }, { t:'', ids:['orderExpandToggle'] }],
 };
@@ -2087,7 +2086,10 @@ function openToolbarMenu(anchor, page) {
     html += head(g.t);
     if (g.area) {
       const sel = document.getElementById('taskAreaFilter');
-      [...sel.options].forEach(o => html += item(o.textContent, o.value === sel.value, 'area:' + o.value));
+      [...sel.options].forEach((o, oi) => {
+        html += item(o.textContent, o.value === sel.value, 'area:' + o.value);
+        if (oi === 0) { const hb = document.getElementById('taskHeadingToggle'); if (hb) html += item(hb.textContent, false, 'btn:taskHeadingToggle'); }
+      });
     } else {
       g.ids.forEach(id => { const b = document.getElementById(id); if (b) html += item(b.textContent, b.classList.contains('btn-primary'), 'btn:' + id); });
     }
@@ -3458,6 +3460,23 @@ function orderMatchesSearch(o, q) {
   const m = S.materials.find(x=>x.id===o.matId);
   const sup = S.suppliers.find(x=>x.id===o.supplierId);
   return (m && m.name.toLowerCase().includes(q)) || (sup && sup.name.toLowerCase().includes(q)) || (o.notes||'').toLowerCase().includes(q);
+}
+function matOrderStatus(m) {
+  const sum = list => list.reduce((s,o)=>s+Number(o.qty||0),0);
+  const os = S.orders.filter(o => o.matId===m.id && o.status!=='cancelled');
+  const needed = totalQty(m);
+  const delivered = os.filter(o=>o.status==='delivered');
+  const pend = os.filter(o=>o.status==='pending');
+  const toCollect = os.filter(o=>o.status==='ordered' && o.isCollection);
+  const onOrder = os.filter(o=>o.status==='ordered' && !o.isCollection);
+  const toOrderQty = (m.archived || (needed>0 && sum(delivered)>=needed)) ? 0 : Math.max(0, needed - sum(os));
+  return (toOrderQty>0 || pend.length) ? 'toorder' : toCollect.length ? 'collect' : onOrder.length ? 'onorder'
+    : delivered.length ? (delivered.every(o=>o.isCollection) ? 'collected' : 'delivered') : 'toorder';
+}
+function statusLozenge(key, onclickJs) {
+  const st = ORDER_STATUS[key];
+  const tap = onclickJs ? ` onclick="event.stopPropagation();${onclickJs}" style="cursor:pointer;` : ` style="`;
+  return `<span class="lozenge"${tap}background:${st.bg};color:${st.color};border-color:${st.color}">${onclickJs && key==='toorder' ? '+ ' : ''}${st.label}</span>`;
 }
 const ORDER_STATUS = {
   toorder:   { label: 'To order',   color: '#b45309', bg: '#fffbeb' },
