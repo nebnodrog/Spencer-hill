@@ -203,6 +203,7 @@ select.ctl { display: block; font-size: 13px !important; font-weight: 500; paddi
 .mini-tag { font-family: 'DM Mono', monospace; font-size: 11px; color: #8a8578; background: #f5f3ee; border: 1px solid #ddd9d0; border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
 .task-actions .btn { flex: 1; justify-content: center; height: 22px; padding: 0 6px !important; font-size: 11px; line-height: 1; border-radius: 6px; display: inline-flex; align-items: center; }
 .task-actions .more { flex: 0 0 30px; font-size: 13px; }
+.sheet-mat-row { display: flex; align-items: center; gap: 8px; min-height: 26px; padding: 2px 0; border-bottom: 1px solid #ece9e2; cursor: pointer; box-sizing: border-box; }
 .mat-task-line { display: flex; align-items: center; gap: 8px; padding: 3px 0; border-bottom: 1px solid #ece9e2; width: 100%; box-sizing: border-box; }
 .area-chip.done { border-color: #15803d; background: #15803d; color: #fff; }
 .mini-tag.done { background: #f0fdf4; color: #15803d; border-color: #15803d; }
@@ -238,14 +239,17 @@ background: rgba(20,18,14,0.6);
 z-index: 200; align-items: flex-end;
 backdrop-filter: blur(2px);
 }
-.overlay.open { display: flex; }
+.overlay.open { display: flex; overscroll-behavior: contain; }
+html:has(.overlay.open), body:has(.overlay.open) { overflow: hidden; }
 .sheet {
 background: #ffffff;
 border-radius: 16px 16px 0 0;
 width: 100%; max-width: 100vw;
 height: 82vh;
-overflow: hidden;
-padding: 12px 16px 0;
+overflow-y: auto;
+-webkit-overflow-scrolling: touch;
+overscroll-behavior: contain;
+padding: 12px 16px calc(24px + env(safe-area-inset-bottom));
 animation: slideUp 0.25s ease;
 box-sizing: border-box;
 display: flex;
@@ -1316,6 +1320,9 @@ function matsForArea(areaId) {
   return S.materials.filter(m=>m.assignments.some(a=>taskIds.includes(a.taskId)));
 }
 // Get materials for a specific task
+const MAT_STATUS_RANK = { toorder:0, onorder:1, collect:1, delivered:2, collected:2 };
+function matStatusRank(m) { return m.archived ? 3 : (MAT_STATUS_RANK[matOrderStatus(m)] ?? 0); }
+function sortMatsByStatus(list) { return [...list].sort((a,b) => matStatusRank(a) - matStatusRank(b)); }
 function matsForTask(taskId) {
   return S.materials.filter(m=>m.assignments.some(a=>a.taskId===taskId));
 }
@@ -1731,20 +1738,15 @@ function renderTaskMatsList(taskId) {
     el.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;padding:6px 0">No materials assigned yet</div>`;
     return;
   }
-  el.innerHTML = mats.map(m=>{
+  el.innerHTML = sortMatsByStatus(mats).map(m=>{
     const assign = m.assignments.find(a=>a.taskId===taskId);
-    const matOrders = S.orders.filter(o=>o.matId===m.id);
-    const delivered = matOrders.filter(o=>o.status==='delivered').reduce((s,o)=>s+o.qty,0);
-    const onOrder = matOrders.filter(o=>o.status==='ordered').reduce((s,o)=>s+o.qty,0);
-    const dotColor = delivered>=(assign?.qty||0)&&(assign?.qty||0)>0 ? '#15803d' : onOrder>0 ? '#1d4ed8' : '#b45309';
+    const lz = m.archived ? `<span class="lozenge" style="background:#f5f3ee;color:#8a8578;border-color:#bdb8ad">Archived</span>` : statusLozenge(matOrderStatus(m), '');
     return `
-      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #ddd9d0">
-        <div style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
-        <div style="flex:1;font-size:13px;font-weight:500">${m.name}</div>
-        <span style="font-family:'DM Mono',monospace;font-size:13px;color:#8a8578;flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
-        <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:11px"
-          onclick="event.stopPropagation();closeAddTask();openAddMat('${m.id}','${taskId}')">Edit</button>
-        <button class="del-btn" onclick="event.stopPropagation();removeMatFromTaskInline('${m.id}','${taskId}')" title="Remove">×</button>
+      <div class="sheet-mat-row" onclick="closeAddTask();openAddMat('${m.id}','${taskId}')">
+        <div style="flex:1;min-width:0;font-size:14px;font-weight:500;line-height:1.25">${m.name}</div>
+        <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
+        ${lz}
+        <button class="del-btn" style="flex-shrink:0;padding:0 2px" onclick="event.stopPropagation();removeMatFromTaskInline('${m.id}','${taskId}')" title="Remove">×</button>
       </div>`;
   }).join('');
 }
@@ -2911,7 +2913,7 @@ function renderMaterials() {
 
   const html = Object.keys(cats).sort().map(cat=>`
     ${matHeadingsVisible ? `<div class="section-head">${cat}</div>` : ''}
-    ${cats[cat].map(m=>renderMatCard(m)).join('')}
+    ${sortMatsByStatus(cats[cat]).map(m=>renderMatCard(m)).join('')}
   `).join('');
 
   document.getElementById('matList').innerHTML = mats.length ? html : `
