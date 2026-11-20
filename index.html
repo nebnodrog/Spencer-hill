@@ -50,7 +50,7 @@ padding-bottom: 72px;
 /* ── HEADER ── */
 header {
 background: #1a1916;
-padding: 14px 16px 12px;
+padding: 8px 16px;
 display: flex;
 align-items: center;
 justify-content: space-between;
@@ -124,8 +124,7 @@ font-size: 11px; font-weight: 500;
 letter-spacing: 2px; text-transform: uppercase;
 color: #8a8578; margin-bottom: 16px;
 }
-.list-btn, .list-toggle { font-size:13px !important; padding:6px 16px !important; min-width:88px; justify-content:center; flex-shrink:0; }
-.list-toggle { width:100px; padding:6px 0 !important; }
+.list-btn, .list-toggle { width:76px; flex-shrink:0; }
 .section-head {
 font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1.5px;
 text-transform: uppercase; color: #8a8578;
@@ -188,6 +187,13 @@ background: #edeae3; color: #1a1916;
 border: 1px solid #ddd9d0;
 }
 .btn-sm { padding: 5px 10px; font-size: 11px; }
+.ctl { height: 30px; padding-top: 0 !important; padding-bottom: 0 !important; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; }
+select.ctl { display: block; font-size: 13px !important; font-weight: 500; padding-left: 10px !important; }
+.toolbar-grid { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; margin-bottom: 12px; align-items: center; }
+.toolbar-grid .row-fill { display: flex; gap: 6px; }
+.toolbar-grid .row-fill > * { flex: 1; }
+.toolbar-even { display: flex; gap: 6px; margin-bottom: 6px; }
+.toolbar-even > * { flex: 1; }
 
 /* ── TAGS ── */
 .tag {
@@ -472,7 +478,7 @@ margin-bottom: 4px;
 background: #ffffff;
 border: 1px solid #ddd9d0;
 border-radius: 8px;
-padding: 9px 12px;
+padding: 6px 12px;
 margin-bottom: 3px;
 display: flex;
 align-items: center;
@@ -568,11 +574,11 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
       <div id="projectNameDisplay" style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px">Spencer Hill</div>
       <div style="color:#aaa;font-size:10px">▼</div>
     </div>
-    <div id="headerPageLabel" style="font-family:'DM Mono',monospace;font-size:11px;color:#aaa;letter-spacing:1px;text-transform:uppercase"></div>
+    <div id="headerPageLabel" style="display:none"></div>
   </div>
-  <div class="user-pill" onclick="openUserModal()" style="padding:3px 8px 3px 3px;gap:5px">
-    <div class="avatar" id="hAvatar" style="width:22px;height:22px;font-size:11px"></div>
-    <span class="user-name-label" id="hName" style="font-size:13px;color:#fff"></span>
+  <div class="user-pill" onclick="openUserModal()" style="padding:2px 10px 2px 2px;gap:6px">
+    <div class="avatar" id="hAvatar" style="width:18px;height:18px;font-size:10px"></div>
+    <span class="user-name-label" id="hName" style="font-size:13px;color:#fff;line-height:1"></span>
   </div>
 </header>
 
@@ -649,22 +655,19 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div id="page-tasks" class="page">
   <div class="page-pad">
-    <div class="row" style="justify-content:space-between;margin-bottom:10px">
-      <select id="taskAreaFilter" onchange="setTaskAreaFilter(this.value)"
-        style="flex:1;max-width:200px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500">
+    <div class="toolbar-grid" id="taskFilters">
+      <select id="taskAreaFilter" class="ctl" onchange="setTaskAreaFilter(this.value)" style="font-family:'DM Sans',sans-serif">
         <option value="all">All Areas</option>
       </select>
-      <div class="row" style="gap:6px">
-        <button class="btn btn-ghost btn-sm" id="taskExpandToggle" onclick="toggleAllTasks()">Expand all</button>
-        <div id="taskAddBtn"></div>
+      <button class="btn btn-ghost btn-sm ctl" id="taskExpandToggle" onclick="toggleAllTasks()">Expand all</button>
+      <div id="taskAddBtn"></div>
+      <div class="row-fill">
+        <button class="btn btn-sm btn-ghost ctl" id="tf-all" onclick="setTaskFilter('all')">All</button>
+        <button class="btn btn-sm btn-primary ctl" id="tf-open" onclick="setTaskFilter('open')">Open</button>
+        <button class="btn btn-sm btn-ghost ctl" id="tf-done" onclick="setTaskFilter('done')">Done</button>
       </div>
-    </div>
-    <!-- Filter row -->
-    <div class="row-wrap" style="gap:6px;margin-bottom:14px" id="taskFilters">
-      <button class="btn btn-sm btn-ghost" id="tf-all" onclick="setTaskFilter('all')">All</button>
-      <button class="btn btn-sm btn-primary" id="tf-open" onclick="setTaskFilter('open')">Open</button>
-      <button class="btn btn-sm btn-ghost" id="tf-done" onclick="setTaskFilter('done')">Done</button>
-      <button class="btn btn-sm btn-ghost" id="tf-archived" onclick="setTaskFilter('archived')">Archived</button>
+      <button class="btn btn-sm btn-ghost ctl" id="tf-archived" onclick="setTaskFilter('archived')">Archived</button>
+      <div></div>
     </div>
     <div id="taskListGlobal"></div>
   </div>
@@ -699,18 +702,16 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div id="page-orders" class="page">
   <div class="page-pad">
-    <div class="row" style="justify-content:space-between;margin-bottom:12px">
-      <div class="row" style="gap:6px">
-        <div id="bulkOrderBtn"></div>
-        <button class="btn btn-ghost btn-sm" id="orderGroupToggle" onclick="toggleOrderGrouping()">By Material</button>
-        <button class="btn btn-ghost btn-sm" id="orderExpandToggle" onclick="toggleAllOrders()">Expand all</button>
-      </div>
+    <div class="toolbar-even">
+      <div id="bulkOrderBtn" style="display:flex"></div>
+      <button class="btn btn-ghost btn-sm ctl" id="orderGroupToggle" onclick="toggleOrderGrouping()">By Material</button>
+      <button class="btn btn-ghost btn-sm ctl" id="orderExpandToggle" onclick="toggleAllOrders()">Expand all</button>
     </div>
-    <div class="row-wrap" style="gap:6px;margin-bottom:14px">
-      <button class="btn btn-sm btn-ghost" id="of-all" onclick="setOrderFilter('all')">All</button>
-      <button class="btn btn-sm btn-primary" id="of-pending" onclick="setOrderFilter('pending')">To Order</button>
-      <button class="btn btn-sm btn-ghost" id="of-ordered" onclick="setOrderFilter('ordered')">Ordered</button>
-      <button class="btn btn-sm btn-ghost" id="of-delivered" onclick="setOrderFilter('delivered')">Delivered</button>
+    <div class="toolbar-even" style="margin-bottom:12px">
+      <button class="btn btn-sm btn-ghost ctl" id="of-all" onclick="setOrderFilter('all')">All</button>
+      <button class="btn btn-sm btn-primary ctl" id="of-pending" onclick="setOrderFilter('pending')">To Order</button>
+      <button class="btn btn-sm btn-ghost ctl" id="of-ordered" onclick="setOrderFilter('ordered')">Ordered</button>
+      <button class="btn btn-sm btn-ghost ctl" id="of-delivered" onclick="setOrderFilter('delivered')">Delivered</button>
     </div>
     <div id="ordersList"></div>
   </div>
@@ -732,7 +733,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
       <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;width:38%;flex-shrink:0">Projects</span>
       <div id="listsEditBtn-projects"></div>
       <div style="flex:1"></div>
-      <button class="btn btn-ghost btn-sm list-toggle" id="lists-chevron-projects">Expand</button>
+      <button class="btn btn-ghost btn-sm ctl list-toggle" id="lists-chevron-projects">Expand</button>
     </div>
     <div id="lists-body-projects" style="margin-bottom:16px;display:none">
       <div id="projEditBox" style="display:none;padding:8px 0 10px">
@@ -746,7 +747,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
       <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;width:38%;flex-shrink:0">Areas</span>
       <div id="listsEditBtn-areas"></div>
       <div style="flex:1"></div>
-      <button class="btn btn-ghost btn-sm list-toggle" id="lists-chevron-areas">Expand</button>
+      <button class="btn btn-ghost btn-sm ctl list-toggle" id="lists-chevron-areas">Expand</button>
     </div>
     <div id="lists-body-areas" style="margin-bottom:16px;display:none">
       <div id="newAreaBox" style="display:none;padding:8px 0 10px">
@@ -760,7 +761,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
       <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;width:38%;flex-shrink:0">Team</span>
       <div id="listsEditBtn-team"></div>
       <div style="flex:1"></div>
-      <button class="btn btn-ghost btn-sm list-toggle" id="lists-chevron-team">Expand</button>
+      <button class="btn btn-ghost btn-sm ctl list-toggle" id="lists-chevron-team">Expand</button>
     </div>
     <div id="lists-body-team" style="margin-bottom:16px;display:none">
       <div id="teamEditBox" style="display:none;padding:8px 0 10px">
@@ -774,7 +775,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
       <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;width:38%;flex-shrink:0">Suppliers</span>
       <div id="listsEditBtn-suppliers"></div>
       <div style="flex:1"></div>
-      <button class="btn btn-ghost btn-sm list-toggle" id="lists-chevron-suppliers">Expand</button>
+      <button class="btn btn-ghost btn-sm ctl list-toggle" id="lists-chevron-suppliers">Expand</button>
     </div>
     <div id="lists-body-suppliers" style="margin-bottom:16px;display:none">
       <div id="supEditBox" style="display:none;padding:8px 0 10px">
@@ -973,9 +974,15 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 </div>
 
 <div style="margin-bottom:10px">
+  <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Project</label>
+  <select id="taskProjectSelect" onchange="taskProjectChanged()" style="font-size:16px"></select>
+</div>
+
+<div style="margin-bottom:10px" id="taskAreaBlock">
   <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Area</label>
   <div class="area-chips" id="taskAreaChips"></div>
 </div>
+<div id="taskAreaMoveNote" style="display:none;margin-bottom:10px;font-size:13px;color:#8a8578">Areas belong to each project — pick this task's area after it has moved.</div>
 
 <div style="margin-bottom:14px">
   <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Assign to</label>
@@ -1624,6 +1631,10 @@ function openAddTask(preAreaId=null, editId=null, priorityAreaId=null) {
     if (matsSection) matsSection.style.display = 'none';
   }
 
+  const projSel = document.getElementById('taskProjectSelect');
+  const plist = (S.projects && S.projects.length) ? S.projects : [{ id: CURRENT_PROJECT, name: S.projectName }];
+  projSel.innerHTML = plist.map(p=>`<option value="${p.id}" ${p.id===CURRENT_PROJECT?'selected':''}>${p.name}</option>`).join('');
+  taskProjectChanged();
   renderTaskAreaChips();
   renderTaskPersonChips();
   setTimeout(()=>{
@@ -1632,6 +1643,29 @@ function openAddTask(preAreaId=null, editId=null, priorityAreaId=null) {
   }, 50);
   document.getElementById('addTaskOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('taskTextInput').focus(), 200);
+}
+
+function taskProjectChanged() {
+  const other = (document.getElementById('taskProjectSelect').value || CURRENT_PROJECT) !== CURRENT_PROJECT;
+  document.getElementById('taskAreaBlock').style.display = other ? 'none' : '';
+  document.getElementById('taskAreaMoveNote').style.display = other ? '' : 'none';
+}
+// Move a task (and materials used only by it, with their orders) to another project
+async function moveTaskToProject(t, projectId) {
+  await refreshSessionIfNeeded();
+  const patch = (table, filter, body) => fetch(`${SB_URL}/${table}?${filter}`, { method:'PATCH', headers:{ ...getAuthHeaders(), 'Prefer':'return=minimal' }, body: JSON.stringify(body) });
+  const ownMats = S.materials.filter(m => m.assignments.length && m.assignments.every(a => a.taskId === t.id));
+  const res = await patch('tasks', `id=eq.${encodeURIComponent(t.id)}`, { project_id: projectId, area_ids: [], done_by_area: {}, priority: {} });
+  if (!res.ok) { showToast('⚠️ Move failed'); return false; }
+  for (const m of ownMats) {
+    await patch('materials', `id=eq.${encodeURIComponent(m.id)}`, { project_id: projectId });
+    await patch('orders', `mat_id=eq.${encodeURIComponent(m.id)}`, { project_id: projectId });
+  }
+  S.tasks = S.tasks.filter(x => x.id !== t.id);
+  const ownIds = new Set(ownMats.map(m=>m.id));
+  S.materials = S.materials.filter(m => !ownIds.has(m.id));
+  S.orders = S.orders.filter(o => !ownIds.has(o.matId));
+  return true;
 }
 
 function renderTaskMatsList(taskId) {
@@ -1796,7 +1830,7 @@ function setTaskFilter(f) {
   taskFilter = f;
   ['all','open','done','archived'].forEach(x=>{
     const b=document.getElementById('tf-'+x);
-    if(b) b.className='btn btn-sm '+(x===f?'btn-primary':'btn-ghost');
+    if(b) b.className='btn btn-sm ctl '+(x===f?'btn-primary':'btn-ghost');
   });
   renderTasksPage();
 }
@@ -1850,11 +1884,11 @@ function toggleTaskRow(taskId, e) {
 function renderTasksPage() {
   ['all','open','done'].forEach(x=>{
     const b=document.getElementById('tf-'+x);
-    if(b) b.className='btn btn-sm '+(x===taskFilter?'btn-primary':'btn-ghost');
+    if(b) b.className='btn btn-sm ctl '+(x===taskFilter?'btn-primary':'btn-ghost');
   });
   populateTaskAreaDropdown();
   const addTaskBtn = document.getElementById('taskAddBtn');
-  if (addTaskBtn) addTaskBtn.innerHTML = isEditor() ? `<button class="btn btn-primary btn-sm" onclick="openAddTask()">+ Add Task</button>` : '';
+  if (addTaskBtn) addTaskBtn.innerHTML = isEditor() ? `<button class="btn btn-primary btn-sm ctl" onclick="openAddTask()">+ Add Task</button>` : '';
 
   let tasks = [...S.tasks];
   // Tradesmen only see tasks assigned to them
@@ -1913,7 +1947,11 @@ function renderTasksPage() {
           ${rows.map(t=>renderTaskRow(t, area.id)).join('')}`;
       }).join('');
 
-  document.getElementById('taskListGlobal').innerHTML = (tasks.length && html) ? html : tasks.length ? tasks.map(t=>renderTaskRow(t)).join('') : `
+  const areaIdSet = new Set(S.areas.map(a=>a.id));
+  const noArea = S.areas.length ? tasks.filter(t => !(t.areaIds||[]).some(id => areaIdSet.has(id))) : [];
+  const noAreaHtml = noArea.length ? `${taskHeadingsVisible ? `<div class="section-head">No area</div>` : ''}${noArea.map(t=>renderTaskRow(t)).join('')}` : '';
+  const fullHtml = (html || '') + noAreaHtml;
+  document.getElementById('taskListGlobal').innerHTML = (tasks.length && fullHtml) ? fullHtml : tasks.length ? tasks.map(t=>renderTaskRow(t)).join('') : `
     <div style="text-align:center;padding:48px 20px;color:#8a8578">
       <div style="font-size:32px;margin-bottom:8px">✅</div>
       <div style="font-family:'DM Mono',monospace;font-size:13px;letter-spacing:1px">No tasks here</div>
@@ -2008,7 +2046,7 @@ function renderTaskRow(t, areaId=null) {
       </div>
       ${matsHtml}
       <div class="row" style="gap:5px;flex-wrap:nowrap">
-        ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();toggleTask('${t.id}','${areaId||''}')">${isDoneInArea ? 'Reopen' : 'Done'}</button>` : ''}
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();openAddTask(null,'${t.id}','${areaId||''}')">Edit</button>` : ''}
         <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();openNotes('task','${t.id}')">Notes${t.notes&&t.notes.trim()?' •':''}</button>
         ${(isEditor() || archivedMats.length) ? `<button class="btn btn-ghost btn-sm" style="flex:0 0 auto;align-self:stretch;padding:0 16px;font-size:16px;line-height:1" title="More actions" onclick="event.stopPropagation();openTaskMenu('${t.id}',this,'${areaId||''}')">⋮</button>` : ''}
       </div>
@@ -2263,7 +2301,7 @@ function openTaskMenu(taskId, btn, areaId='') {
   const item = (label, action, color) =>
     `<button data-act="${action}" style="display:block;width:100%;text-align:left;background:none;border:none;padding:11px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:${color||'#1a1814'};cursor:pointer">${label}</button>`;
   let html = '';
-  if (isEditor()) html += item('Edit task', 'edit');
+  if (isEditor()) html += item(t.done || (areaId && t.doneByArea?.[areaId]) ? 'Reopen task' : 'Mark done', 'toggle');
   if (isEditor()) html += item('Team', 'team');
   if (isEditor()) html += item(t.archived ? 'Unarchive task' : 'Archive task', 'archive');
   if (archivedCount) html += item(`${panelOpen ? 'Hide' : 'View'} archived materials (${archivedCount})`, 'archmats');
@@ -2289,7 +2327,7 @@ function openTaskMenu(taskId, btn, areaId='') {
     if (!b) return;
     const act = b.dataset.act;
     closeTaskMenu();
-    if (act === 'edit') openAddTask(null, taskId, areaId||null);
+    if (act === 'toggle') toggleTask(taskId, areaId||'');
     else if (act === 'team') openReassign(taskId);
     else if (act === 'archive') toggleArchiveTask(taskId);
     else if (act === 'archmats') toggleArchivedMatsPanel(taskId, btn);
@@ -3355,10 +3393,13 @@ async function reloadOrders() {
 function renderOrdersPage() {
   ['all','pending','ordered','delivered'].forEach(x=>{
     const b=document.getElementById('of-'+x);
-    if(b) b.className='btn btn-sm '+(x===orderFilter?'btn-primary':'btn-ghost');
+    if(b) b.className='btn btn-sm ctl '+(x===orderFilter?'btn-primary':'btn-ghost');
   });
   const bulkBtn = document.getElementById('bulkOrderBtn');
-  if (bulkBtn) bulkBtn.innerHTML = isEditor() ? `<button class="btn btn-accent btn-sm" onclick="openBulkOrder()">+ Bulk Order</button>` : '';
+  if (bulkBtn) {
+    bulkBtn.innerHTML = isEditor() ? `<button class="btn btn-accent btn-sm ctl" style="width:100%" onclick="openBulkOrder()">+ Bulk Order</button>` : '';
+    bulkBtn.style.display = isEditor() ? 'flex' : 'none';
+  }
 
   const el = document.getElementById('ordersList');
   let html = '';
@@ -3386,10 +3427,10 @@ function renderOrdersPage() {
         if (outstanding <= 0) return '';
         const sup = (m.suppliers||[])[0] ? S.suppliers.find(x=>x.id===m.suppliers[0].supplierId) : null;
         return `
-          <div style="background:#fffbeb;border:1px solid #b45309;border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px">
+          <div style="background:#fffbeb;border:1px solid #b45309;border-radius:8px;padding:5px 10px;margin-bottom:4px;display:flex;align-items:center;gap:10px">
             <div style="flex:1;min-width:0">
-              <div style="font-size:14px;font-weight:500">${m.name}</div>
-              <div style="font-family:'DM Mono',monospace;font-size:11px;color:#b45309;margin-top:2px">${outstanding} ${m.unit} to order${sup?' · '+sup.name:''}</div>
+              <div style="font-size:14px;font-weight:500;line-height:1.25">${m.name}</div>
+              <div style="font-family:'DM Mono',monospace;font-size:11px;color:#b45309;margin-top:1px">${outstanding} ${m.unit} to order${sup?' · '+sup.name:''}</div>
             </div>
             <button class="btn btn-accent btn-sm" style="flex-shrink:0;font-size:11px" onclick="openOrderModal('${m.id}')">+ Order</button>
           </div>`;
@@ -4296,7 +4337,7 @@ function renderListsPage() {
     if (!canEdit[sec]) listEdit[sec] = false;
     const holder = document.getElementById('listsEditBtn-'+sec);
     if (holder) holder.innerHTML = canEdit[sec]
-      ? `<button class="btn ${listEdit[sec]?'btn-primary':'btn-ghost'} btn-sm list-btn" onclick="event.stopPropagation();toggleListEdit('${sec}')">${listEdit[sec]?'Done':'Edit'}</button>`
+      ? `<button class="btn ${listEdit[sec]?'btn-primary':'btn-ghost'} btn-sm ctl list-btn" onclick="event.stopPropagation();toggleListEdit('${sec}')">${listEdit[sec]?'Done':'Edit'}</button>`
       : '';
   });
   document.getElementById('projEditBox').style.display = listEdit.projects ? '' : 'none';
@@ -4758,7 +4799,24 @@ const _origSaveTask = saveTask;
 async function saveTask() {
   const text = document.getElementById('taskTextInput').value.trim();
   if (!text) return;
-  if (taskSelectedAreas.size === 0) { alert('Please select at least one area'); return; }
+  const targetProject = document.getElementById('taskProjectSelect')?.value || CURRENT_PROJECT;
+  const pName = (S.projects||[]).find(p=>p.id===targetProject)?.name || 'that project';
+  if (targetProject !== CURRENT_PROJECT) {
+    const assigneesX = taskSelectedPeople.size > 0 ? [...taskSelectedPeople] : [S.currentUser];
+    if (taskEditId) {
+      const t = S.tasks.find(x=>x.id===taskEditId);
+      t.text = text; t.assignees = assigneesX;
+      await saveRecord('tasks', { id: t.id, text, assignees: assigneesX, project_id: CURRENT_PROJECT });
+      if (await moveTaskToProject(t, targetProject)) showToast(`Moved to ${pName}`);
+    } else {
+      await saveRecord('tasks', { id: uid(), text, area_ids: [], assignees: assigneesX, done: false, done_by_area: {}, archived: false, priority: {}, project_id: targetProject });
+      showToast(`Added to ${pName}`);
+    }
+    closeAddTask();
+    refreshCurrentPage();
+    return;
+  }
+  if (taskSelectedAreas.size === 0 && S.areas.length) { alert('Please select at least one area'); return; }
   const areaIds = [...taskSelectedAreas];
   const assignees = taskSelectedPeople.size > 0 ? [...taskSelectedPeople] : [S.currentUser];
   const priority = (document.getElementById('taskPrioritySelect')?.value) || 'none';
