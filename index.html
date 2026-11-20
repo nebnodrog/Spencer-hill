@@ -724,9 +724,9 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
         <span id="lists-chevron-areas" style="font-size:11px;color:#8a8578;transition:transform 0.2s">▼</span>
       </div>
     </div>
-    <div id="lists-body-areas" style="margin-bottom:16px">
+    <div id="lists-body-areas" style="margin-bottom:16px;display:none">
       <div id="areaManagerList"></div>
-      <div style="border-top:1px solid #ddd9d0;padding-top:10px;margin-top:4px">
+      <div id="newAreaBox" style="border-top:1px solid #ddd9d0;padding-top:10px;margin-top:4px">
         <div class="row" style="gap:8px">
           <input id="newAreaInput" placeholder="New area name" style="flex:1">
           <button class="btn btn-primary btn-sm" style="flex-shrink:0" onclick="saveArea()">Add</button>
@@ -1005,31 +1005,21 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <!-- MODAL: Area Manager -->
 
-<div class="overlay" id="addAreaOverlay" onclick="if(event.target===this)closeAddArea()">
-  <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Manage Areas</span><button onclick="closeAddArea()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
-
-    <!-- Area list for editing/sorting -->
-    <div id="areaManagerList" style="margin-bottom:16px"></div>
-
-    <!-- Add new area -->
-    <div style="border-top:1px solid #ddd9d0;padding-top:14px">
-      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Add New Area</label>
-      <div class="row" style="gap:8px">
-        <input id="newAreaInput" placeholder="e.g. Flat 5, Roof, Communal" style="flex:1">
-        <button class="btn btn-primary" style="flex-shrink:0" onclick="saveArea()">Add</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL: Edit Single Area -->
 <div class="overlay" id="editAreaOverlay" onclick="if(event.target===this)closeEditAreaModal()">
   <div class="sheet">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Edit Area</span><button onclick="closeEditAreaModal()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
-    <input id="editAreaInput" placeholder="Area name" style="margin-bottom:12px">
-    <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="saveEditArea()">Save</button>
-    <button class="btn btn-ghost" style="width:100%;color:#c8440e" onclick="deleteCurrentArea()">Delete Area</button>
+    <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
+      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Name</label>
+      <input id="editAreaInput" placeholder="Area name" style="margin-bottom:12px">
+      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Position in list</label>
+      <select id="editAreaPos" style="margin-bottom:12px;font-size:16px"></select>
+      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Notes</label>
+      <textarea id="editAreaNotes" oninput="areaNotesChanged()" placeholder="Type notes here…" style="min-height:28vh;width:100%;box-sizing:border-box;font-size:16px;line-height:1.5;padding:12px;border:1px solid #ddd9d0;border-radius:8px;resize:none;font-family:'DM Sans',sans-serif"></textarea>
+      <div id="editAreaNotesStatus" style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin:6px 0 12px;min-height:14px"></div>
+      <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="saveEditArea()">Save</button>
+      <button id="editAreaDeleteBtn" class="btn btn-ghost" style="width:100%;color:#c8440e;margin-bottom:16px" onclick="deleteCurrentArea()">Delete Area</button>
+    </div>
   </div>
 </div>
 
@@ -1849,7 +1839,7 @@ function renderTasksPage() {
         });
         if (!rows || !rows.length) return '';
         return `
-          ${taskHeadingsVisible ? `<div class="section-head">${area.name}</div>` : ''}
+          ${taskHeadingsVisible ? `<div class="section-head" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>${area.name}</span><span onclick="event.stopPropagation();openNotes('area','${area.id}')" style="cursor:pointer;color:${area.notes&&area.notes.trim()?'#c8440e':'#8a8578'};padding:2px 0 2px 12px">Notes${area.notes&&area.notes.trim()?' •':''}</span></div>` : ''}
           ${rows.map(t=>renderTaskRow(t, area.id)).join('')}`;
       }).join('');
 
@@ -1948,7 +1938,7 @@ function renderTaskRow(t, areaId=null) {
       </div>
       ${matsHtml}
       <div class="row" style="gap:5px;flex-wrap:nowrap">
-        <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();toggleTask('${t.id}','${areaId||''}')">${isDoneInArea ? 'Reopen' : 'Done'}</button>
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();toggleTask('${t.id}','${areaId||''}')">${isDoneInArea ? 'Reopen' : 'Done'}</button>` : ''}
         <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();openNotes('task','${t.id}')">Notes${t.notes&&t.notes.trim()?' •':''}</button>
         ${(isEditor() || archivedMats.length) ? `<button class="btn btn-ghost btn-sm" style="flex:0 0 auto;align-self:stretch;padding:0 16px;font-size:16px;line-height:1" title="More actions" onclick="event.stopPropagation();openTaskMenu('${t.id}',this,'${areaId||''}')">⋮</button>` : ''}
       </div>
@@ -1959,8 +1949,26 @@ function renderTaskRow(t, areaId=null) {
 
 // ── Notes (tasks & materials) — live, autosaving ──
 let notesCtx = null, notesTimer = null;
+const NOTES_TABLE = { task:'tasks', mat:'materials', area:'areas' };
 function notesRecord(kind, id) {
-  return kind === 'task' ? S.tasks.find(x=>x.id===id) : S.materials.find(x=>x.id===id);
+  const list = kind === 'task' ? S.tasks : kind === 'area' ? S.areas : S.materials;
+  return list.find(x=>x.id===id);
+}
+async function patchNotes(table, id, text) {
+  try {
+    await refreshSessionIfNeeded();
+    const res = await fetch(`${SB_URL}/${table}?id=eq.${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: { ...getAuthHeaders(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ notes: text })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return true;
+  } catch (e) {
+    console.error('Notes save failed:', e);
+    showToast('⚠️ Notes not saved');
+    return false;
+  }
 }
 function openNotes(kind, id) {
   closeTaskMenu();
@@ -1990,22 +1998,9 @@ async function saveNotesNow() {
   const ctx = notesCtx;
   const text = document.getElementById('notesText').value;
   if (text === ctx.saved) { document.getElementById('notesStatus').textContent = 'Saved'; return; }
-  const table = ctx.kind === 'task' ? 'tasks' : 'materials';
-  try {
-    await refreshSessionIfNeeded();
-    const res = await fetch(`${SB_URL}/${table}?id=eq.${encodeURIComponent(ctx.id)}`, {
-      method: 'PATCH',
-      headers: { ...getAuthHeaders(), 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ notes: text })
-    });
-    if (!res.ok) throw new Error(await res.text());
-    ctx.saved = text;
-    if (notesCtx === ctx) document.getElementById('notesStatus').textContent = 'Saved';
-  } catch (e) {
-    console.error('Notes save failed:', e);
-    if (notesCtx === ctx) document.getElementById('notesStatus').textContent = '⚠️ Not saved — check connection';
-    showToast('⚠️ Notes not saved');
-  }
+  const ok = await patchNotes(NOTES_TABLE[ctx.kind], ctx.id, text);
+  if (ok) ctx.saved = text;
+  if (notesCtx === ctx) document.getElementById('notesStatus').textContent = ok ? 'Saved' : '⚠️ Not saved — check connection';
 }
 async function closeNotes() {
   document.getElementById('notesOverlay').classList.remove('open');
@@ -2013,7 +2008,7 @@ async function closeNotes() {
   const ctx = notesCtx;
   if (ctx && isEditor()) await saveNotesNow();
   notesCtx = null;
-  if (ctx) { if (ctx.kind === 'task') refreshCurrentPage(); else renderMaterials(); }
+  if (ctx) { if (ctx.kind === 'mat') renderMaterials(); else { refreshCurrentPage(); renderAreaManagerList(); } }
 }
 
 // ── Task actions dropdown (⋮) ──
@@ -2202,15 +2197,13 @@ function refreshCurrentPage() {
 // ═══════════════ ADD AREA ═══════════════
 function openAddArea() {
   editingAreaIdx = null;
-  document.getElementById('newAreaInput').value = '';
-  renderAreaManagerList();
-  document.getElementById('addAreaOverlay').classList.add('open');
+  showPage('lists');
+  listSectionOpen.areas = true;
+  renderListsPage();
+  const inp = document.getElementById('newAreaInput');
+  if (inp && isEditor()) setTimeout(() => inp.focus(), 200);
 }
-function closeAddArea() {
-  document.getElementById('addAreaOverlay').classList.remove('open');
-  editingAreaIdx = null;
-  renderAreaPage();
-}
+function closeAddArea() { editingAreaIdx = null; }
 
 let editingAreaIdx = null;
 
@@ -2222,13 +2215,10 @@ function renderAreaManagerList() {
     return;
   }
   list.innerHTML = S.areas.map((a,i)=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #ddd9d0">
-      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
-        <button onclick="moveArea(${i},-1)" style="background:none;border:none;font-size:14px;cursor:pointer;color:${i===0?'#ddd9d0':'#8a8578'};padding:0;line-height:1" ${i===0?'disabled':''}>▲</button>
-        <button onclick="moveArea(${i},1)" style="background:none;border:none;font-size:14px;cursor:pointer;color:${i===S.areas.length-1?'#ddd9d0':'#8a8578'};padding:0;line-height:1" ${i===S.areas.length-1?'disabled':''}>▼</button>
-      </div>
+    <div onclick="${isEditor() ? `openEditAreaModal(${i})` : `openNotes('area','${a.id}')`}" style="display:flex;align-items:center;gap:10px;padding:13px 2px;border-bottom:1px solid #ddd9d0;cursor:pointer">
       <div style="flex:1;font-size:14px;font-weight:500">${a.name}</div>
-      <button class="btn btn-ghost btn-sm" style="font-size:13px;padding:6px 14px" onclick="openEditAreaModal(${i})">Edit</button>
+      ${a.notes&&a.notes.trim() ? `<span title="Has notes" style="font-size:12px;opacity:.7">📝</span>` : ''}
+      <span style="font-size:18px;color:#8a8578;line-height:1">›</span>
     </div>`).join('');
 }
 
@@ -2245,14 +2235,44 @@ function moveArea(i, dir) {
 
 function openEditAreaModal(i) {
   editingAreaIdx = i;
-  document.getElementById('editAreaInput').value = S.areas[i].name;
+  const a = S.areas[i];
+  document.getElementById('editAreaInput').value = a.name;
+  const n = S.areas.length;
+  document.getElementById('editAreaPos').innerHTML = S.areas.map((x,k)=>
+    `<option value="${k}" ${k===i?'selected':''}>${k+1} of ${n}${k===0?' (top)':k===n-1?' (bottom)':''}</option>`).join('');
+  document.getElementById('editAreaNotes').value = a.notes || '';
+  document.getElementById('editAreaNotesStatus').textContent = '';
+  areaNotesCtx = { id: a.id, saved: a.notes || '' };
+  document.getElementById('editAreaDeleteBtn').style.display = isAdmin() ? '' : 'none';
   document.getElementById('editAreaOverlay').classList.add('open');
-  setTimeout(()=>document.getElementById('editAreaInput').focus(), 200);
 }
-function closeEditAreaModal() {
+async function closeEditAreaModal() {
   document.getElementById('editAreaOverlay').classList.remove('open');
+  await saveAreaNotesNow();
+  areaNotesCtx = null;
   editingAreaIdx = null;
   renderAreaManagerList();
+  refreshCurrentPage();
+}
+// Area notes save live, like task/material notes
+let areaNotesCtx = null, areaNotesTimer = null;
+function areaNotesChanged() {
+  if (!areaNotesCtx) return;
+  const a = S.areas.find(x=>x.id===areaNotesCtx.id);
+  if (a) a.notes = document.getElementById('editAreaNotes').value;
+  document.getElementById('editAreaNotesStatus').textContent = 'Saving…';
+  clearTimeout(areaNotesTimer);
+  areaNotesTimer = setTimeout(saveAreaNotesNow, 800);
+}
+async function saveAreaNotesNow() {
+  clearTimeout(areaNotesTimer);
+  const ctx = areaNotesCtx;
+  if (!ctx) return;
+  const text = document.getElementById('editAreaNotes').value;
+  if (text === ctx.saved) { if (areaNotesCtx===ctx) document.getElementById('editAreaNotesStatus').textContent = text ? 'Saved' : ''; return; }
+  const ok = await patchNotes('areas', ctx.id, text);
+  if (ok) ctx.saved = text;
+  if (areaNotesCtx === ctx) document.getElementById('editAreaNotesStatus').textContent = ok ? 'Saved' : '⚠️ Not saved — check connection';
 }
 function saveEditArea() {
   const name = document.getElementById('editAreaInput').value.trim();
@@ -3962,7 +3982,7 @@ async function placeBulkOrder() {
   showToast(`${bulkSelected.size} orders placed`);
 }
 // ═══════════════ LISTS PAGE ═══════════════
-const listSectionOpen = { areas: true, team: false, suppliers: false };
+const listSectionOpen = { areas: false, team: false, suppliers: false };
 
 function toggleListSection(section) {
   listSectionOpen[section] = !listSectionOpen[section];
@@ -3978,7 +3998,9 @@ function toggleListSection(section) {
 function renderListsPage() {
   // Populate permission-aware buttons
   const areaAddBtn = document.getElementById('listsAreaAddBtn');
-  if (areaAddBtn) areaAddBtn.innerHTML = isAdmin() ? `<button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="event.stopPropagation();openAddArea()">+ Add</button>` : '';
+  if (areaAddBtn) areaAddBtn.innerHTML = '';
+  const newAreaBox = document.getElementById('newAreaBox');
+  if (newAreaBox) newAreaBox.style.display = isEditor() ? '' : 'none';
   const supAddBtn = document.getElementById('listsSupplierAddBtn');
   if (supAddBtn) supAddBtn.innerHTML = isAdmin() ? `<button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="event.stopPropagation();openAddSupplier()">+ Add</button>` : '';
 
@@ -4378,11 +4400,12 @@ async function saveArea() {
   const name = document.getElementById('newAreaInput').value.trim();
   if (!name) return;
   const id = uid();
-  S.areas.push({ id, name });
+  const sortOrder = S.areas.reduce((mx,a)=>Math.max(mx, a.sortOrder||0), 0) + 1;
+  S.areas.push({ id, name, notes: '', sortOrder });
   S.currentArea = S.areas.length - 1;
   document.getElementById('newAreaInput').value = '';
   renderAreaManagerList();
-  await saveRecord('areas', { id, name, project_id: 'spencer-hill' });
+  await saveRecord('areas', { id, name, sort_order: sortOrder, project_id: 'spencer-hill' });
 }
 
 const _origSaveEditArea = saveEditArea;
@@ -4391,7 +4414,24 @@ async function saveEditArea() {
   if (!name || editingAreaIdx === null) return;
   const area = S.areas[editingAreaIdx];
   area.name = name;
-  await saveRecord('areas', { id: area.id, name, project_id: 'spencer-hill' });
+  const newPos = parseInt(document.getElementById('editAreaPos').value, 10);
+  const curId = S.areas[S.currentArea]?.id;
+  if (!isNaN(newPos) && newPos !== editingAreaIdx) {
+    S.areas.splice(editingAreaIdx, 1);
+    S.areas.splice(newPos, 0, area);
+  }
+  const ci = S.areas.findIndex(a=>a.id===curId);
+  if (ci > -1) S.currentArea = ci;
+  // Save name, and the order for any area whose position changed
+  const saves = [];
+  S.areas.forEach((a, k) => {
+    const pos = k + 1;
+    if (a === area || a.sortOrder !== pos) {
+      a.sortOrder = pos;
+      saves.push(saveRecord('areas', { id: a.id, name: a.name, sort_order: pos, project_id: 'spencer-hill' }));
+    }
+  });
+  await Promise.all(saves);
   closeEditAreaModal();
 }
 
@@ -4443,6 +4483,7 @@ async function toggleArchiveTask(id) {
   showToast(t.archived ? 'Task archived' : 'Task unarchived');
 }
 async function toggleTask(id, areaId) {
+  if (!isEditor()) { showToast('View only — ask Ben or Brian to tick this off'); return; }
   const t = S.tasks.find(x=>x.id===id);
   if (!t) return;
   if (!t.doneByArea) t.doneByArea = {};
@@ -4656,7 +4697,8 @@ async function loadFromSupabase() {
       sbGet('users', '&order=sort_order')
     ]);
 
-    S.areas = areasR.map(r=>({ id:r.id, name:r.name }));
+    S.areas = areasR.map((r,k)=>({ id:r.id, name:r.name, notes:r.notes||'', sortOrder:r.sort_order||0, _k:k }))
+      .sort((a,b)=>(a.sortOrder||1e9)-(b.sortOrder||1e9) || a._k-b._k).map(({_k,...a})=>a);
     S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false, doneByArea: typeof r.done_by_area==='object'&&r.done_by_area!==null ? r.done_by_area : {}, archived:r.archived||false, priority:typeof r.priority==='object'&&r.priority!==null ? r.priority : {}, notes:r.notes||'' }));
     S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[], directQty:r.direct_qty||0, archived:r.archived||false, notes:r.notes||'' }));
     S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false }));
