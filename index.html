@@ -730,6 +730,21 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <div id="page-lists" class="page">
   <div class="page-pad">
 
+    <!-- PROJECTS SECTION -->
+    <div onclick="toggleListSection('projects')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916">Projects</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div id="listsEditBtn-projects"></div>
+        <span id="lists-chevron-projects" style="font-size:11px;color:#8a8578;transition:transform 0.2s">▼</span>
+      </div>
+    </div>
+    <div id="lists-body-projects" style="margin-bottom:16px;display:none">
+      <div id="projEditBox" style="display:none;padding:8px 0 10px">
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openNewProject()">+ New project</button>
+      </div>
+      <div id="projectList"></div>
+    </div>
+
     <!-- AREAS SECTION -->
     <div onclick="toggleListSection('areas')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none">
       <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916">Areas</span>
@@ -1286,6 +1301,7 @@ function openProjectSettings() {
 function closeProjectSettings() {
   document.getElementById('projectSettingsOverlay').classList.remove('open');
   creatingProject = false;
+  editingProjectId = null;
 }
 async function saveProjectSettings() {
   const name = document.getElementById('projectNameInput').value.trim();
@@ -1306,13 +1322,14 @@ async function saveProjectSettings() {
     showToast(`Project "${name}" created`);
     return;
   }
-  S.projectName = name;
-  S.projectDesc = desc;
-  const p = S.projects.find(x=>x.id===CURRENT_PROJECT);
+  const pid = editingProjectId || CURRENT_PROJECT;
+  if (pid === CURRENT_PROJECT) { S.projectName = name; S.projectDesc = desc; }
+  const p = S.projects.find(x=>x.id===pid);
   if (p) { p.name = name; p.description = desc; }
-  await saveRecord('projects', { id: CURRENT_PROJECT, name, description: desc, sort_order: p ? p.sortOrder : 1 });
+  await saveRecord('projects', { id: pid, name, description: desc, sort_order: p ? p.sortOrder : 1 });
   renderHeader();
   closeProjectSettings();
+  renderProjectList();
 }
 
 function currentPerm() {
@@ -2004,7 +2021,7 @@ function renderTaskRow(t, areaId=null) {
 }
 
 // ── Lists: edit mode ──
-const listEdit = { areas: false, team: false, suppliers: false };
+const listEdit = { projects: false, areas: false, team: false, suppliers: false };
 async function toggleListEdit(sec) {
   if (!listEdit[sec]) {
     listEdit[sec] = true;
@@ -2018,14 +2035,16 @@ async function toggleListEdit(sec) {
   await saveListOrder(sec);
 }
 async function saveListOrder(sec) {
-  const list = sec === 'areas' ? S.areas : sec === 'suppliers' ? S.suppliers : null;
+  const list = sec === 'areas' ? S.areas : sec === 'suppliers' ? S.suppliers : sec === 'projects' ? S.projects : null;
   if (!list) return;
   const saves = [];
   list.forEach((x, k) => {
     const pos = k + 1;
     if (x.sortOrder !== pos) {
       x.sortOrder = pos;
-      saves.push(sec === 'areas'
+      saves.push(sec === 'projects'
+        ? saveRecord('projects', { id: x.id, name: x.name, sort_order: pos })
+        : sec === 'areas'
         ? saveRecord('areas', { id: x.id, name: x.name, sort_order: pos, project_id: CURRENT_PROJECT })
         : saveRecord('suppliers', { id: x.id, name: x.name, sort_order: pos, project_id: (x.projectIds&&x.projectIds[0]) || CURRENT_PROJECT }));
     }
@@ -2103,7 +2122,23 @@ function renderProjectChecks(elId, selectedIds) {
 function readProjectChecks(elId) {
   return [...document.querySelectorAll(`#${elId} input[type=checkbox]:checked`)].map(x => x.value);
 }
-let creatingProject = false;
+let creatingProject = false, editingProjectId = null;
+function renderProjectList() {
+  const el = document.getElementById('projectList');
+  if (!el) return;
+  const editing = listEdit.projects;
+  const list = (S.projects && S.projects.length) ? S.projects : [{ id: CURRENT_PROJECT, name: S.projectName, description: S.projectDesc }];
+  el.innerHTML = list.map((p,i)=>`
+    <div data-idx="${i}" onclick="${editing ? `openEditProject('${p.id}')` : `switchProject('${p.id}')`}" style="display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid #ddd9d0;cursor:pointer;background:#f5f3ee">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:${p.id===CURRENT_PROJECT?'700':'500'}">${p.name}</div>
+        ${p.description ? `<div style="font-size:12px;color:#8a8578;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.description}</div>` : ''}
+      </div>
+      ${p.id===CURRENT_PROJECT ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#c8440e">current</span>` : ''}
+      ${editing ? `<span style="font-size:15px;color:#8a8578">✎</span>${dragHandleHtml()}` : `<span style="font-size:18px;color:#8a8578;line-height:1">›</span>`}
+    </div>`).join('');
+  if (editing && S.projects && S.projects.length) enableDrag(el, (from, to) => { moveInArray(S.projects, from, to); renderProjectList(); });
+}
 function openProjects() {
   const list = (S.projects && S.projects.length) ? S.projects : [{ id: CURRENT_PROJECT, name: S.projectName, description: S.projectDesc }];
   document.getElementById('projectsList').innerHTML = list.map(p => `
@@ -2138,12 +2173,14 @@ function openNewProject() {
   document.getElementById('projectSettingsOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('projectNameInput').focus(), 200);
 }
-function openEditProject() {
+function openEditProject(id) {
   closeProjects();
   creatingProject = false;
-  document.getElementById('projectSettingsTitle').textContent = 'Project Settings';
-  document.getElementById('projectNameInput').value = S.projectName;
-  document.getElementById('projectDescInput').value = S.projectDesc;
+  editingProjectId = id || CURRENT_PROJECT;
+  const p = (S.projects||[]).find(x=>x.id===editingProjectId) || { name: S.projectName, description: S.projectDesc };
+  document.getElementById('projectSettingsTitle').textContent = 'Edit Project';
+  document.getElementById('projectNameInput').value = p.name;
+  document.getElementById('projectDescInput').value = p.description || '';
   document.getElementById('projectSettingsOverlay').classList.add('open');
 }
 
@@ -4210,7 +4247,7 @@ async function placeBulkOrder() {
   showToast(`${bulkSelected.size} orders placed`);
 }
 // ═══════════════ LISTS PAGE ═══════════════
-const listSectionOpen = { areas: false, team: false, suppliers: false };
+const listSectionOpen = { projects: false, areas: false, team: false, suppliers: false };
 
 function toggleListSection(section) {
   listSectionOpen[section] = !listSectionOpen[section];
@@ -4221,30 +4258,33 @@ function toggleListSection(section) {
   if (section === 'team' && listSectionOpen[section]) renderTeam();
   if (section === 'suppliers' && listSectionOpen[section]) renderSuppliers();
   if (section === 'areas' && listSectionOpen[section]) renderAreaManagerList();
+  if (section === 'projects' && listSectionOpen[section]) renderProjectList();
 }
 
 function renderListsPage() {
   // Edit / Done button on each list (only for people allowed to change it)
-  const canEdit = { areas: isEditor(), team: isAdmin(), suppliers: isEditor() };
-  ['areas','team','suppliers'].forEach(sec => {
+  const canEdit = { projects: isAdmin(), areas: isEditor(), team: isAdmin(), suppliers: isEditor() };
+  ['projects','areas','team','suppliers'].forEach(sec => {
     if (!canEdit[sec]) listEdit[sec] = false;
     const holder = document.getElementById('listsEditBtn-'+sec);
     if (holder) holder.innerHTML = canEdit[sec]
       ? `<button class="btn ${listEdit[sec]?'btn-primary':'btn-ghost'} btn-sm" style="font-size:13px;padding:6px 16px;min-width:64px" onclick="event.stopPropagation();toggleListEdit('${sec}')">${listEdit[sec]?'Done':'Edit'}</button>`
       : '';
   });
+  document.getElementById('projEditBox').style.display = listEdit.projects ? '' : 'none';
   document.getElementById('newAreaBox').style.display = listEdit.areas ? '' : 'none';
   document.getElementById('teamEditBox').style.display = listEdit.team ? 'flex' : 'none';
   document.getElementById('supEditBox').style.display = listEdit.suppliers ? '' : 'none';
   if (listEdit.team && editingUserIdx === null) renderProjectChecks('newUserProjects', [CURRENT_PROJECT]);
 
   // Set chevron states
-  ['areas','team','suppliers'].forEach(s => {
+  ['projects','areas','team','suppliers'].forEach(s => {
     const body = document.getElementById('lists-body-'+s);
     const chevron = document.getElementById('lists-chevron-'+s);
     if (body) body.style.display = listSectionOpen[s] ? 'block' : 'none';
     if (chevron) chevron.style.transform = listSectionOpen[s] ? 'rotate(180deg)' : '';
   });
+  renderProjectList();
   renderAreaManagerList();
   renderTeam();
   renderSuppliers();
