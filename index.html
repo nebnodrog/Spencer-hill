@@ -194,7 +194,15 @@ select.ctl { display: block; font-size: 13px !important; font-weight: 500; paddi
 .toolbar-line .tb-more { width: 36px; flex-shrink: 0; font-size: 16px; padding-left: 0 !important; padding-right: 0 !important; }
 .tb-summary { display: none; }
 .toolbar-line { margin-bottom: 12px !important; }
-.lozenge { font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1; padding: 4px 8px; border-radius: 6px; border: 1px solid; flex-shrink: 0; white-space: nowrap; }
+.lozenge { font-family: 'DM Mono', monospace; font-size: 11px; line-height: 1; height: 24px; width: 84px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid; flex-shrink: 0; white-space: nowrap; box-sizing: border-box; }
+.toolbar-line .ctl, .toolbar-line input.ctl { height: 32px !important; min-height: 32px; line-height: 32px; -webkit-appearance: none; appearance: none; border-radius: 8px; }
+.toolbar-line input[type=search]::-webkit-search-decoration { -webkit-appearance: none; }
+.btn-soft { background: #fff !important; color: #1a1916 !important; border: 1px solid #1a1916 !important; }
+.task-name-full { flex: 1; min-width: 0; font-size: 14px; font-weight: 500; line-height: 1.3; white-space: normal; overflow: visible; }
+.mini-tag { font-family: 'DM Mono', monospace; font-size: 11px; color: #8a8578; background: #f5f3ee; border: 1px solid #ddd9d0; border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
+.task-actions .btn { flex: 1; justify-content: center; height: 30px; padding: 0 6px !important; font-size: 11px; }
+.task-actions .more { flex: 0 0 36px; font-size: 16px; }
+.notes-on { background: #f0fdf4 !important; color: #15803d !important; border-color: #15803d !important; }
 .toolbar-grid { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; margin-bottom: 12px; align-items: center; }
 .toolbar-grid .row-fill { display: flex; gap: 6px; }
 .toolbar-grid .row-fill > * { flex: 1; }
@@ -1894,7 +1902,7 @@ function renderTasksPage() {
   });
   populateTaskAreaDropdown();
   const addTaskBtn = document.getElementById('taskAddBtn');
-  if (addTaskBtn) addTaskBtn.innerHTML = isEditor() ? `<button class="btn btn-primary btn-sm ctl" onclick="openAddTask()">+ Add Task</button>` : '';
+  if (addTaskBtn) addTaskBtn.innerHTML = isEditor() ? `<button class="btn btn-sm ctl btn-soft" onclick="openAddTask()">+ Add Task</button>` : '';
 
   let tasks = [...S.tasks];
   const taskQ = (document.getElementById('taskSearchBox')?.value || '').trim().toLowerCase();
@@ -2004,11 +2012,7 @@ function renderTaskRow(t, areaId=null) {
         style="width:14px;height:14px;border-radius:50%;border:1.5px solid ${isDoneInArea?'#ddd9d0':priColor};background:${isDoneInArea?'#ddd9d0':'transparent'};display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;flex-shrink:0;cursor:pointer">
         ${isDoneInArea?'✓':''}
       </div>
-      <div class="mat-row-name" onclick="toggleTaskRow('${t.id}',event)" style="font-weight:500;${isDoneInArea?'text-decoration:line-through;opacity:0.5':''}">${t.text}</div>
-      ${areaTag}
-      ${t.notes&&t.notes.trim() ? `<span title="Has notes" style="font-size:12px;flex-shrink:0;opacity:.7" onclick="toggleTaskRow('${t.id}',event)">📝</span>` : ''}
-      ${priorityPill}
-      ${liveMats.length ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0" onclick="toggleTaskRow('${t.id}',event)">${liveMats.length} mat${liveMats.length!==1?'s':''}</span>` : ''}
+      <div class="task-name-full" onclick="toggleTaskRow('${t.id}',event)" style="${isDoneInArea?'text-decoration:line-through;opacity:0.5':''}">${t.text}</div>
       <span onclick="toggleTaskRow('${t.id}',event)" style="display:flex">${statusPill}</span>
     </div>`;
 
@@ -2021,8 +2025,7 @@ function renderTaskRow(t, areaId=null) {
   `).join('') + (assignees.length>3?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-left:3px">+${assignees.length-3}</span>`:'');
 
   const matsHtml = `
-    <div class="task-mats-block" style="margin-bottom:10px">
-      <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;margin-bottom:6px">Materials</div>
+    <div class="task-mats-block" style="border-top:1px solid #ddd9d0;margin-bottom:8px">
       ${liveMats.length ? liveMats.map(m=>{
         const assign = m.assignments.find(a=>a.taskId===t.id);
         const matOrders = S.orders.filter(o=>o.matId===m.id);
@@ -2030,30 +2033,30 @@ function renderTaskRow(t, areaId=null) {
         const delivered = matOrders.filter(o=>o.status==='delivered').reduce((s,o)=>s+o.qty,0);
         const mst = matOrderStatus(m);
         return `
-          <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #ddd9d0">
-            <div style="flex:1;font-size:13px;font-weight:500">${m.name}</div>
-            <span style="font-family:'DM Mono',monospace;font-size:12px;color:#8a8578;flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
+          <div ${isEditor() ? `onclick="event.stopPropagation();openAddMat('${m.id}')"` : ''} style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #ece9e2;${isEditor()?'cursor:pointer':''}">
+            <div style="flex:1;min-width:0;font-size:14px;font-weight:500;line-height:1.3">${m.name}</div>
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
             ${statusLozenge(mst, (mst==='toorder' && isEditor()) ? `openOrderModal('${m.id}')` : '')}
-            ${isEditor() ? `<button class="del-btn" onclick="event.stopPropagation();openAddMat('${m.id}')" style="font-size:13px;color:#8a8578" title="Edit">✎</button>` : ''}
           </div>`;
-      }).join('') : `<div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;padding:4px 0">No active materials</div>`}
-      ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;font-size:11px" onclick="event.stopPropagation();openAddMat(null,'${t.id}')">+ Add material</button>` : ''}
+      }).join('') : ''}
     </div>`;
 
   const detail = `
     <div class="mat-detail open">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;flex-wrap:wrap">
         ${assignees.map(i=>{
           const u = S.users[i];
-          return u ? `<span style="display:flex;align-items:center;gap:4px;font-size:13px"><div class="avatar" style="width:20px;height:20px;font-size:11px;background:${uColor(i)};color:#fff">${initials(u.name)}</div>${u.name}</span>` : '';
+          return u ? `<div class="avatar" title="${u.name}" style="width:20px;height:20px;font-size:11px;background:${uColor(i)};color:#fff">${initials(u.name)}</div>` : '';
         }).join('')}
-        ${areaIds.length>1 ? areaIds.map(id=>`<span style="font-family:'DM Mono',monospace;font-size:11px;background:#edeae3;border:1px solid #ddd9d0;border-radius:3px;padding:1px 5px;color:#8a8578">${areaName(id)}</span>`).join('') : ''}
+        ${areaIds.map(id=>`<span class="mini-tag">${areaName(id)}</span>`).join('')}
+        ${priorityPill}
       </div>
       ${matsHtml}
-      <div class="row" style="gap:5px;flex-wrap:nowrap">
-        ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();openAddTask(null,'${t.id}','${areaId||''}')">Edit</button>` : ''}
-        <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();openNotes('task','${t.id}')">Notes${t.notes&&t.notes.trim()?' •':''}</button>
-        ${(isEditor() || archivedMats.length) ? `<button class="btn btn-ghost btn-sm" style="flex:0 0 auto;align-self:stretch;padding:0 16px;font-size:16px;line-height:1" title="More actions" onclick="event.stopPropagation();openTaskMenu('${t.id}',this,'${areaId||''}')">⋮</button>` : ''}
+      <div class="row task-actions" style="gap:5px;flex-wrap:nowrap">
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAddTask(null,'${t.id}','${areaId||''}')">Edit</button>` : ''}
+        <button class="btn btn-ghost btn-sm ${t.notes&&t.notes.trim()?'notes-on':''}" onclick="event.stopPropagation();openNotes('task','${t.id}')">Notes</button>
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAddMat(null,'${t.id}')">+ Add Mat</button>` : ''}
+        ${(isEditor() || archivedMats.length) ? `<button class="btn btn-ghost btn-sm more" title="More actions" onclick="event.stopPropagation();openTaskMenu('${t.id}',this,'${areaId||''}')">⋮</button>` : ''}
       </div>
     </div>`;
 
@@ -2759,7 +2762,7 @@ function renderMaterials() {
     if (b) b.className = 'btn btn-sm ' + (x===matFilter ? 'btn-primary' : 'btn-ghost');
   });
   const addMatBtn = document.getElementById('matAddBtn');
-  if (addMatBtn) addMatBtn.innerHTML = isEditor() ? `<button class="btn btn-accent btn-sm ctl" onclick="openAddMat()">+ Add Material</button>` : '';
+  if (addMatBtn) addMatBtn.innerHTML = isEditor() ? `<button class="btn btn-sm ctl btn-soft" onclick="openAddMat()">+ Add Material</button>` : '';
 
   let mats = S.materials;
   if (matFilter === 'archived') {
@@ -3583,7 +3586,7 @@ function renderOrdersPage() {
   });
   const bulkBtn = document.getElementById('bulkOrderBtn');
   if (bulkBtn) {
-    bulkBtn.innerHTML = isEditor() ? `<button class="btn btn-accent btn-sm ctl" onclick="openBulkOrder()">+ Bulk</button>` : '';
+    bulkBtn.innerHTML = isEditor() ? `<button class="btn btn-sm ctl btn-soft" onclick="openBulkOrder()">+ Bulk</button>` : '';
     bulkBtn.style.display = isEditor() ? 'flex' : 'none';
   }
 
