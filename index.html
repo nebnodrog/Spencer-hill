@@ -559,11 +559,12 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <!-- HEADER -->
 
 <header style="padding:10px 16px;background:#1a1916">
-  <div class="logo-block" onclick="openProjectSettings()" style="cursor:pointer;flex-direction:column;align-items:flex-start;gap:2px;display:flex">
+  <div class="logo-block" onclick="openProjects()" style="cursor:pointer;flex-direction:column;align-items:flex-start;gap:2px;display:flex">
     <div style="display:flex;align-items:center;gap:8px">
       <div style="font-family:'DM Mono',monospace;font-size:11px;color:#aaa;letter-spacing:2px;text-transform:uppercase;white-space:nowrap">Project Manager</div>
       <div style="color:#aaa;font-size:11px">·</div>
       <div id="projectNameDisplay" style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px">Spencer Hill</div>
+      <div style="color:#aaa;font-size:10px">▼</div>
     </div>
     <div id="headerPageLabel" style="font-family:'DM Mono',monospace;font-size:11px;color:#aaa;letter-spacing:1px;text-transform:uppercase"></div>
   </div>
@@ -573,11 +574,24 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   </div>
 </header>
 
+<!-- MODAL: Projects (switch / new) -->
+<div class="overlay" id="projectsOverlay" onclick="if(event.target===this)closeProjects()">
+  <div class="sheet" style="height:auto;max-height:82vh">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Projects</span><button onclick="closeProjects()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div id="projectsList" style="overflow-y:auto"></div>
+    <div id="projectsAdminBtns" style="flex-shrink:0;padding:8px 0 16px">
+      <div class="divider"></div>
+      <button class="btn btn-ghost" style="width:100%;margin-bottom:8px" onclick="openEditProject()">Edit this project</button>
+      <button class="btn btn-primary" style="width:100%" onclick="openNewProject()">+ New project</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: Project Settings -->
 
 <div class="overlay" id="projectSettingsOverlay" onclick="if(event.target===this)closeProjectSettings()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Project Settings</span><button onclick="closeProjectSettings()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="projectSettingsTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Project Settings</span><button onclick="closeProjectSettings()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div style="margin-bottom:14px">
       <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Project Name</label>
       <input id="projectNameInput" placeholder="e.g. Spencer Hill">
@@ -719,30 +733,32 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <!-- AREAS SECTION -->
     <div onclick="toggleListSection('areas')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none">
       <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916">Areas</span>
-      <div style="display:flex;align-items:center;gap:8px">
-        <div id="listsAreaAddBtn"></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div id="listsEditBtn-areas"></div>
         <span id="lists-chevron-areas" style="font-size:11px;color:#8a8578;transition:transform 0.2s">▼</span>
       </div>
     </div>
     <div id="lists-body-areas" style="margin-bottom:16px;display:none">
-      <div id="areaManagerList"></div>
-      <div id="newAreaBox" style="border-top:1px solid #ddd9d0;padding-top:10px;margin-top:4px">
+      <div id="newAreaBox" style="display:none;padding:8px 0 10px;border-bottom:1px solid #ddd9d0">
         <div class="row" style="gap:8px">
-          <input id="newAreaInput" placeholder="New area name" style="flex:1">
+          <input id="newAreaInput" placeholder="New area name" style="flex:1" onkeydown="if(event.key==='Enter')saveArea()">
           <button class="btn btn-primary btn-sm" style="flex-shrink:0" onclick="saveArea()">Add</button>
         </div>
       </div>
+      <div id="areaManagerList"></div>
     </div>
 
     <!-- TEAM SECTION -->
     <div onclick="toggleListSection('team')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none">
       <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916">Team</span>
-      <span id="lists-chevron-team" style="font-size:11px;color:#8a8578;transition:transform 0.2s">▼</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div id="listsEditBtn-team"></div>
+        <span id="lists-chevron-team" style="font-size:11px;color:#8a8578;transition:transform 0.2s">▼</span>
+      </div>
     </div>
     <div id="lists-body-team" style="margin-bottom:16px;display:none">
-      <div id="teamList"></div>
-      <div class="divider"></div>
-      <div style="display:flex;flex-direction:column;gap:8px">
+      <div id="teamEditBox" style="display:none;flex-direction:column;gap:8px;padding:8px 0 12px;border-bottom:1px solid #ddd9d0;margin-bottom:6px">
+        <div id="teamFormTitle" style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Add team member</div>
         <div class="row" style="gap:8px;flex-wrap:wrap">
           <input id="newUserName" placeholder="Name" style="flex:2;min-width:100px">
           <input id="newUserEmail" type="email" placeholder="Email" style="flex:2;min-width:100px">
@@ -754,20 +770,31 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
             <option value="tradesman">Tradesman</option>
             <option value="admin">Admin</option>
           </select>
-          <button class="btn btn-primary btn-sm" onclick="addUser()" style="flex-shrink:0" id="addUserBtn">Add</button>
+        </div>
+        <div>
+          <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Projects</label>
+          <div id="newUserProjects"></div>
+        </div>
+        <div class="row" style="gap:8px">
+          <button class="btn btn-ghost btn-sm" id="cancelUserBtn" style="flex:1;display:none" onclick="cancelEditUser()">Cancel</button>
+          <button class="btn btn-primary btn-sm" onclick="addUser()" style="flex:1" id="addUserBtn">Add</button>
         </div>
       </div>
+      <div id="teamList"></div>
     </div>
 
     <!-- SUPPLIERS SECTION -->
     <div onclick="toggleListSection('suppliers')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none">
       <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916">Suppliers</span>
-      <div style="display:flex;align-items:center;gap:8px">
-        <div id="listsSupplierAddBtn"></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div id="listsEditBtn-suppliers"></div>
         <span id="lists-chevron-suppliers" style="font-size:11px;color:#8a8578;transition:transform 0.2s">▼</span>
       </div>
     </div>
     <div id="lists-body-suppliers" style="margin-bottom:16px;display:none">
+      <div id="supEditBox" style="display:none;padding:8px 0 10px">
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openAddSupplier()">+ Add supplier</button>
+      </div>
       <div id="supplierList"></div>
     </div>
 
@@ -1012,8 +1039,8 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
       <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Name</label>
       <input id="editAreaInput" placeholder="Area name" style="margin-bottom:12px">
-      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Position in list</label>
-      <select id="editAreaPos" style="margin-bottom:12px;font-size:16px"></select>
+      <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Description</label>
+      <input id="editAreaDesc" placeholder="e.g. First floor, rear" style="margin-bottom:12px">
       <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Notes</label>
       <textarea id="editAreaNotes" oninput="areaNotesChanged()" placeholder="Type notes here…" style="min-height:28vh;width:100%;box-sizing:border-box;font-size:16px;line-height:1.5;padding:12px;border:1px solid #ddd9d0;border-radius:8px;resize:none;font-family:'DM Sans',sans-serif"></textarea>
       <div id="editAreaNotesStatus" style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin:6px 0 12px;min-height:14px"></div>
@@ -1160,6 +1187,10 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
         <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Notes</label>
         <input id="supNotesInput" placeholder="e.g. Ask for Dave, 10% trade discount">
       </div>
+      <div>
+        <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Projects</label>
+        <div id="supProjects"></div>
+      </div>
     </div>
     <button class="btn btn-primary" style="width:100%" onclick="saveSupplier()" id="saveSupplierBtn">Save Supplier</button>
   </div>
@@ -1182,6 +1213,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 // ═══════════════ STATE ═══════════════
 const COLORS = ['#c8440e','#1d4ed8','#15803d','#7c3aed','#0e7490','#b45309'];
 
+var CURRENT_PROJECT = (function(){ try { return localStorage.getItem('sh_project') || 'spencer-hill'; } catch(e) { return 'spencer-hill'; } })();
 let S = {
   currentUser: 0,
   currentArea: 0,
@@ -1253,12 +1285,32 @@ function openProjectSettings() {
 }
 function closeProjectSettings() {
   document.getElementById('projectSettingsOverlay').classList.remove('open');
+  creatingProject = false;
 }
-function saveProjectSettings() {
+async function saveProjectSettings() {
   const name = document.getElementById('projectNameInput').value.trim();
   const desc = document.getElementById('projectDescInput').value.trim();
-  if (name) S.projectName = name;
+  if (!name) { alert('Please enter a project name'); return; }
+  if (!S.projects) S.projects = [];
+  if (creatingProject) {
+    const id = 'p-' + uid();
+    const sortOrder = S.projects.reduce((mx,p)=>Math.max(mx, p.sortOrder||0), 0) + 1;
+    S.projects.push({ id, name, description: desc, sortOrder });
+    await saveRecord('projects', { id, name, description: desc, sort_order: sortOrder });
+    creatingProject = false;
+    closeProjectSettings();
+    // Ben joins every new project automatically
+    const me = S.users[S.currentUser];
+    if (me && me.id) { me.projectIds = [...new Set([...(me.projectIds||[]), id])]; await saveUserRecord(me, S.currentUser); }
+    switchProject(id);
+    showToast(`Project "${name}" created`);
+    return;
+  }
+  S.projectName = name;
   S.projectDesc = desc;
+  const p = S.projects.find(x=>x.id===CURRENT_PROJECT);
+  if (p) { p.name = name; p.description = desc; }
+  await saveRecord('projects', { id: CURRENT_PROJECT, name, description: desc, sort_order: p ? p.sortOrder : 1 });
   renderHeader();
   closeProjectSettings();
 }
@@ -1326,6 +1378,8 @@ function switchArea(i) {
 
 function renderAreaPage() {
   renderAreaTabs();
+  if (!S.areas.length) { document.getElementById('areaBody').innerHTML = `<div style="text-align:center;padding:48px 20px;color:#8a8578;font-family:'DM Mono',monospace;font-size:13px">No areas yet — add them in Lists</div>`; return; }
+  if (S.currentArea >= S.areas.length) S.currentArea = 0;
   const area = S.areas[S.currentArea];
   const aId = area.id;
 
@@ -1447,6 +1501,8 @@ let toastTimer = null;
 function showToast(msg, undoFn) {
   undoStack = undoFn;
   document.getElementById('toastMsg').textContent = msg;
+  const undoBtn = document.querySelector('#toast .toast-undo');
+  if (undoBtn) undoBtn.style.display = undoFn ? '' : 'none';
   const toast = document.getElementById('toast');
   toast.classList.add('show');
   clearTimeout(toastTimer);
@@ -1947,6 +2003,150 @@ function renderTaskRow(t, areaId=null) {
   return row + detail;
 }
 
+// ── Lists: edit mode ──
+const listEdit = { areas: false, team: false, suppliers: false };
+async function toggleListEdit(sec) {
+  if (!listEdit[sec]) {
+    listEdit[sec] = true;
+    listSectionOpen[sec] = true;
+    renderListsPage();
+    return;
+  }
+  listEdit[sec] = false;
+  if (sec === 'team') { editingUserIdx = null; resetUserForm(); }
+  renderListsPage();
+  await saveListOrder(sec);
+}
+async function saveListOrder(sec) {
+  const list = sec === 'areas' ? S.areas : sec === 'suppliers' ? S.suppliers : null;
+  if (!list) return;
+  const saves = [];
+  list.forEach((x, k) => {
+    const pos = k + 1;
+    if (x.sortOrder !== pos) {
+      x.sortOrder = pos;
+      saves.push(sec === 'areas'
+        ? saveRecord('areas', { id: x.id, name: x.name, sort_order: pos, project_id: CURRENT_PROJECT })
+        : saveRecord('suppliers', { id: x.id, name: x.name, sort_order: pos, project_id: (x.projectIds&&x.projectIds[0]) || CURRENT_PROJECT }));
+    }
+  });
+  if (saves.length) { await Promise.all(saves); showToast('Order saved'); }
+  if (sec === 'areas') refreshCurrentPage();
+}
+function moveInArray(arr, from, to) {
+  if (from === to) return;
+  const [x] = arr.splice(from, 1);
+  arr.splice(to, 0, x);
+}
+function dragHandleHtml() {
+  return `<span class="drag-handle" onclick="event.stopPropagation()" title="Drag to move" style="touch-action:none;cursor:grab;font-size:20px;color:#8a8578;padding:6px 4px 6px 12px;line-height:1;user-select:none;-webkit-user-select:none">☰</span>`;
+}
+// Drag rows by their ☰ handle (works with finger or mouse)
+function enableDrag(container, onMove) {
+  container.querySelectorAll('.drag-handle').forEach(handle => {
+    handle.addEventListener('pointerdown', e => {
+      e.preventDefault(); e.stopPropagation();
+      const items = [...container.querySelectorAll(':scope > [data-idx]')];
+      const item = handle.closest('[data-idx]');
+      const from = items.indexOf(item);
+      if (from < 0) return;
+      const rects = items.map(x => x.getBoundingClientRect());
+      const step = items.length > 1 ? Math.abs(rects[Math.min(1, items.length-1)].top - rects[0].top) || rects[from].height : rects[from].height;
+      const startY = e.clientY;
+      let to = from;
+      try { handle.setPointerCapture(e.pointerId); } catch(_) {}
+      item.style.position = 'relative'; item.style.zIndex = 10;
+      item.style.boxShadow = '0 6px 18px rgba(0,0,0,.18)'; item.style.background = '#fff';
+      items.forEach(x => { if (x !== item) x.style.transition = 'transform .15s'; });
+      const move = ev => {
+        const dy = ev.clientY - startY;
+        item.style.transform = `translateY(${dy}px)`;
+        const mid = rects[from].top + rects[from].height / 2 + dy;
+        to = 0;
+        items.forEach((x, j) => { if (j !== from && (rects[j].top + rects[j].height / 2) < mid) to++; });
+        items.forEach((x, j) => {
+          if (j === from) return;
+          let shift = 0;
+          if (from < j && j <= to) shift = -step;
+          else if (to <= j && j < from) shift = step;
+          x.style.transform = shift ? `translateY(${shift}px)` : '';
+        });
+      };
+      const up = () => {
+        handle.removeEventListener('pointermove', move);
+        handle.removeEventListener('pointerup', up);
+        handle.removeEventListener('pointercancel', up);
+        items.forEach(x => { x.style.transform = ''; x.style.transition = ''; x.style.boxShadow = ''; x.style.zIndex = ''; });
+        onMove(from, to);
+      };
+      handle.addEventListener('pointermove', move);
+      handle.addEventListener('pointerup', up);
+      handle.addEventListener('pointercancel', up);
+    });
+  });
+}
+
+// ── Projects ──
+function inProject(x) {
+  return !x || !x.projectIds || !x.projectIds.length || x.projectIds.includes(CURRENT_PROJECT);
+}
+function renderProjectChecks(elId, selectedIds) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const projects = (S.projects && S.projects.length) ? S.projects : [{ id: CURRENT_PROJECT, name: S.projectName }];
+  el.innerHTML = projects.map(p => `
+    <label style="display:flex;align-items:center;gap:10px;padding:7px 0;font-size:14px;cursor:pointer">
+      <input type="checkbox" value="${p.id}" ${selectedIds.includes(p.id)?'checked':''} style="width:20px;height:20px;flex-shrink:0;margin:0">
+      <span>${p.name}</span>
+    </label>`).join('');
+}
+function readProjectChecks(elId) {
+  return [...document.querySelectorAll(`#${elId} input[type=checkbox]:checked`)].map(x => x.value);
+}
+let creatingProject = false;
+function openProjects() {
+  const list = (S.projects && S.projects.length) ? S.projects : [{ id: CURRENT_PROJECT, name: S.projectName, description: S.projectDesc }];
+  document.getElementById('projectsList').innerHTML = list.map(p => `
+    <div class="team-card" style="cursor:pointer;${p.id===CURRENT_PROJECT?'border-color:#c8440e':''}" onclick="switchProject('${p.id}')">
+      <div class="team-info">
+        <div class="team-name">${p.name}</div>
+        ${p.description ? `<div class="team-role">${p.description}</div>` : ''}
+      </div>
+      ${p.id===CURRENT_PROJECT ? '<span style="color:#c8440e;font-size:20px">✓</span>' : ''}
+    </div>`).join('');
+  document.getElementById('projectsAdminBtns').style.display = isAdmin() ? '' : 'none';
+  document.getElementById('projectsOverlay').classList.add('open');
+}
+function closeProjects() { document.getElementById('projectsOverlay').classList.remove('open'); }
+function switchProject(id) {
+  closeProjects();
+  if (id === CURRENT_PROJECT) return;
+  CURRENT_PROJECT = id;
+  try { localStorage.setItem('sh_project', id); } catch(e) {}
+  const np = (S.projects||[]).find(x=>x.id===id);
+  if (np) { S.projectName = np.name; S.projectDesc = np.description||''; }
+  S.currentArea = 0;
+  Object.keys(listEdit).forEach(k => listEdit[k] = false);
+  loadFromSupabase();
+}
+function openNewProject() {
+  closeProjects();
+  creatingProject = true;
+  document.getElementById('projectSettingsTitle').textContent = 'New Project';
+  document.getElementById('projectNameInput').value = '';
+  document.getElementById('projectDescInput').value = '';
+  document.getElementById('projectSettingsOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('projectNameInput').focus(), 200);
+}
+function openEditProject() {
+  closeProjects();
+  creatingProject = false;
+  document.getElementById('projectSettingsTitle').textContent = 'Project Settings';
+  document.getElementById('projectNameInput').value = S.projectName;
+  document.getElementById('projectDescInput').value = S.projectDesc;
+  document.getElementById('projectSettingsOverlay').classList.add('open');
+}
+
 // ── Notes (tasks & materials) — live, autosaving ──
 let notesCtx = null, notesTimer = null;
 const NOTES_TABLE = { task:'tasks', mat:'materials', area:'areas' };
@@ -2143,7 +2343,7 @@ async function unarchiveMatFromTask(matId, taskId) {
   if (!m) return;
   m.archived = false;
   renderMaterials(); refreshCurrentPage();
-  await saveRecord('materials', { id:m.id, name:m.name, unit:m.unit, cat:m.cat, assignments:m.assignments, product_url:m.productUrl||'', suppliers:m.suppliers||[], direct_qty:m.directQty||0, archived:false, project_id:'spencer-hill' });
+  await saveRecord('materials', { id:m.id, name:m.name, unit:m.unit, cat:m.cat, assignments:m.assignments, product_url:m.productUrl||'', suppliers:m.suppliers||[], direct_qty:m.directQty||0, archived:false, project_id: CURRENT_PROJECT });
 }
 
 // ── Reassign (multi-person toggle) ──
@@ -2199,6 +2399,7 @@ function openAddArea() {
   editingAreaIdx = null;
   showPage('lists');
   listSectionOpen.areas = true;
+  if (isEditor()) listEdit.areas = true;
   renderListsPage();
   const inp = document.getElementById('newAreaInput');
   if (inp && isEditor()) setTimeout(() => inp.focus(), 200);
@@ -2211,15 +2412,20 @@ function renderAreaManagerList() {
   const list = document.getElementById('areaManagerList');
   if (!list) return;
   if (!S.areas.length) {
-    list.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;padding:8px 0">No areas yet — add one below</div>`;
+    list.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;padding:8px 0">No areas yet${isEditor() ? ' — tap Edit to add one' : ''}</div>`;
     return;
   }
+  const editing = listEdit.areas;
   list.innerHTML = S.areas.map((a,i)=>`
-    <div onclick="${isEditor() ? `openEditAreaModal(${i})` : `openNotes('area','${a.id}')`}" style="display:flex;align-items:center;gap:10px;padding:13px 2px;border-bottom:1px solid #ddd9d0;cursor:pointer">
-      <div style="flex:1;font-size:14px;font-weight:500">${a.name}</div>
+    <div data-idx="${i}" onclick="${isEditor() ? `openEditAreaModal(${i})` : `openNotes('area','${a.id}')`}" style="display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid #ddd9d0;cursor:pointer;background:#f5f3ee">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:500">${a.name}</div>
+        ${a.description ? `<div style="font-size:12px;color:#8a8578;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.description}</div>` : ''}
+      </div>
       ${a.notes&&a.notes.trim() ? `<span title="Has notes" style="font-size:12px;opacity:.7">📝</span>` : ''}
-      <span style="font-size:18px;color:#8a8578;line-height:1">›</span>
+      ${editing ? dragHandleHtml() : `<span style="font-size:18px;color:#8a8578;line-height:1">›</span>`}
     </div>`).join('');
+  if (editing) enableDrag(list, (from, to) => { moveInArray(S.areas, from, to); renderAreaManagerList(); });
 }
 
 function moveArea(i, dir) {
@@ -2237,9 +2443,7 @@ function openEditAreaModal(i) {
   editingAreaIdx = i;
   const a = S.areas[i];
   document.getElementById('editAreaInput').value = a.name;
-  const n = S.areas.length;
-  document.getElementById('editAreaPos').innerHTML = S.areas.map((x,k)=>
-    `<option value="${k}" ${k===i?'selected':''}>${k+1} of ${n}${k===0?' (top)':k===n-1?' (bottom)':''}</option>`).join('');
+  document.getElementById('editAreaDesc').value = a.description || '';
   document.getElementById('editAreaNotes').value = a.notes || '';
   document.getElementById('editAreaNotesStatus').textContent = '';
   areaNotesCtx = { id: a.id, saved: a.notes || '' };
@@ -2776,14 +2980,18 @@ function saveMaterial() {
 
 // ═══════════════ SUPPLIERS PAGE ═══════════════
 function renderSuppliers() {
-  document.getElementById('supplierList').innerHTML = S.suppliers.length ? S.suppliers.map(s=>`
-    <div class="card" style="margin-bottom:8px">
-      <div class="row" style="justify-content:space-between;margin-bottom:6px">
-        <div style="font-size:13px;font-weight:700">${s.name}</div>
-        <div class="row" style="gap:4px">
-          <button class="del-btn" onclick="openAddSupplier('${s.id}')" style="font-size:13px;color:#8a8578" title="Edit">✎</button>
-          <button class="del-btn" onclick="deleteSupplier('${s.id}')">×</button>
-        </div>
+  const editing = listEdit.suppliers;
+  const shown = editing ? S.suppliers : S.suppliers.filter(inProject);
+  const el = document.getElementById('supplierList');
+  el.innerHTML = shown.length ? shown.map((s,i)=>`
+    <div class="card" data-idx="${i}" style="margin-bottom:8px">
+      <div class="row" style="justify-content:space-between;margin-bottom:6px;align-items:center">
+        <div style="font-size:13px;font-weight:700">${s.name}${editing && !inProject(s) ? ' <span style="font-weight:400;font-size:11px;color:#c8440e">· not on this project</span>' : ''}</div>
+        ${editing ? `<div class="row" style="gap:4px;align-items:center">
+          <button class="del-btn" onclick="openAddSupplier('${s.id}')" style="font-size:15px;color:#8a8578;padding:4px 6px" title="Edit">✎</button>
+          <button class="del-btn" onclick="if(confirm('Delete supplier?'))deleteSupplier('${s.id}')" style="padding:4px 6px">×</button>
+          ${dragHandleHtml()}
+        </div>` : ''}
       </div>
       <div style="display:flex;flex-direction:column;gap:5px">
         ${s.phone?`<a href="tel:${s.phone}" style="font-family:'DM Mono',monospace;font-size:13px;color:#1d4ed8;text-decoration:none;display:flex;align-items:center;gap:5px"><span>📞</span>${s.phone}</a>`:''}
@@ -2799,6 +3007,7 @@ function renderSuppliers() {
       <div style="font-size:32px;margin-bottom:8px">🏢</div>
       <div style="font-family:'DM Mono',monospace;font-size:13px;letter-spacing:1px">No suppliers yet</div>
     </div>`;
+  if (editing) enableDrag(el, (from, to) => { moveInArray(S.suppliers, from, to); renderSuppliers(); });
 }
 
 // ── Add / Edit supplier ──
@@ -2822,6 +3031,8 @@ function openAddSupplier(idOrFlag=null) {
   } else {
     ['supNameInput','supPhoneInput','supWebInput','supAccInput','supNotesInput'].forEach(id=>{ document.getElementById(id).value=''; });
   }
+  const supRec = editingSupplierId ? S.suppliers.find(x=>x.id===editingSupplierId) : null;
+  renderProjectChecks('supProjects', supRec && supRec.projectIds && supRec.projectIds.length ? supRec.projectIds : [CURRENT_PROJECT]);
   document.getElementById('addSupplierOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('supNameInput').focus(),200);
 }
@@ -2854,7 +3065,7 @@ function saveSupplier() {
     }
   }
   closeAddSupplier();
-  if (document.getElementById('page-suppliers').classList.contains('active')) renderSuppliers();
+  renderSuppliers();
 }
 
 function deleteSupplier(id) {
@@ -3482,7 +3693,7 @@ async function markDelivered(id) {
   renderMaterials();
   if (document.getElementById('page-diary').classList.contains('active')) renderDiary();
   showToast(o.isCollection ? 'Marked as collected' : 'Marked as delivered');
-  await saveRecord('orders', { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: 'delivered', ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: date, notes: o.notes, is_collection: o.isCollection||false, project_id: 'spencer-hill' });
+  await saveRecord('orders', { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: 'delivered', ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: date, notes: o.notes, is_collection: o.isCollection||false, project_id: CURRENT_PROJECT });
 }
 
 let _pendingDeliveryId = null;
@@ -3521,9 +3732,9 @@ async function confirmMarkDelivered(id, date) {
     o.deliveredAt=null; 
     renderOrdersPage(); 
     renderMaterials(); 
-    await saveRecord('orders', { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: 'ordered', ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: null, notes: o.notes, is_collection: o.isCollection||false, project_id: 'spencer-hill' });
+    await saveRecord('orders', { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: 'ordered', ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: null, notes: o.notes, is_collection: o.isCollection||false, project_id: CURRENT_PROJECT });
   });
-  await saveRecord('orders', { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: 'delivered', ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: date, notes: o.notes, is_collection: o.isCollection||false, project_id: 'spencer-hill' });
+  await saveRecord('orders', { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: 'delivered', ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: date, notes: o.notes, is_collection: o.isCollection||false, project_id: CURRENT_PROJECT });
 }
 
 function changeOrderStatus(id, val) {
@@ -3548,7 +3759,7 @@ async function deleteOrder(id) {
     const m = S.materials.find(x=>x.id===o.matId);
     if (m) {
       m.directQty = Math.max(0, (m.directQty||0) - Number(o.qty));
-      await saveRecord('materials', { id: m.id, name: m.name, unit: m.unit, cat: m.cat, assignments: m.assignments, product_url: m.productUrl||'', suppliers: m.suppliers, direct_qty: m.directQty, archived: m.archived||false, project_id: 'spencer-hill' });
+      await saveRecord('materials', { id: m.id, name: m.name, unit: m.unit, cat: m.cat, assignments: m.assignments, product_url: m.productUrl||'', suppliers: m.suppliers, direct_qty: m.directQty, archived: m.archived||false, project_id: CURRENT_PROJECT });
     }
   }
 
@@ -3561,10 +3772,10 @@ async function deleteOrder(id) {
       const m = S.materials.find(x=>x.id===o.matId);
       if (m) {
         m.directQty = (m.directQty||0) + Number(snapshot.qty);
-        await saveRecord('materials', { id: m.id, name: m.name, unit: m.unit, cat: m.cat, assignments: m.assignments, product_url: m.productUrl||'', suppliers: m.suppliers, direct_qty: m.directQty, archived: m.archived||false, project_id: 'spencer-hill' });
+        await saveRecord('materials', { id: m.id, name: m.name, unit: m.unit, cat: m.cat, assignments: m.assignments, product_url: m.productUrl||'', suppliers: m.suppliers, direct_qty: m.directQty, archived: m.archived||false, project_id: CURRENT_PROJECT });
       }
     }
-    await saveRecord('orders', { id: snapshot.id, mat_id: snapshot.matId, qty: snapshot.qty, unit: snapshot.unit, supplier_id: snapshot.supplierId, status: snapshot.status, ordered_by: snapshot.orderedBy, ordered_at: snapshot.orderedAt, expected_delivery: snapshot.expectedDelivery, delivered_at: snapshot.deliveredAt, notes: snapshot.notes, is_collection: snapshot.isCollection||false, project_id: 'spencer-hill' });
+    await saveRecord('orders', { id: snapshot.id, mat_id: snapshot.matId, qty: snapshot.qty, unit: snapshot.unit, supplier_id: snapshot.supplierId, status: snapshot.status, ordered_by: snapshot.orderedBy, ordered_at: snapshot.orderedAt, expected_delivery: snapshot.expectedDelivery, delivered_at: snapshot.deliveredAt, notes: snapshot.notes, is_collection: snapshot.isCollection||false, project_id: CURRENT_PROJECT });
     refreshCurrentPage(); renderOrdersPage();
   });
 }
@@ -3755,7 +3966,10 @@ function closeAreaOverview() {
 }
 // ═══════════════ TEAM ═══════════════
 function renderTeam() {
+  const editing = listEdit.team;
   document.getElementById('teamList').innerHTML = S.users.map((u,i)=>{
+    const inProj = inProject(u);
+    if (!editing && !inProj) return '';
     const open = S.tasks.filter(t=>!t.done && (t.assignees||[t.assignee??0]).includes(i)).length;
     const perm = u.permission || 'tradesman';
     const permLabel = perm==='admin' ? 'Admin' : perm==='foreman' ? 'Foreman' : 'Tradesman';
@@ -3766,13 +3980,13 @@ function renderTeam() {
         <div class="avatar team-avatar" style="background:${uColor(i)};color:#fff">${initials(u.name)}</div>
         <div class="team-info">
           <div class="team-name">${u.name}</div>
-          <div class="team-role">${u.role}</div>
+          <div class="team-role">${u.role}${editing && !inProj ? ' · <span style="color:#c8440e">not on this project</span>' : ''}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
           <span style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;background:${permBg};color:${permColor};padding:3px 10px;border-radius:6px">${permLabel}</span>
           <span style="font-family:'DM Mono',monospace;font-size:13px;color:#8a8578">${open} open</span>
-          <button class="del-btn" onclick="openEditUser(${i})" style="font-size:13px;color:#8a8578">✎</button>
-          ${i>0?`<button class="del-btn" onclick="deleteUser(${i})">×</button>`:''}
+          ${editing ? `<button class="del-btn" onclick="openEditUser(${i})" style="font-size:15px;color:#8a8578;padding:4px 6px">✎</button>
+          ${i>0?`<button class="del-btn" onclick="if(confirm('Remove ${u.name.replace(/'/g,'')} from the team?'))deleteUser(${i})" style="padding:4px 6px">×</button>`:''}` : ''}
         </div>
       </div>`;
   }).join('');
@@ -3785,8 +3999,24 @@ function openEditUser(i) {
   document.getElementById('newUserEmail').value = S.users[i].email || '';
   document.getElementById('newUserRole').value = S.users[i].role;
   document.getElementById('newUserPermission').value = S.users[i].permission || 'foreman';
+  renderProjectChecks('newUserProjects', S.users[i].projectIds && S.users[i].projectIds.length ? S.users[i].projectIds : [CURRENT_PROJECT]);
   document.getElementById('addUserBtn').textContent = 'Save';
-  document.getElementById('newUserName').focus();
+  document.getElementById('teamFormTitle').textContent = 'Edit ' + S.users[i].name;
+  document.getElementById('cancelUserBtn').style.display = '';
+  document.getElementById('lists-body-team').scrollIntoView({ behavior:'smooth', block:'start' });
+  setTimeout(()=>document.getElementById('newUserName').focus(), 300);
+}
+function cancelEditUser() {
+  editingUserIdx = null;
+  resetUserForm();
+}
+function resetUserForm() {
+  ['newUserName','newUserEmail','newUserRole'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('newUserPermission').value='foreman';
+  document.getElementById('addUserBtn').textContent = 'Add';
+  document.getElementById('teamFormTitle').textContent = 'Add team member';
+  document.getElementById('cancelUserBtn').style.display = 'none';
+  renderProjectChecks('newUserProjects', [CURRENT_PROJECT]);
 }
 async function deleteUser(i) {
   if (i===0) return;
@@ -3802,21 +4032,19 @@ async function addUser() {
   const role = document.getElementById('newUserRole').value.trim();
   const permission = document.getElementById('newUserPermission').value || 'foreman';
   if (!name) return;
+  let projectIds = readProjectChecks('newUserProjects');
+  if (!projectIds.length) projectIds = [CURRENT_PROJECT];
   if (editingUserIdx !== null) {
     const u = S.users[editingUserIdx];
-    u.name = name; u.email = email; u.role = role||'Team Member'; u.permission = permission;
+    u.name = name; u.email = email; u.role = role||'Team Member'; u.permission = permission; u.projectIds = projectIds;
     await saveUserRecord(u, editingUserIdx);
     editingUserIdx = null;
   } else {
-    const newUser = { id: uid(), name, email, role: role||'Team Member', permission };
+    const newUser = { id: uid(), name, email, role: role||'Team Member', permission, projectIds };
     S.users.push(newUser);
     await saveUserRecord(newUser, S.users.length - 1);
   }
-  document.getElementById('newUserName').value='';
-  document.getElementById('newUserEmail').value='';
-  document.getElementById('newUserRole').value='';
-  document.getElementById('newUserPermission').value='foreman';
-  document.getElementById('addUserBtn').textContent = 'Add';
+  resetUserForm();
   renderTeam(); renderHeader();
 }
 
@@ -3971,7 +4199,7 @@ async function placeBulkOrder() {
       ordered_by: S.currentUser, ordered_at: today,
       expected_delivery: date, delivered_at: null,
       notes: '', is_collection: isCollection,
-      project_id: 'spencer-hill',
+      project_id: CURRENT_PROJECT,
     });
   }
 
@@ -3996,13 +4224,19 @@ function toggleListSection(section) {
 }
 
 function renderListsPage() {
-  // Populate permission-aware buttons
-  const areaAddBtn = document.getElementById('listsAreaAddBtn');
-  if (areaAddBtn) areaAddBtn.innerHTML = '';
-  const newAreaBox = document.getElementById('newAreaBox');
-  if (newAreaBox) newAreaBox.style.display = isEditor() ? '' : 'none';
-  const supAddBtn = document.getElementById('listsSupplierAddBtn');
-  if (supAddBtn) supAddBtn.innerHTML = isAdmin() ? `<button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="event.stopPropagation();openAddSupplier()">+ Add</button>` : '';
+  // Edit / Done button on each list (only for people allowed to change it)
+  const canEdit = { areas: isEditor(), team: isAdmin(), suppliers: isEditor() };
+  ['areas','team','suppliers'].forEach(sec => {
+    if (!canEdit[sec]) listEdit[sec] = false;
+    const holder = document.getElementById('listsEditBtn-'+sec);
+    if (holder) holder.innerHTML = canEdit[sec]
+      ? `<button class="btn ${listEdit[sec]?'btn-primary':'btn-ghost'} btn-sm" style="font-size:13px;padding:6px 16px;min-width:64px" onclick="event.stopPropagation();toggleListEdit('${sec}')">${listEdit[sec]?'Done':'Edit'}</button>`
+      : '';
+  });
+  document.getElementById('newAreaBox').style.display = listEdit.areas ? '' : 'none';
+  document.getElementById('teamEditBox').style.display = listEdit.team ? 'flex' : 'none';
+  document.getElementById('supEditBox').style.display = listEdit.suppliers ? '' : 'none';
+  if (listEdit.team && editingUserIdx === null) renderProjectChecks('newUserProjects', [CURRENT_PROJECT]);
 
   // Set chevron states
   ['areas','team','suppliers'].forEach(s => {
@@ -4358,7 +4592,8 @@ function hideLoading() {
 
 async function sbGet(table, params='') {
   await refreshSessionIfNeeded();
-  const url = `${SB_URL}/${table}?project_id=eq.spencer-hill&order=created_at${params}`;
+  const scoped = !['users','suppliers','projects'].includes(table);
+  const url = `${SB_URL}/${table}?${scoped ? `project_id=eq.${encodeURIComponent(CURRENT_PROJECT)}&` : ''}order=created_at${params}`;
   let res = await fetch(url, { headers: getAuthHeaders() });
   if (res.status === 401) { await refreshSessionIfNeeded(true); res = await fetch(url, { headers: getAuthHeaders() }); }
   if (!res.ok) throw new Error(`GET ${table} failed: ${res.status}`);
@@ -4405,7 +4640,7 @@ async function saveArea() {
   S.currentArea = S.areas.length - 1;
   document.getElementById('newAreaInput').value = '';
   renderAreaManagerList();
-  await saveRecord('areas', { id, name, sort_order: sortOrder, project_id: 'spencer-hill' });
+  await saveRecord('areas', { id, name, sort_order: sortOrder, project_id: CURRENT_PROJECT });
 }
 
 const _origSaveEditArea = saveEditArea;
@@ -4414,24 +4649,8 @@ async function saveEditArea() {
   if (!name || editingAreaIdx === null) return;
   const area = S.areas[editingAreaIdx];
   area.name = name;
-  const newPos = parseInt(document.getElementById('editAreaPos').value, 10);
-  const curId = S.areas[S.currentArea]?.id;
-  if (!isNaN(newPos) && newPos !== editingAreaIdx) {
-    S.areas.splice(editingAreaIdx, 1);
-    S.areas.splice(newPos, 0, area);
-  }
-  const ci = S.areas.findIndex(a=>a.id===curId);
-  if (ci > -1) S.currentArea = ci;
-  // Save name, and the order for any area whose position changed
-  const saves = [];
-  S.areas.forEach((a, k) => {
-    const pos = k + 1;
-    if (a === area || a.sortOrder !== pos) {
-      a.sortOrder = pos;
-      saves.push(saveRecord('areas', { id: a.id, name: a.name, sort_order: pos, project_id: 'spencer-hill' }));
-    }
-  });
-  await Promise.all(saves);
+  area.description = document.getElementById('editAreaDesc').value.trim();
+  await saveRecord('areas', { id: area.id, name: area.name, description: area.description, project_id: CURRENT_PROJECT });
   closeEditAreaModal();
 }
 
@@ -4463,11 +4682,11 @@ async function saveTask() {
   if (taskEditId) {
     const t = S.tasks.find(x=>x.id===taskEditId);
     t.text = text; t.areaIds = areaIds; t.assignees = assignees; t.priority = priorityObj;
-    await saveRecord('tasks', { id: t.id, text, area_ids: areaIds, assignees, done: t.done, done_by_area: t.doneByArea||{}, archived: t.archived||false, priority: priorityObj, project_id: 'spencer-hill' });
+    await saveRecord('tasks', { id: t.id, text, area_ids: areaIds, assignees, done: t.done, done_by_area: t.doneByArea||{}, archived: t.archived||false, priority: priorityObj, project_id: CURRENT_PROJECT });
   } else {
     const id = uid();
     S.tasks.push({ id, areaIds, text, done: false, doneByArea: {}, archived: false, assignees, priority: priorityObj });
-    await saveRecord('tasks', { id, text, area_ids: areaIds, assignees, done: false, done_by_area: {}, archived: false, priority: priorityObj, project_id: 'spencer-hill' });
+    await saveRecord('tasks', { id, text, area_ids: areaIds, assignees, done: false, done_by_area: {}, archived: false, priority: priorityObj, project_id: CURRENT_PROJECT });
   }
   closeAddTask();
   refreshCurrentPage();
@@ -4479,7 +4698,7 @@ async function toggleArchiveTask(id) {
   t.archived = !t.archived;
   expandedTaskRows.delete(id);
   refreshCurrentPage();
-  await saveRecord('tasks', { id, text: t.text, area_ids: t.areaIds, assignees: t.assignees, done: t.done, archived: t.archived, project_id: 'spencer-hill' });
+  await saveRecord('tasks', { id, text: t.text, area_ids: t.areaIds, assignees: t.assignees, done: t.done, archived: t.archived, project_id: CURRENT_PROJECT });
   showToast(t.archived ? 'Task archived' : 'Task unarchived');
 }
 async function toggleTask(id, areaId) {
@@ -4500,7 +4719,7 @@ async function toggleTask(id, areaId) {
   }
 
   refreshCurrentPage();
-  await saveRecord('tasks', { id, text: t.text, area_ids: t.areaIds, assignees: t.assignees, done: t.done, done_by_area: t.doneByArea, archived: t.archived||false, priority: t.priority||{}, project_id: 'spencer-hill' });
+  await saveRecord('tasks', { id, text: t.text, area_ids: t.areaIds, assignees: t.assignees, done: t.done, done_by_area: t.doneByArea, archived: t.archived||false, priority: t.priority||{}, project_id: CURRENT_PROJECT });
 }
 
 const _origDeleteTask = deleteTask;
@@ -4513,7 +4732,7 @@ async function deleteTask(id) {
   refreshCurrentPage();
   await deleteRecord('tasks', id);
   showToast(`"${t.text.slice(0,30)}" deleted`, async ()=>{
-    await saveRecord('tasks', { id: snapshot.id, text: snapshot.text, area_ids: snapshot.areaIds, assignees: snapshot.assignees, done: snapshot.done, project_id: 'spencer-hill' });
+    await saveRecord('tasks', { id: snapshot.id, text: snapshot.text, area_ids: snapshot.areaIds, assignees: snapshot.assignees, done: snapshot.done, project_id: CURRENT_PROJECT });
     refreshCurrentPage();
   });
 }
@@ -4554,14 +4773,14 @@ async function saveMaterial() {
     closeAddMat();
     renderMaterials(); renderAreaPage();
     if (document.getElementById('page-orders').classList.contains('active')) renderOrdersPage();
-    await saveRecord('materials', { id: editId, name, unit, cat, assignments, product_url: productUrl, suppliers, direct_qty: directQty, archived: m.archived||false, project_id: 'spencer-hill' });
+    await saveRecord('materials', { id: editId, name, unit, cat, assignments, product_url: productUrl, suppliers, direct_qty: directQty, archived: m.archived||false, project_id: CURRENT_PROJECT });
   } else {
     const id = uid();
     S.materials.push({ id, name, unit, cat, assignments, productUrl, suppliers, directQty, archived: false });
     closeAddMat();
     renderMaterials(); renderAreaPage();
     if (document.getElementById('page-orders').classList.contains('active')) renderOrdersPage();
-    await saveRecord('materials', { id, name, unit, cat, assignments, product_url: productUrl, suppliers, direct_qty: directQty, archived: false, project_id: 'spencer-hill' });
+    await saveRecord('materials', { id, name, unit, cat, assignments, product_url: productUrl, suppliers, direct_qty: directQty, archived: false, project_id: CURRENT_PROJECT });
   }
 }
 
@@ -4572,7 +4791,7 @@ async function toggleArchiveMat(matId) {
   expandedMats.delete(matId);
   renderMaterials();
   renderOrdersPage();
-  await saveRecord('materials', { id: matId, name: m.name, unit: m.unit, cat: m.cat, assignments: m.assignments, product_url: m.productUrl, suppliers: m.suppliers, direct_qty: m.directQty, archived: m.archived, project_id: 'spencer-hill' });
+  await saveRecord('materials', { id: matId, name: m.name, unit: m.unit, cat: m.cat, assignments: m.assignments, product_url: m.productUrl, suppliers: m.suppliers, direct_qty: m.directQty, archived: m.archived, project_id: CURRENT_PROJECT });
   showToast(m.archived ? 'Material archived' : 'Material unarchived');
 }
 async function deleteMat(id) {
@@ -4585,7 +4804,7 @@ async function deleteMat(id) {
   await deleteRecord('materials', id);
   showToast(`"${m.name.slice(0,30)}" deleted`, async ()=>{
     S.materials.splice(idx, 0, snapshot);
-    await saveRecord('materials', { id: snapshot.id, name: snapshot.name, unit: snapshot.unit, cat: snapshot.cat, assignments: snapshot.assignments, product_url: snapshot.productUrl, suppliers: snapshot.suppliers, project_id: 'spencer-hill' });
+    await saveRecord('materials', { id: snapshot.id, name: snapshot.name, unit: snapshot.unit, cat: snapshot.cat, assignments: snapshot.assignments, product_url: snapshot.productUrl, suppliers: snapshot.suppliers, project_id: CURRENT_PROJECT });
     refreshCurrentPage();
   });
 }
@@ -4605,7 +4824,7 @@ async function saveOrder() {
     delivered_at: editingOrderId ? (S.orders.find(x=>x.id===editingOrderId)?.deliveredAt||null) : null,
     notes: document.getElementById('orderNotesInput').value.trim(),
     is_collection: document.getElementById('orderIsCollection').value === 'true',
-    project_id: 'spencer-hill',
+    project_id: CURRENT_PROJECT,
   };
   if (editingOrderId) {
     const o = S.orders.find(x=>x.id===editingOrderId);
@@ -4623,7 +4842,7 @@ async function saveOrder() {
       const newTotal = Math.max(allOrdered, mat.directQty||0);
       if (newTotal > (mat.directQty||0)) {
         mat.directQty = newTotal;
-        await saveRecord('materials', { id: mat.id, name: mat.name, unit: mat.unit, cat: mat.cat, assignments: mat.assignments, product_url: mat.productUrl||'', suppliers: mat.suppliers, direct_qty: newTotal, archived: mat.archived||false, project_id: 'spencer-hill' });
+        await saveRecord('materials', { id: mat.id, name: mat.name, unit: mat.unit, cat: mat.cat, assignments: mat.assignments, product_url: mat.productUrl||'', suppliers: mat.suppliers, direct_qty: newTotal, archived: mat.archived||false, project_id: CURRENT_PROJECT });
       }
     }
   }
@@ -4640,14 +4859,14 @@ async function confirmMarkDelivered(id, date) {
   if (!o) return;
   o.status = 'delivered';
   o.deliveredAt = date;
-  await saveRecord('orders', { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: 'delivered', ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: o.deliveredAt, notes: o.notes, is_collection: o.isCollection||false, project_id: 'spencer-hill' });
+  await saveRecord('orders', { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: 'delivered', ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: o.deliveredAt, notes: o.notes, is_collection: o.isCollection||false, project_id: CURRENT_PROJECT });
   renderOrdersPage(); renderMaterials();
   if (document.getElementById('page-areas').classList.contains('active')) renderAreaPage();
   if (document.getElementById('page-diary').classList.contains('active')) renderDiary();
   const label = o.isCollection ? 'Marked as collected' : 'Marked as delivered';
   showToast(label, async ()=>{
     o.status='ordered'; o.deliveredAt=null;
-    await saveRecord('orders', { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: 'ordered', ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: null, notes: o.notes, is_collection: o.isCollection||false, project_id: 'spencer-hill' });
+    await saveRecord('orders', { id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: 'ordered', ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: null, notes: o.notes, is_collection: o.isCollection||false, project_id: CURRENT_PROJECT });
     renderOrdersPage(); renderMaterials();
   });
 }
@@ -4656,19 +4875,22 @@ const _origSaveSupplier = saveSupplier;
 async function saveSupplier() {
   const name = document.getElementById('supNameInput').value.trim();
   if (!name) { alert('Please enter a supplier name'); return; }
-  const data = { name, phone: document.getElementById('supPhoneInput').value.trim(), website: document.getElementById('supWebInput').value.trim(), account: document.getElementById('supAccInput').value.trim(), notes: document.getElementById('supNotesInput').value.trim(), project_id: 'spencer-hill' };
+  let projectIds = readProjectChecks('supProjects');
+  if (!projectIds.length) projectIds = [CURRENT_PROJECT];
+  const data = { name, phone: document.getElementById('supPhoneInput').value.trim(), website: document.getElementById('supWebInput').value.trim(), account: document.getElementById('supAccInput').value.trim(), notes: document.getElementById('supNotesInput').value.trim(), project_ids: projectIds, project_id: projectIds[0] };
   if (editingSupplierId) {
     const s = S.suppliers.find(x=>x.id===editingSupplierId);
-    Object.assign(s, { name: data.name, phone: data.phone, website: data.website, account: data.account, notes: data.notes });
+    Object.assign(s, { name: data.name, phone: data.phone, website: data.website, account: data.account, notes: data.notes, projectIds });
     await saveRecord('suppliers', { id: editingSupplierId, ...data });
   } else {
     const id = uid();
-    S.suppliers.push({ id, name: data.name, phone: data.phone, website: data.website, account: data.account, notes: data.notes });
-    await saveRecord('suppliers', { id, ...data });
+    const sortOrder = S.suppliers.reduce((mx,x)=>Math.max(mx, x.sortOrder||0), 0) + 1;
+    S.suppliers.push({ id, name: data.name, phone: data.phone, website: data.website, account: data.account, notes: data.notes, projectIds, sortOrder });
+    await saveRecord('suppliers', { id, ...data, sort_order: sortOrder });
     if (returnToMatPicker) { closeAddSupplier(); openPickSupplier(); return; }
   }
   closeAddSupplier();
-  if (document.getElementById('page-suppliers').classList.contains('active')) renderSuppliers();
+  renderSuppliers();
 }
 
 const _origDeleteSupplier = deleteSupplier;
@@ -4682,7 +4904,7 @@ async function deleteSupplier(id) {
   await deleteRecord('suppliers', id);
   showToast(`"${s.name}" deleted`, async ()=>{
     S.suppliers.splice(idx, 0, snapshot);
-    await saveRecord('suppliers', { id: snapshot.id, name: snapshot.name, phone: snapshot.phone, website: snapshot.website, account: snapshot.account, notes: snapshot.notes, project_id: 'spencer-hill' });
+    await saveRecord('suppliers', { id: snapshot.id, name: snapshot.name, phone: snapshot.phone, website: snapshot.website, account: snapshot.account, notes: snapshot.notes, project_id: CURRENT_PROJECT });
     renderSuppliers();
   });
 }
@@ -4691,20 +4913,25 @@ async function deleteSupplier(id) {
 async function loadFromSupabase() {
   showLoading('Loading project data…');
   try {
-    const [areasR, tasksR, matsR, ordersR, supsR, usersR] = await Promise.all([
+    const [areasR, tasksR, matsR, ordersR, supsR, usersR, projR] = await Promise.all([
       sbGet('areas'), sbGet('tasks'), sbGet('materials'),
       sbGet('orders', '&order=ordered_at'), sbGet('suppliers'),
-      sbGet('users', '&order=sort_order')
+      sbGet('users', '&order=sort_order'), sbGet('projects').catch(()=>[])
     ]);
+    S.projects = projR.map(r=>({ id:r.id, name:r.name, description:r.description||'', sortOrder:r.sort_order||0 }))
+      .sort((a,b)=>(a.sortOrder||1e9)-(b.sortOrder||1e9));
+    const curP = S.projects.find(x=>x.id===CURRENT_PROJECT);
+    if (curP) { S.projectName = curP.name; S.projectDesc = curP.description; }
 
-    S.areas = areasR.map((r,k)=>({ id:r.id, name:r.name, notes:r.notes||'', sortOrder:r.sort_order||0, _k:k }))
+    S.areas = areasR.map((r,k)=>({ id:r.id, name:r.name, description:r.description||'', notes:r.notes||'', sortOrder:r.sort_order||0, _k:k }))
       .sort((a,b)=>(a.sortOrder||1e9)-(b.sortOrder||1e9) || a._k-b._k).map(({_k,...a})=>a);
     S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false, doneByArea: typeof r.done_by_area==='object'&&r.done_by_area!==null ? r.done_by_area : {}, archived:r.archived||false, priority:typeof r.priority==='object'&&r.priority!==null ? r.priority : {}, notes:r.notes||'' }));
     S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[], directQty:r.direct_qty||0, archived:r.archived||false, notes:r.notes||'' }));
     S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false }));
-    S.suppliers = supsR.map(r=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'' }));
+    S.suppliers = supsR.map((r,k)=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'', projectIds:Array.isArray(r.project_ids)?r.project_ids:[], sortOrder:r.sort_order||0, _k:k }))
+      .sort((a,b)=>(a.sortOrder||1e9)-(b.sortOrder||1e9) || a._k-b._k).map(({_k,...x})=>x);
     const normPerm = p => p==='editor' ? 'foreman' : p==='viewer' ? 'tradesman' : (p||'foreman');
-    if (usersR.length) S.users = usersR.map(r=>({ id:r.id, name:r.name, email:r.email||'', role:r.role||'Team Member', permission:normPerm(r.permission) }));
+    if (usersR.length) S.users = usersR.map(r=>({ id:r.id, name:r.name, email:r.email||'', role:r.role||'Team Member', permission:normPerm(r.permission), projectIds:Array.isArray(r.project_ids)?r.project_ids:[] }));
 
     // Match logged in user to team member by email
     const loggedInEmail = currentSession?.user?.email?.toLowerCase();
@@ -4732,7 +4959,8 @@ async function loadFromSupabase() {
 async function saveUserRecord(u, i) {
   const id = u.id || uid();
   if (!u.id) u.id = id;
-  await saveRecord('users', { id, name: u.name, email: u.email||'', role: u.role, permission: u.permission||'foreman', sort_order: i, project_id: 'spencer-hill' });
+  if (!u.projectIds || !u.projectIds.length) u.projectIds = [CURRENT_PROJECT];
+  await saveRecord('users', { id, name: u.name, email: u.email||'', role: u.role, permission: u.permission||'foreman', sort_order: i, project_ids: u.projectIds, project_id: u.projectIds[0] });
 }
 
 // ═══════════════ INIT ═══════════════
