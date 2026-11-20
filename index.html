@@ -189,6 +189,10 @@ border: 1px solid #ddd9d0;
 .btn-sm { padding: 5px 10px; font-size: 11px; }
 .ctl { height: 30px; padding-top: 0 !important; padding-bottom: 0 !important; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; }
 select.ctl { display: block; font-size: 13px !important; font-weight: 500; padding-left: 10px !important; }
+.toolbar-line { display: flex; gap: 6px; align-items: center; margin-bottom: 4px; }
+.toolbar-line .search { flex: 1; min-width: 0; font-size: 14px !important; padding-left: 10px !important; background: #fff; }
+.toolbar-line .tb-more { width: 36px; flex-shrink: 0; font-size: 16px; padding-left: 0 !important; padding-right: 0 !important; }
+.tb-summary { font-family: 'DM Mono', monospace; font-size: 11px; color: #8a8578; margin: 2px 0 10px; cursor: pointer; user-select: none; }
 .toolbar-grid { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; margin-bottom: 12px; align-items: center; }
 .toolbar-grid .row-fill { display: flex; gap: 6px; }
 .toolbar-grid .row-fill > * { flex: 1; }
@@ -622,26 +626,21 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div id="page-materials" class="page">
   <div class="page-pad">
-    <div class="row" style="justify-content:space-between;margin-bottom:16px">
-      <div class="row" style="gap:6px">
-        <button class="btn btn-ghost btn-sm" id="matHeadingToggle" onclick="toggleMatHeadings()">Hide categories</button>
-        <button class="btn btn-ghost btn-sm" id="matExpandToggle" onclick="toggleAllMats()">Expand all</button>
-        <div id="matAddBtn"></div>
-      </div>
+    <div class="toolbar-line">
+      <input id="matSearchBox" class="ctl search" type="search" placeholder="Search" oninput="renderMaterials()">
+      <div id="matAddBtn"></div>
+      <button class="btn btn-ghost btn-sm ctl tb-more" aria-label="More options" onclick="openToolbarMenu(this,'materials')">⋮</button>
     </div>
-
-<!-- Search box -->
-<div style="margin-bottom:10px">
-  <input id="matSearchBox" type="search" placeholder="Search materials…" style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd9d0;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;background:#faf9f7" oninput="renderMaterials()">
-</div>
-<!-- Filter pills -->
-<div class="row-wrap" style="gap:6px;margin-bottom:14px" id="matFilters">
-  <button class="btn btn-sm btn-ghost" id="mf-all" onclick="setMatFilter('all')">All</button>
-  <button class="btn btn-sm btn-ghost" id="mf-pending" onclick="setMatFilter('pending')">Pending</button>
-  <button class="btn btn-sm btn-ghost" id="mf-ordered" onclick="setMatFilter('ordered')">Ordered</button>
-  <button class="btn btn-sm btn-ghost" id="mf-delivered" onclick="setMatFilter('delivered')">Delivered</button>
-  <button class="btn btn-sm btn-ghost" id="mf-archived" onclick="setMatFilter('archived')">Archived</button>
-</div>
+    <div class="tb-summary" id="tbSummary-materials" onclick="openToolbarMenu(document.querySelector('#page-materials .tb-more'),'materials')"></div>
+    <div style="display:none" id="matFilters">
+      <button class="btn btn-ghost btn-sm" id="matHeadingToggle" onclick="toggleMatHeadings()">Hide categories</button>
+      <button class="btn btn-ghost btn-sm" id="matExpandToggle" onclick="toggleAllMats()">Expand all</button>
+      <button class="btn btn-sm btn-ghost" id="mf-all" onclick="setMatFilter('all')">All</button>
+      <button class="btn btn-sm btn-ghost" id="mf-pending" onclick="setMatFilter('pending')">Pending</button>
+      <button class="btn btn-sm btn-ghost" id="mf-ordered" onclick="setMatFilter('ordered')">Ordered</button>
+      <button class="btn btn-sm btn-ghost" id="mf-delivered" onclick="setMatFilter('delivered')">Delivered</button>
+      <button class="btn btn-sm btn-ghost" id="mf-archived" onclick="setMatFilter('archived')">Archived</button>
+    </div>
 
 <div id="matList"></div>
 
@@ -655,19 +654,19 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div id="page-tasks" class="page">
   <div class="page-pad">
-    <div class="toolbar-grid" id="taskFilters">
-      <select id="taskAreaFilter" class="ctl" onchange="setTaskAreaFilter(this.value)" style="font-family:'DM Sans',sans-serif">
-        <option value="all">All Areas</option>
-      </select>
-      <button class="btn btn-ghost btn-sm ctl" id="taskExpandToggle" onclick="toggleAllTasks()">Expand all</button>
+    <div class="toolbar-line">
+      <input id="taskSearchBox" class="ctl search" type="search" placeholder="Search" oninput="renderTasksPage()">
       <div id="taskAddBtn"></div>
-      <div class="row-fill">
-        <button class="btn btn-sm btn-ghost ctl" id="tf-all" onclick="setTaskFilter('all')">All</button>
-        <button class="btn btn-sm btn-primary ctl" id="tf-open" onclick="setTaskFilter('open')">Open</button>
-        <button class="btn btn-sm btn-ghost ctl" id="tf-done" onclick="setTaskFilter('done')">Done</button>
-      </div>
-      <button class="btn btn-sm btn-ghost ctl" id="tf-archived" onclick="setTaskFilter('archived')">Archived</button>
-      <div></div>
+      <button class="btn btn-ghost btn-sm ctl tb-more" aria-label="More options" onclick="openToolbarMenu(this,'tasks')">⋮</button>
+    </div>
+    <div class="tb-summary" id="tbSummary-tasks" onclick="openToolbarMenu(document.querySelector('#page-tasks .tb-more'),'tasks')"></div>
+    <div style="display:none" id="taskFilters">
+      <select id="taskAreaFilter" onchange="setTaskAreaFilter(this.value)"><option value="all">All Areas</option></select>
+      <button class="btn btn-ghost btn-sm" id="taskExpandToggle" onclick="toggleAllTasks()">Expand all</button>
+      <button class="btn btn-sm btn-ghost" id="tf-all" onclick="setTaskFilter('all')">All</button>
+      <button class="btn btn-sm btn-primary" id="tf-open" onclick="setTaskFilter('open')">Open</button>
+      <button class="btn btn-sm btn-ghost" id="tf-done" onclick="setTaskFilter('done')">Done</button>
+      <button class="btn btn-sm btn-ghost" id="tf-archived" onclick="setTaskFilter('archived')">Archived</button>
     </div>
     <div id="taskListGlobal"></div>
   </div>
@@ -702,16 +701,20 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div id="page-orders" class="page">
   <div class="page-pad">
-    <div class="toolbar-even">
+    <div class="toolbar-line">
+      <input id="orderSearchBox" class="ctl search" type="search" placeholder="Search" oninput="renderOrdersPage()">
+      <button class="btn btn-ghost btn-sm ctl" id="orderGroupToggle" onclick="toggleOrderGrouping()">By Supplier</button>
       <div id="bulkOrderBtn" style="display:flex"></div>
-      <button class="btn btn-ghost btn-sm ctl" id="orderGroupToggle" onclick="toggleOrderGrouping()">By Material</button>
-      <button class="btn btn-ghost btn-sm ctl" id="orderExpandToggle" onclick="toggleAllOrders()">Expand all</button>
+      <button class="btn btn-ghost btn-sm ctl tb-more" aria-label="More options" onclick="openToolbarMenu(this,'orders')">⋮</button>
     </div>
-    <div class="toolbar-even" style="margin-bottom:12px">
-      <button class="btn btn-sm btn-ghost ctl" id="of-all" onclick="setOrderFilter('all')">All</button>
-      <button class="btn btn-sm btn-primary ctl" id="of-pending" onclick="setOrderFilter('pending')">To Order</button>
-      <button class="btn btn-sm btn-ghost ctl" id="of-ordered" onclick="setOrderFilter('ordered')">Ordered</button>
-      <button class="btn btn-sm btn-ghost ctl" id="of-delivered" onclick="setOrderFilter('delivered')">Delivered</button>
+    <div class="tb-summary" id="tbSummary-orders" onclick="openToolbarMenu(document.querySelector('#page-orders .tb-more'),'orders')"></div>
+    <div style="display:none">
+      <button class="btn btn-ghost btn-sm" id="orderExpandToggle" onclick="toggleAllOrders()">Expand all</button>
+      <button class="btn btn-sm btn-ghost" id="of-all" onclick="setOrderFilter('all')">All</button>
+      <button class="btn btn-sm btn-primary" id="of-pending" onclick="setOrderFilter('pending')">To order</button>
+      <button class="btn btn-sm btn-ghost" id="of-ordered" onclick="setOrderFilter('ordered')">On order</button>
+      <button class="btn btn-sm btn-ghost" id="of-collect" onclick="setOrderFilter('collect')">To collect</button>
+      <button class="btn btn-sm btn-ghost" id="of-delivered" onclick="setOrderFilter('delivered')">Delivered / collected</button>
     </div>
     <div id="ordersList"></div>
   </div>
@@ -1891,6 +1894,9 @@ function renderTasksPage() {
   if (addTaskBtn) addTaskBtn.innerHTML = isEditor() ? `<button class="btn btn-primary btn-sm ctl" onclick="openAddTask()">+ Add Task</button>` : '';
 
   let tasks = [...S.tasks];
+  const taskQ = (document.getElementById('taskSearchBox')?.value || '').trim().toLowerCase();
+  if (taskQ) tasks = tasks.filter(t => (t.text||'').toLowerCase().includes(taskQ) || (t.notes||'').toLowerCase().includes(taskQ)
+    || matsForTask(t.id).some(m => m.name.toLowerCase().includes(taskQ)));
   // Tradesmen only see tasks assigned to them
   if (isTradesman()) {
     tasks = tasks.filter(t => (t.assignees||[t.assignee??0]).includes(S.currentUser));
@@ -2054,6 +2060,78 @@ function renderTaskRow(t, areaId=null) {
 
   return row + detail;
 }
+
+// ── Page toolbars: ⋮ menu holds the filters ──
+const TB_MENUS = {
+  tasks:     [{ t:'Show', ids:['tf-all','tf-open','tf-done','tf-archived'] }, { t:'Area', area:true }, { t:'', ids:['taskExpandToggle'] }],
+  materials: [{ t:'Show', ids:['mf-all','mf-pending','mf-ordered','mf-delivered','mf-archived'] }, { t:'', ids:['matHeadingToggle','matExpandToggle'] }],
+  orders:    [{ t:'Show', ids:['of-all','of-pending','of-ordered','of-collect','of-delivered'] }, { t:'', ids:['orderExpandToggle'] }],
+};
+function closeToolbarMenu() {
+  const m = document.getElementById('tbMenu');
+  if (m) m.remove();
+  document.removeEventListener('pointerdown', tbOutside, true);
+}
+function tbOutside(e) { const m = document.getElementById('tbMenu'); if (m && !m.contains(e.target)) { e.stopPropagation(); closeToolbarMenu(); } }
+function openToolbarMenu(anchor, page) {
+  if (document.getElementById('tbMenu')) { closeToolbarMenu(); return; }
+  if (page === 'tasks') populateTaskAreaDropdown();
+  const menu = document.createElement('div');
+  menu.id = 'tbMenu';
+  menu.style.cssText = 'position:fixed;z-index:9999;background:#fff;border:1px solid #ddd9d0;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.15);min-width:210px;max-height:70vh;overflow-y:auto;padding:4px 0';
+  const head = t => t ? `<div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#8a8578;padding:8px 14px 2px">${t}</div>` : '';
+  const item = (label, active, key) => `<button data-key="${key}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;background:none;border:none;padding:9px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:#1a1814;cursor:pointer;font-weight:${active?'600':'400'}">${label}<span style="color:#c8440e">${active?'✓':''}</span></button>`;
+  let html = '';
+  TB_MENUS[page].forEach((g, gi) => {
+    if (gi) html += `<div style="height:1px;background:#ece9e2;margin:4px 0"></div>`;
+    html += head(g.t);
+    if (g.area) {
+      const sel = document.getElementById('taskAreaFilter');
+      [...sel.options].forEach(o => html += item(o.textContent, o.value === sel.value, 'area:' + o.value));
+    } else {
+      g.ids.forEach(id => { const b = document.getElementById(id); if (b) html += item(b.textContent, b.classList.contains('btn-primary'), 'btn:' + id); });
+    }
+  });
+  menu.innerHTML = html;
+  document.body.appendChild(menu);
+  const r = anchor.getBoundingClientRect();
+  const mw = menu.offsetWidth, mh = menu.offsetHeight;
+  let top = r.bottom + 4; if (top + mh > window.innerHeight - 8) top = Math.max(8, window.innerHeight - mh - 8);
+  menu.style.top = top + 'px';
+  menu.style.left = Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8)) + 'px';
+  menu.addEventListener('click', e => {
+    const b = e.target.closest('button[data-key]'); if (!b) return;
+    const [kind, val] = b.dataset.key.split(/:(.*)/s);
+    closeToolbarMenu();
+    if (kind === 'area') { document.getElementById('taskAreaFilter').value = val; setTaskAreaFilter(val); }
+    else document.getElementById(val)?.click();
+    updateTbSummary(page);
+  });
+  setTimeout(() => document.addEventListener('pointerdown', tbOutside, true), 0);
+}
+function updateTbSummary(page) {
+  const el = document.getElementById('tbSummary-' + page);
+  if (!el) return;
+  const active = ids => { const b = ids.map(id=>document.getElementById(id)).find(x=>x && x.classList.contains('btn-primary')); return b ? b.textContent : 'All'; };
+  let parts = [];
+  if (page === 'tasks') {
+    parts.push(active(TB_MENUS.tasks[0].ids));
+    const sel = document.getElementById('taskAreaFilter');
+    parts.push(sel && sel.selectedOptions[0] ? sel.selectedOptions[0].textContent : 'All Areas');
+  } else if (page === 'materials') {
+    parts.push(active(TB_MENUS.materials[0].ids));
+    if (typeof matHeadingsVisible !== 'undefined' && !matHeadingsVisible) parts.push('categories hidden');
+  } else if (page === 'orders') {
+    parts.push(active(TB_MENUS.orders[0].ids));
+    parts.push(orderGroupBy === 'supplier' ? 'by supplier' : 'by material');
+  }
+  el.textContent = 'Showing: ' + parts.join(' · ') + '  ▾';
+}
+
+(function(){
+  const wrap = (name, page) => { const f = window[name]; if (typeof f !== 'function') return; window[name] = function(){ const r = f.apply(this, arguments); try { updateTbSummary(page); } catch(e) {} return r; }; };
+  wrap('renderTasksPage', 'tasks'); wrap('renderMaterials', 'materials'); wrap('renderOrdersPage', 'orders');
+})();
 
 // ── Lists: edit mode ──
 const listEdit = { projects: false, areas: false, team: false, suppliers: false };
@@ -2679,7 +2757,7 @@ function renderMaterials() {
     if (b) b.className = 'btn btn-sm ' + (x===matFilter ? 'btn-primary' : 'btn-ghost');
   });
   const addMatBtn = document.getElementById('matAddBtn');
-  if (addMatBtn) addMatBtn.innerHTML = isEditor() ? `<button class="btn btn-accent btn-sm" onclick="openAddMat()">+ Add Material</button>` : '';
+  if (addMatBtn) addMatBtn.innerHTML = isEditor() ? `<button class="btn btn-accent btn-sm ctl" onclick="openAddMat()">+ Add Material</button>` : '';
 
   let mats = S.materials;
   if (matFilter === 'archived') {
@@ -3339,7 +3417,7 @@ function renderDiary() {
 
 // ═══════════════ ORDERS PAGE ═══════════════
 let orderFilter = 'pending';
-let orderGroupBy = 'supplier';
+let orderGroupBy = 'material';
 let expandedOrderGroups = new Set();
 
 function setOrderFilter(f) {
@@ -3364,10 +3442,99 @@ function toggleAllOrders() {
 }
 
 function getVisibleOrderKeys() {
-  let orders = [...S.orders];
-  if (orderFilter !== 'all' && orderFilter !== 'pending') orders = orders.filter(o => o.status === orderFilter);
-  if (orderGroupBy === 'supplier') return [...new Set(orders.map(o => o.supplierId||'none'))];
-  return [...new Set(orders.map(o => o.matId))];
+  if (orderGroupBy !== 'supplier') return window._orderCardKeys || [];
+  let orders = [...S.orders].filter(o => orderMatchesFilter(o));
+  return [...new Set(orders.map(o => o.supplierId||'none'))];
+}
+function orderMatchesFilter(o) {
+  if (orderFilter === 'all') return true;
+  if (orderFilter === 'pending') return o.status === 'pending';
+  if (orderFilter === 'ordered') return o.status === 'ordered' && !o.isCollection;
+  if (orderFilter === 'collect') return o.status === 'ordered' && o.isCollection;
+  if (orderFilter === 'delivered') return o.status === 'delivered';
+  return o.status === orderFilter;
+}
+function orderMatchesSearch(o, q) {
+  const m = S.materials.find(x=>x.id===o.matId);
+  const sup = S.suppliers.find(x=>x.id===o.supplierId);
+  return (m && m.name.toLowerCase().includes(q)) || (sup && sup.name.toLowerCase().includes(q)) || (o.notes||'').toLowerCase().includes(q);
+}
+const ORDER_STATUS = {
+  toorder:   { label: 'To order',   color: '#b45309', bg: '#fffbeb' },
+  onorder:   { label: 'On order',   color: '#1d4ed8', bg: '#eff6ff' },
+  collect:   { label: 'To collect', color: '#7c3aed', bg: '#f5f3ff' },
+  delivered: { label: 'Delivered',  color: '#15803d', bg: '#f0fdf4' },
+  collected: { label: 'Collected',  color: '#15803d', bg: '#f0fdf4' },
+};
+// One card per material: same design for every status, colour shows where it's at
+function renderOrderCards(q) {
+  const rank = { toorder:0, collect:1, onorder:2, delivered:3, collected:3 };
+  const sum = list => list.reduce((s,o)=>s+Number(o.qty||0),0);
+  let cards = S.materials.map(m => {
+    const os = S.orders.filter(o => o.matId===m.id && o.status!=='cancelled');
+    if (m.archived && !os.length) return null;
+    const needed = totalQty(m);
+    const delivered = os.filter(o=>o.status==='delivered');
+    const pend = os.filter(o=>o.status==='pending');
+    const toCollect = os.filter(o=>o.status==='ordered' && o.isCollection);
+    const onOrder = os.filter(o=>o.status==='ordered' && !o.isCollection);
+    const toOrderQty = (m.archived || (needed>0 && sum(delivered)>=needed)) ? 0 : Math.max(0, needed - sum(os));
+    const status = (toOrderQty>0 || pend.length) ? 'toorder' : toCollect.length ? 'collect' : onOrder.length ? 'onorder'
+      : delivered.length ? (delivered.every(o=>o.isCollection) ? 'collected' : 'delivered') : null;
+    return status ? { m, os, needed, delivered, pend, toCollect, onOrder, toOrderQty, status } : null;
+  }).filter(Boolean);
+  cards = cards.filter(c => orderFilter==='all' ? true
+    : orderFilter==='pending' ? c.status==='toorder'
+    : orderFilter==='ordered' ? c.onOrder.length
+    : orderFilter==='collect' ? c.toCollect.length
+    : orderFilter==='delivered' ? c.delivered.length : true);
+  if (q) cards = cards.filter(c => c.m.name.toLowerCase().includes(q)
+    || (c.m.suppliers||[]).some(x => (S.suppliers.find(s=>s.id===x.supplierId)?.name||'').toLowerCase().includes(q))
+    || c.os.some(o => orderMatchesSearch(o, q))
+    || (c.m.assignments||[]).some(a => taskName(a.taskId).toLowerCase().includes(q)));
+  cards.sort((a,b) => rank[a.status]-rank[b.status] || a.m.name.localeCompare(b.m.name));
+  window._orderCardKeys = cards.map(c=>c.m.id);
+  if (!cards.length) return `<div style="text-align:center;padding:48px 20px;color:#8a8578">
+      <div style="font-size:32px;margin-bottom:8px">📋</div>
+      <div style="font-family:'DM Mono',monospace;font-size:13px;letter-spacing:1px">${q ? 'No matches' : 'Nothing here'}</div></div>`;
+  return cards.map(c => {
+    const { m } = c;
+    const st = ORDER_STATUS[c.status];
+    const open = expandedOrderGroups.has(m.id);
+    const primarySup = (m.suppliers||[])[0] ? S.suppliers.find(x=>x.id===m.suppliers[0].supplierId) : null;
+    const parts = [];
+    if (c.toOrderQty>0) parts.push(`${c.toOrderQty} ${m.unit} to order`);
+    if (c.onOrder.length) parts.push(`${sum(c.onOrder)} on order`);
+    if (c.toCollect.length) parts.push(`${sum(c.toCollect)} to collect`);
+    if (c.delivered.length && c.status!=='delivered' && c.status!=='collected') parts.push(`${sum(c.delivered)} in`);
+    if (c.status==='delivered' || c.status==='collected') parts.unshift(`${sum(c.delivered)} ${m.unit}`);
+    if (primarySup) parts.push(primarySup.name);
+    const btnAction = (c.status==='toorder' && isEditor()) ? `openOrderModal('${m.id}')` : `toggleOrderGroup('${m.id}')`;
+    const forTasks = [...new Set((m.assignments||[]).map(a=>taskName(a.taskId)))].filter(x=>x!=='?');
+    const ordersSorted = [...c.os].sort((a,b)=>(b.orderedAt||'').localeCompare(a.orderedAt||''));
+    return `
+      <div style="background:#fff;border:1.5px solid ${st.color};border-radius:8px;margin-bottom:4px">
+        <div onclick="toggleOrderGroup('${m.id}')" style="display:flex;align-items:center;gap:10px;padding:5px 8px 5px 10px;cursor:pointer;user-select:none">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:500;line-height:1.25">${m.name}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:${st.color};margin-top:1px">${parts.join(' · ')}</div>
+          </div>
+          <button class="btn btn-sm" style="flex-shrink:0;min-width:86px;justify-content:center;background:${st.bg};color:${st.color};border:1px solid ${st.color}" onclick="event.stopPropagation();${btnAction}">${c.status==='toorder' && isEditor() ? '+ ' : ''}${st.label}</button>
+        </div>
+        ${open ? `<div style="border-top:1px solid #ece9e2;padding:6px 10px 10px">
+          <div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;line-height:1.6">
+            Needed <strong style="color:#1a1916">${c.needed} ${m.unit}</strong>
+            ${forTasks.length ? `<br>For ${forTasks.join(', ')}` : ''}
+            ${m.notes && m.notes.trim() ? `<br>📝 ${m.notes.trim().slice(0,140)}${m.notes.trim().length>140?'…':''}` : ''}
+          </div>
+          ${ordersSorted.map(o => renderOrderRow(o, m, false, true)).join('')}
+          ${isEditor() ? `<div style="display:flex;gap:6px;margin-top:8px">
+            <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="openAddMat('${m.id}')">Edit material</button>
+            <button class="btn btn-accent btn-sm" style="flex:1;justify-content:center" onclick="openOrderModal('${m.id}')">+ Order</button>
+          </div>` : ''}
+        </div>` : ''}
+      </div>`;
+  }).join('');
 }
 
 function toggleOrderGroup(key) {
@@ -3391,21 +3558,27 @@ async function reloadOrders() {
 }
 
 function renderOrdersPage() {
-  ['all','pending','ordered','delivered'].forEach(x=>{
+  ['all','pending','ordered','collect','delivered'].forEach(x=>{
     const b=document.getElementById('of-'+x);
-    if(b) b.className='btn btn-sm ctl '+(x===orderFilter?'btn-primary':'btn-ghost');
+    if(b) b.className='btn btn-sm '+(x===orderFilter?'btn-primary':'btn-ghost');
   });
   const bulkBtn = document.getElementById('bulkOrderBtn');
   if (bulkBtn) {
-    bulkBtn.innerHTML = isEditor() ? `<button class="btn btn-accent btn-sm ctl" style="width:100%" onclick="openBulkOrder()">+ Bulk Order</button>` : '';
+    bulkBtn.innerHTML = isEditor() ? `<button class="btn btn-accent btn-sm ctl" onclick="openBulkOrder()">+ Bulk</button>` : '';
     bulkBtn.style.display = isEditor() ? 'flex' : 'none';
   }
 
   const el = document.getElementById('ordersList');
+  const orderQ = (document.getElementById('orderSearchBox')?.value || '').trim().toLowerCase();
+  if (orderGroupBy !== 'supplier') {
+    el.innerHTML = renderOrderCards(orderQ);
+    syncOrderExpandLabel();
+    return;
+  }
   let html = '';
 
-  // ── NEEDS ORDERING section ── only show for 'all' or 'pending' filter
-  if (orderFilter === 'all' || orderFilter === 'pending') {
+  // ── NEEDS ORDERING section ── (supplier view lists these inside each supplier group)
+  if (false) {
     const needsOrdering = S.materials.filter(m => {
       if (m.archived) return false;
       const needed = totalQty(m);
@@ -3441,8 +3614,8 @@ function renderOrdersPage() {
 
   // ── ORDERS section ──
   let orders = [...S.orders].sort((a,b)=>(b.orderedAt||'').localeCompare(a.orderedAt||''));
-  if (orderFilter !== 'all' && orderFilter !== 'pending') orders = orders.filter(o=>o.status===orderFilter);
-  if (orderFilter === 'pending') orders = orders.filter(o=>o.status==='pending');
+  orders = orders.filter(o => orderMatchesFilter(o));
+  if (orderQ) orders = orders.filter(o => orderMatchesSearch(o, orderQ));
 
   if (orders.length) {
     if (orderGroupBy === 'supplier') {
@@ -3450,7 +3623,7 @@ function renderOrdersPage() {
     } else {
       html += renderOrdersByMaterial(orders);
     }
-  } else if (!html.includes('Needs Ordering')) {
+  } else if (!html) {
     html = `<div style="text-align:center;padding:48px 20px;color:#8a8578">
       <div style="font-size:32px;margin-bottom:8px">📋</div>
       <div style="font-family:'DM Mono',monospace;font-size:13px;letter-spacing:1px">No orders yet</div>
@@ -3571,9 +3744,9 @@ function renderOrdersBySupplier(orders) {
 
     const summaryParts = [];
     if (needsOrdering.length) summaryParts.push(`<span style="color:#b45309">${needsOrdering.length} to order</span>`);
-    if (collections.length) summaryParts.push(`<span style="color:#1d4ed8">${collections.length} to collect</span>`);
-    if (deliveries.length) summaryParts.push(`<span style="color:#15803d">${deliveries.length} on order</span>`);
-    if (supDone.length) summaryParts.push(`<span style="color:#8a8578">${supDone.length} delivered</span>`);
+    if (collections.length) summaryParts.push(`<span style="color:#7c3aed">${collections.length} to collect</span>`);
+    if (deliveries.length) summaryParts.push(`<span style="color:#1d4ed8">${deliveries.length} on order</span>`);
+    if (supDone.length) summaryParts.push(`<span style="color:#15803d">${supDone.length} delivered</span>`);
 
     return `
       <div style="background:#ffffff;border:1px solid #ddd9d0;border-radius:${isExpanded?'10px 10px 0 0':'8px'};margin-bottom:${isExpanded?'0':'6px'}">
@@ -3610,7 +3783,7 @@ function renderOrdersBySupplier(orders) {
             <div style="height:12px"></div>` : ''}
 
           ${collections.length ? `
-            <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#1d4ed8;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #1d4ed8">🚗 To Collect</div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#7c3aed;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #7c3aed">🚗 To Collect</div>
             ${collections.map(o => {
               const m = S.materials.find(x=>x.id===o.matId);
               if (!m) return '';
@@ -3639,7 +3812,7 @@ function renderOrdersBySupplier(orders) {
   }).filter(Boolean).join('');
 }
 
-function renderOrderRow(o, m, showMatName=false) {
+function renderOrderRow(o, m, showMatName=false, hideName=false) {
   const sup = o.supplierId ? S.suppliers.find(x=>x.id===o.supplierId) : null;
   const isDelivered = o.status === 'delivered';
   const actionLabel = o.isCollection ? 'Mark Collected' : 'Mark Delivered';
@@ -3648,14 +3821,14 @@ function renderOrderRow(o, m, showMatName=false) {
   const statusPill = isDelivered
     ? `<span style="font-family:'DM Mono',monospace;font-size:11px;background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:4px">✓ ${o.isCollection?'Collected':'Delivered'}</span>`
     : o.isCollection
-      ? `<span style="font-family:'DM Mono',monospace;font-size:11px;background:#eff3ff;color:#1d4ed8;padding:2px 8px;border-radius:4px">🚗 To Collect</span>`
-      : `<span style="font-family:'DM Mono',monospace;font-size:11px;background:#fffbeb;color:#b45309;padding:2px 8px;border-radius:4px">🚚 On Order</span>`;
+      ? `<span style="font-family:'DM Mono',monospace;font-size:11px;background:#f5f3ff;color:#7c3aed;padding:2px 8px;border-radius:4px">🚗 To Collect</span>`
+      : `<span style="font-family:'DM Mono',monospace;font-size:11px;background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:4px">🚚 On Order</span>`;
 
   return `
     <div style="background:#ffffff;border:1px solid #ddd9d0;border-radius:10px;padding:10px 12px;margin-bottom:8px;margin-top:8px">
 
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <div style="font-size:14px;font-weight:600;color:#1a1916;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px">${m.name}</div>
+        <div style="font-size:14px;font-weight:600;color:#1a1916;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px">${hideName ? '' : m.name}</div>
         ${statusPill}
       </div>
 
