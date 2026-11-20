@@ -203,6 +203,9 @@ select.ctl { display: block; font-size: 13px !important; font-weight: 500; paddi
 .mini-tag { font-family: 'DM Mono', monospace; font-size: 11px; color: #8a8578; background: #f5f3ee; border: 1px solid #ddd9d0; border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
 .task-actions .btn { flex: 1; justify-content: center; height: 22px; padding: 0 6px !important; font-size: 11px; line-height: 1; border-radius: 6px; display: inline-flex; align-items: center; }
 .task-actions .more { flex: 0 0 30px; font-size: 13px; }
+.mat-task-line { display: flex; align-items: center; gap: 8px; padding: 3px 0; border-bottom: 1px solid #ece9e2; width: 100%; box-sizing: border-box; }
+.area-chip.done { border-color: #15803d; background: #15803d; color: #fff; }
+.mini-tag.done { background: #f0fdf4; color: #15803d; border-color: #15803d; }
 /* Compact rows: the white box is only a touch taller than its status button */
 .mat-row { padding: 3px 3px 3px 12px !important; min-height: 28px; box-sizing: border-box; }
 .mat-row .lozenge { margin: 0; }
@@ -1289,7 +1292,7 @@ function uColor(i) { return COLORS[i % COLORS.length]; }
 function totalQty(mat) {
   const direct = mat.directQty || 0;
   const taskTotal = (mat.assignments||[]).reduce((s,a)=>s+Number(a.qty),0);
-  return direct > 0 ? direct : taskTotal;
+  return taskTotal > 0 ? taskTotal : direct;
 }
 function areaName(id) { const a=S.areas.find(x=>x.id===id); return a?a.name:'?'; }
 function taskName(id) { const t=S.tasks.find(x=>x.id===id); return t?t.text:'?'; }
@@ -1656,13 +1659,14 @@ function populateTaskAreaDropdown() {
 function openAddTask(preAreaId=null, editId=null, priorityAreaId=null) {
   taskEditId = editId;
   taskSelectedAreas = new Set();
+  taskDoneAreas = new Set();
   taskSelectedPeople = new Set([S.currentUser]);
 
   const matsSection = document.getElementById('taskMatsSection');
 
   if (editId) {
     const t = S.tasks.find(x=>x.id===editId);
-    (t.areaIds||[]).forEach(id=>taskSelectedAreas.add(id));
+    (t.areaIds||[]).forEach(id=>{ taskSelectedAreas.add(id); if (t.doneByArea?.[id]) taskDoneAreas.add(id); });
     (t.assignees||[]).forEach(i=>taskSelectedPeople.add(i));
     document.getElementById('taskTextInput').value = t.text;
     document.getElementById('addTaskTitle').textContent = 'Edit Task';
@@ -1759,13 +1763,15 @@ function openAddMatForCurrentTask() {
 
 function closeAddTask() { document.getElementById('addTaskOverlay').classList.remove('open'); taskEditId=null; currentPriorityAreaId=null; }
 
+let taskDoneAreas = new Set();
 function renderTaskAreaChips() {
   const container = document.getElementById('taskAreaChips');
-  container.innerHTML = S.areas.map(a=>`
-    <div class="area-chip ${taskSelectedAreas.has(a.id)?'selected':''}" id="areachip-${a.id}">
-      <span style="pointer-events:none;font-size:13px;font-weight:500">${a.name}</span>
-    </div>`).join('');
-  container.ontouchend = function(e) {
+  container.innerHTML = S.areas.map(a=>{
+    const done = taskSelectedAreas.has(a.id) && taskDoneAreas.has(a.id);
+    return `<div class="area-chip ${done?'done':taskSelectedAreas.has(a.id)?'selected':''}" id="areachip-${a.id}">
+      <span style="pointer-events:none;font-size:13px;font-weight:500">${done?'✓ ':''}${a.name}</span>
+    </div>`;}).join('');
+  const cycle = function(e) {
     const chip = e.target.closest('.area-chip');
     if (!chip) return;
     e.preventDefault(); e.stopPropagation();
@@ -1773,9 +1779,13 @@ function renderTaskAreaChips() {
     if (now - _lastAreaToggle < 500) return;
     _lastAreaToggle = now;
     const aId = chip.id.replace('areachip-','');
-    if (taskSelectedAreas.has(aId)) { taskSelectedAreas.delete(aId); chip.classList.remove('selected'); }
-    else { taskSelectedAreas.add(aId); chip.classList.add('selected'); }
+    if (!taskSelectedAreas.has(aId)) { taskSelectedAreas.add(aId); taskDoneAreas.delete(aId); }
+    else if (!taskDoneAreas.has(aId) && taskEditId) taskDoneAreas.add(aId);
+    else { taskSelectedAreas.delete(aId); taskDoneAreas.delete(aId); }
+    renderTaskAreaChips();
   };
+  container.ontouchend = cycle;
+  container.onclick = cycle;
 }
 
 let _lastAreaToggle = 0;
@@ -1951,10 +1961,7 @@ function renderTasksPage() {
   const incOpen = taskStatuses.has('open'), incDone = taskStatuses.has('done'), incArch = taskStatuses.has('archived');
   tasks = tasks.filter(t => t.archived ? incArch : (incOpen || incDone));
   // Open/Done is judged per area: a task drops out of a flat as soon as that flat is ticked
-  const doneIn = (t, aId) => (t.areaIds||[]).length ? !!(t.doneByArea?.[aId]) : !!t.done;
-  const keepFor = (t, aId) => t.archived ? true : (incOpen && incDone) ? true : incOpen ? !doneIn(t,aId) : incDone ? doneIn(t,aId) : false;
-  tasks = tasks.filter(t => (t.areaIds||[]).length ? t.areaIds.some(a => keepFor(t, a)) : keepFor(t, null));
-  var _taskKeepFor = keepFor;
+  tasks = tasks.filter(t => t.archived ? true : (incOpen && incDone) ? true : incOpen ? !t.done : incDone ? !!t.done : false);
 
   // Ticked areas
   if (taskAreaMode === 'some') {
@@ -1965,7 +1972,6 @@ function renderTasksPage() {
   const byArea = {};
   tasks.forEach(t=>{
     (t.areaIds||[]).forEach(aId=>{
-      if (typeof _taskKeepFor === 'function' && !_taskKeepFor(t, aId)) return;
       if (taskAreaMode === 'some' && !taskAreaPicked.has(aId)) return;
       (byArea[aId]||(byArea[aId]=[])).push(t);
     });
@@ -1973,12 +1979,14 @@ function renderTasksPage() {
 
   const priorityOrder = { high:0, medium:1, low:2, none:3 };
 
-  const html = S.areas.length === 0
-    ? tasks.map(t => renderTaskRow(t)).join('')
+  const priOf = t => { const p = t.priority && typeof t.priority === 'object' ? Object.values(t.priority).map(v=>priorityOrder[v]??3) : []; return p.length ? Math.min(...p) : 3; };
+  const flat = [...tasks].sort((a,b) => (!!a.done - !!b.done) || (priOf(a) - priOf(b)));
+  const html = (S.areas.length === 0 || taskAreaMode === 'none')
+    ? flat.map(t => renderTaskRow(t)).join('')
     : S.areas.filter(a=>byArea[a.id]).map(area=>{
         const rows = byArea[area.id].sort((a,b) => {
-          const aDone = a.doneByArea?.[area.id] || false;
-          const bDone = b.doneByArea?.[area.id] || false;
+          const aDone = !!a.done;
+          const bDone = !!b.done;
           if (aDone !== bDone) return aDone ? 1 : -1;
           const getPri = (t) => {
             const p = t.priority && typeof t.priority === 'object' ? (t.priority[area.id]||'none') : 'none';
@@ -1993,7 +2001,7 @@ function renderTasksPage() {
       }).join('');
 
   const areaIdSet = new Set(S.areas.map(a=>a.id));
-  const noArea = (S.areas.length && taskAreaMode !== 'some') ? tasks.filter(t => !(t.areaIds||[]).some(id => areaIdSet.has(id))) : [];
+  const noArea = (S.areas.length && taskAreaMode === 'all') ? tasks.filter(t => !(t.areaIds||[]).some(id => areaIdSet.has(id))) : [];
   const noAreaHtml = noArea.length ? `${taskHeadingsVisible ? `<div class="section-head">No area</div>` : ''}${noArea.map(t=>renderTaskRow(t)).join('')}` : '';
   const fullHtml = (html || '') + noAreaHtml;
   document.getElementById('taskListGlobal').innerHTML = (tasks.length && fullHtml) ? fullHtml : tasks.length ? tasks.map(t=>renderTaskRow(t)).join('') : `
@@ -2013,7 +2021,7 @@ function renderTaskRow(t, areaId=null) {
   const archivedMats = taskMats.filter(m=>m.archived);
 
   // Per-area done state
-  const isDoneInArea = areaId ? (t.doneByArea?.[areaId] || false) : t.done;
+  const isDoneInArea = !!t.done;
 
   // Get priority for this specific area
   const effectiveAreaId = areaId || (areaIds[0] || null);
@@ -2076,7 +2084,7 @@ function renderTaskRow(t, areaId=null) {
           const u = S.users[i];
           return u ? `<div class="avatar" title="${u.name}" style="width:20px;height:20px;font-size:11px;background:${uColor(i)};color:#fff">${initials(u.name)}</div>` : '';
         }).join('')}
-        ${areaIds.map(id=>`<span class="mini-tag">${areaName(id)}</span>`).join('')}
+        ${areaIds.map(id=>`<span class="mini-tag ${t.doneByArea?.[id]?'done':''}">${t.doneByArea?.[id]?'✓ ':''}${areaName(id)}</span>`).join('')}
         ${priorityPill}
       </div>
       ${matsHtml}
@@ -2150,7 +2158,7 @@ function openToolbarMenu(anchor, page) {
   menu.id = 'tbMenu';
   menu.style.cssText = 'position:fixed;z-index:9999;background:#fff;border:1px solid #ddd9d0;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.15);min-width:210px;max-height:70vh;overflow-y:auto;padding:4px 0';
   const head = t => t ? `<div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#8a8578;padding:8px 14px 2px">${t}</div>` : '';
-  const tick = (label, on, key) => `<button data-key="${key}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;padding:9px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:#1a1814;cursor:pointer"><span style="width:16px;height:16px;border:1.5px solid ${on?'#c8440e':'#bdb8ad'};background:${on?'#c8440e':'#fff'};border-radius:4px;color:#fff;font-size:11px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${on?'✓':''}</span>${label}</button>`;
+  const tick = (label, on, key, w) => `<button data-key="${key}" style="${w?'flex:1;min-width:0;':''}display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;padding:9px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:#1a1814;cursor:pointer;box-sizing:border-box"><span style="width:16px;height:16px;border:1.5px solid ${on?'#c8440e':'#bdb8ad'};background:${on?'#c8440e':'#fff'};border-radius:4px;color:#fff;font-size:11px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${on?'✓':''}</span>${label}</button>`;
   const item = (label, active, key) => `<button data-key="${key}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;background:none;border:none;padding:9px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:#1a1814;cursor:pointer;font-weight:${active?'600':'400'}">${label}<span style="color:#c8440e">${active?'✓':''}</span></button>`;
   let html = '';
   TB_MENUS[page].forEach((g, gi) => {
@@ -2160,10 +2168,10 @@ function openToolbarMenu(anchor, page) {
       html += tick('All', ['open','done','archived'].every(k => taskStatuses.has(k)), 'ts:all');
       [['open','Open'],['done','Done'],['archived','Archived']].forEach(([k,l]) => html += tick(l, taskStatuses.has(k), 'ts:' + k));
     } else if (g.taskAreas) {
-      html += tick('All', taskAreaMode === 'all', 'ta:all') + tick('None (hide areas)', taskAreaMode === 'none', 'ta:none');
+      html += `<div style="display:flex">` + tick('All', taskAreaMode === 'all', 'ta:all', 1) + tick('None', taskAreaMode === 'none', 'ta:none', 1) + `</div>`;
       S.areas.forEach(a => html += tick(a.name, taskAreaMode === 'all' || (taskAreaMode === 'some' && taskAreaPicked.has(a.id)), 'ta:' + a.id));
     } else if (g.matCats) {
-      html += tick('All', matCatMode === 'all', 'mc:all') + tick('None (hide categories)', matCatMode === 'none', 'mc:none');
+      html += `<div style="display:flex">` + tick('All', matCatMode === 'all', 'mc:all', 1) + tick('None', matCatMode === 'none', 'mc:none', 1) + `</div>`;
       matCategories().forEach(c => html += tick(c, matCatMode === 'all' || (matCatMode === 'some' && matCatPicked.has(c)), 'mc:' + c));
     } else {
       g.ids.forEach(id => { const b = document.getElementById(id); if (b) html += (g.multi ? tick : item)(b.textContent, b.classList.contains('btn-primary'), 'btn:' + id); });
@@ -2479,7 +2487,7 @@ function openTaskMenu(taskId, btn, areaId='') {
   const item = (label, action, color) =>
     `<button data-act="${action}" style="display:block;width:100%;text-align:left;background:none;border:none;padding:11px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:${color||'#1a1814'};cursor:pointer">${label}</button>`;
   let html = '';
-  if (isEditor()) html += item(t.done || (areaId && t.doneByArea?.[areaId]) ? 'Reopen task' : 'Mark done', 'toggle');
+  if (isAdmin()) html += item(t.done ? 'Reopen task' : 'Mark done', 'toggle');
   if (isEditor()) html += item('Team', 'team');
   if (isEditor()) html += item(t.archived ? 'Unarchive task' : 'Archive task', 'archive');
   if (archivedCount) html += item(`${panelOpen ? 'Hide' : 'View'} archived materials (${archivedCount})`, 'archmats');
@@ -2530,7 +2538,6 @@ function openMatMenu(matId, btn) {
   const item = (label, action, color) =>
     `<button data-act="${action}" style="display:block;width:100%;text-align:left;background:none;border:none;padding:11px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:${color||'#1a1814'};cursor:pointer">${label}</button>`;
   let html = '';
-  if (isEditor()) html += item('Edit material', 'edit');
   html += item('Order history', 'history');
   if (isEditor()) html += item(m.archived ? 'Unarchive material' : 'Archive material', 'archive');
   if (isAdmin()) html += `<div style="height:1px;background:#ddd9d0;margin:4px 0"></div>` + item('Delete material', 'delete', '#c8440e');
@@ -2950,74 +2957,49 @@ function renderMatCard(m) {
 
   if (!isExpanded) return row;
 
-  // ── EXPANDED DETAIL — task-based assignment list ──
-  const taskList = m.assignments.map(a=>{
+  // ── EXPANDED DETAIL ──
+  const unit = m.unit || '';
+  const fig = (v, color, bold) => `<span style="font-family:'DM Mono',monospace;font-size:11px;color:${color||'#1a1814'};${bold?'font-weight:600;':''}flex-shrink:0;white-space:nowrap;text-align:right;min-width:70px">${v}</span>`;
+  const taskRows = (m.assignments||[]).map(a=>{
     const t = S.tasks.find(x=>x.id===a.taskId);
     if (!t) return '';
-    const taskAreas = (t.areaIds||[]).map(id=>areaName(id)).join(', ');
-    // Calculate outstanding per task proportionally
-    const taskTotal = m.assignments.reduce((s,x)=>s+Number(x.qty),0);
-    const outstandingShare = taskTotal > 0 ? Math.round((a.qty/taskTotal)*outstanding) : 0;
-    if (outstandingShare <= 0) return `<span class="mat-area-pill" style="opacity:0.4;text-decoration:line-through"><span>${t.text}</span><span class="mat-area-qty"> ✓ · ${taskAreas}</span></span>`;
-    return `<span class="mat-area-pill"><span>${t.text}</span><span class="mat-area-qty"> ×${outstandingShare} · ${taskAreas}</span></span>`;
+    const areasTxt = (t.areaIds||[]).map(id=>areaName(id)).join(', ');
+    return `<div class="mat-task-line" style="${t.done?'opacity:.45':''}">
+      <div style="flex:1;min-width:0;line-height:1.3"><span style="font-size:14px;font-weight:500;color:#1a1814">${t.text}</span>${areasTxt?`<span style="font-size:14px;color:#8a8578"> · ${areasTxt}</span>`:''}</div>
+      ${fig(`${a.qty} ${unit}`)}
+    </div>`;
   }).join('');
+  const sumLine = (label, v, color, bold) => `<div class="mat-task-line" style="border-bottom:none;padding:2px 0"><span style="flex:1;font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">${label}</span>${fig(v, color, bold)}</div>`;
+  const totalsHtml = `<div style="padding-top:3px">
+      ${sumLine('Total needed', `${total} ${unit}`)}
+      ${totalDelivered>0 ? sumLine('Delivered', `${totalDelivered} ${unit}`, '#15803d') : ''}
+      ${totalToCollect>0 ? sumLine('To collect', `${totalToCollect} ${unit}`, '#7c3aed') : ''}
+      ${totalOnOrder>0 ? sumLine('On order', `${totalOnOrder} ${unit}`, '#1d4ed8') : ''}
+      ${sumLine('To order', `${outstanding} ${unit}`, outstanding>0?'#b45309':'#8a8578', outstanding>0)}
+    </div>`;
 
   const sups = (m.suppliers||[]);
   const primary = sups[0] ? S.suppliers.find(x=>x.id===sups[0].supplierId) : null;
-  const altCount = sups.length - 1;
+  const supplierHtml = `
+      <div style="display:flex;align-items:center;gap:6px;margin:4px 0 6px;flex-wrap:wrap">
+        <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0">Supplier</span>
+        ${primary ? `<span style="font-size:14px;font-weight:500">${primary.name}</span>` : '<span style="font-family:\'DM Mono\',monospace;font-size:11px;color:#8a8578">None assigned</span>'}
+        ${primary&&primary.phone ? `<a href="tel:${primary.phone}" onclick="event.stopPropagation()" style="font-size:11px;text-decoration:none">📞</a>` : ''}
+        ${primary&&primary.website ? `<a href="https://${primary.website.replace(/^https?:\/\//,'')}" target="_blank" onclick="event.stopPropagation()" style="font-size:11px;text-decoration:none">🌐</a>` : ''}
+        ${sups[0]&&sups[0].productUrl ? `<a href="${sups[0].productUrl}" target="_blank" onclick="event.stopPropagation()" style="font-size:11px;text-decoration:none">🔗</a>` : ''}
+      </div>`;
 
-  const supplierHtml = primary ? `
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-      <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">SUPPLIER:</span>
-      <span style="font-size:13px;font-weight:600">${primary.name}</span>
-      ${primary.phone?`<a href="tel:${primary.phone}" style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8;text-decoration:none">📞 ${primary.phone}</a>`:''}
-      ${primary.website?`<a href="https://${primary.website.replace(/^https?:\/\//,'')}" target="_blank" style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8;text-decoration:none">🌐</a>`:''}
-      ${sups[0].productUrl?`<a href="${sups[0].productUrl}" target="_blank" style="font-family:'DM Mono',monospace;font-size:11px;color:#c8440e;text-decoration:none">🔗 Product</a>`:''}
-      ${altCount>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">+${altCount} alt${altCount>1?'s':''}</span>`:''}
-    </div>` : '';
-
-  const orderSummaryHtml = `
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
-      <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">Need ${total} ${m.unit}</span>
-      ${totalDelivered>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">✓ ${totalDelivered} delivered</span>`:''}
-      ${totalOnOrder>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8">⟳ ${totalOnOrder} on order</span>`:''}
-      ${totalPending>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#b45309">⏳ ${totalPending} pending</span>`:''}
-      ${outstanding>0?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#c8440e;font-weight:500">${outstanding} still to order</span>`:totalDelivered >= total?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">fully delivered</span>`:`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8">⏳ on order</span>`}
-      ${matOrders.length?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;cursor:pointer;text-decoration:underline" onclick="openOrderHistory('${m.id}')">${matOrders.length} order${matOrders.length!==1?'s':''}</span>`:`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">No orders yet</span>`}
-    </div>`;
-
+  const notesOn = m.notes && m.notes.trim() ? 'notes-on' : '';
   const detail = `
     <div class="mat-detail open">
-
-      <div style="display:flex;gap:6px;align-items:baseline;margin-bottom:8px;flex-wrap:wrap">
-        <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0">Tasks</span>
-        <div class="mat-areas" style="margin-bottom:0">${taskList || '<span style="font-family:\'DM Mono\',monospace;font-size:11px;color:#8a8578">No tasks assigned</span>'}</div>
-      </div>
-
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
-        <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0">Supplier</span>
-        ${primary ? `<span style="font-size:13px;font-weight:600">${primary.name}</span>` : '<span style="font-size:11px;color:#8a8578">None assigned</span>'}
-        ${primary&&primary.phone ? `<a href="tel:${primary.phone}" style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8;text-decoration:none">📞</a>` : ''}
-        ${primary&&primary.website ? `<a href="https://${primary.website.replace(/^https?:\/\//,'')}" target="_blank" style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8;text-decoration:none">🌐</a>` : ''}
-        ${sups[0]&&sups[0].productUrl ? `<a href="${sups[0].productUrl}" target="_blank" style="font-family:'DM Mono',monospace;font-size:11px;color:#c8440e;text-decoration:none">🔗</a>` : ''}
-      </div>
-
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap">
-        <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">Need ${total} ${m.unit}</span>
-        ${totalDelivered>0 ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">✓ ${totalDelivered} delivered</span>` : ''}
-        ${totalToCollect>0 ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8">🚗 ${totalToCollect} to collect</span>` : ''}
-        ${totalOnOrder>0 ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8">⟳ ${totalOnOrder} on order</span>` : ''}
-        ${outstanding>0 ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#c8440e;font-weight:600">${outstanding} to order</span>` : totalDelivered >= total ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#15803d">✓ fully delivered</span>` : `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#1d4ed8">⏳ on order</span>`}
-        ${matOrders.length ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;text-decoration:underline;cursor:pointer" onclick="openOrderHistory('${m.id}')">${matOrders.length} order${matOrders.length!==1?'s':''}</span>` : ''}
-      </div>
-
-      <div style="display:flex;gap:6px;align-items:stretch">
-        ${isEditor() ? `
-        <button class="btn btn-accent btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();openOrderModal('${m.id}')">+ Order</button>
-        <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();openNotes('mat','${m.id}')">Notes${m.notes&&m.notes.trim()?' •':''}</button>
-        <button class="btn btn-ghost btn-sm" style="flex:0 0 auto;align-self:stretch;padding:0 16px;font-size:16px;line-height:1" title="More actions" onclick="event.stopPropagation();openMatMenu('${m.id}',this)">⋮</button>` : `
-        <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();openOrderHistory('${m.id}')">History</button>
-        <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;padding:7px 8px" onclick="event.stopPropagation();openNotes('mat','${m.id}')">Notes${m.notes&&m.notes.trim()?' •':''}</button>`}
+      <div style="border-top:1px solid #ddd9d0">${taskRows || `<div class="mat-task-line"><span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">No tasks assigned</span></div>`}</div>
+      ${totalsHtml}
+      ${supplierHtml}
+      <div class="row task-actions" style="gap:5px;flex-wrap:nowrap">
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAddMat('${m.id}')">Edit</button>` : ''}
+        <button class="btn btn-ghost btn-sm ${notesOn}" onclick="event.stopPropagation();openNotes('mat','${m.id}')">Notes</button>
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openOrderModal('${m.id}')">+ Order</button>` : `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openOrderHistory('${m.id}')">History</button>`}
+        ${isEditor() ? `<button class="btn btn-ghost btn-sm more" title="More actions" onclick="event.stopPropagation();openMatMenu('${m.id}',this)">⋮</button>` : ''}
       </div>
     </div>`;
 
@@ -3093,25 +3075,11 @@ function openAddMat(matId=null, forTaskId=null) {
     renderCatSelect(m.cat);
     document.getElementById('matProductUrl').value = m.productUrl || '';
 
-    // Calculate total delivered
-    const totalDelivered = S.orders
-      .filter(o => o.matId === matId && o.status === 'delivered')
-      .reduce((s,o) => s + Number(o.qty), 0);
-    const totalPlanned = totalQty(m);
-    const outstanding = Math.max(0, totalPlanned - totalDelivered);
-
-    // Load chips showing outstanding qty per task proportionally
-    if (outstanding > 0) {
-      const taskTotal = m.assignments.reduce((s,a) => s + Number(a.qty), 0);
-      m.assignments.filter(a => Number(a.qty) > 0).forEach(a => {
-        const share = taskTotal > 0 ? Math.round((a.qty / taskTotal) * outstanding) : 0;
-        if (share > 0) chipState[a.taskId] = share;
-      });
-    }
-    // If fully delivered — chips stay empty (nothing needed)
-
-    // Leave total qty box empty — user enters what they want to order
-    document.getElementById('matDirectQty').value = '';
+    // Load each task's actual quantity
+    (m.assignments||[]).filter(a => Number(a.qty) > 0).forEach(a => { chipState[a.taskId] = Number(a.qty); });
+    const dq = document.getElementById('matDirectQty');
+    dq.removeAttribute('readonly');
+    dq.value = Object.keys(chipState).length ? '' : (m.directQty || '');
 
     matSelectedSuppliers = JSON.parse(JSON.stringify(m.suppliers || []));
   } else {
@@ -3124,6 +3092,7 @@ function openAddMat(matId=null, forTaskId=null) {
   }
 
   renderTaskChips();
+  if (Object.keys(chipState).length) syncTotalFromChips();
   renderMatSupplierPreview();
   document.getElementById('addMatOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('matNameInput').focus(), 200);
@@ -5137,8 +5106,9 @@ async function saveTask() {
   areaIds.forEach(aId => { if (!(aId in priorityObj)) priorityObj[aId] = 'none'; });
   if (taskEditId) {
     const t = S.tasks.find(x=>x.id===taskEditId);
-    t.text = text; t.areaIds = areaIds; t.assignees = assignees; t.priority = priorityObj;
-    await saveRecord('tasks', { id: t.id, text, area_ids: areaIds, assignees, done: t.done, done_by_area: t.doneByArea||{}, archived: t.archived||false, priority: priorityObj, project_id: CURRENT_PROJECT });
+    const dba = {}; areaIds.forEach(a => { if (taskDoneAreas.has(a)) dba[a] = true; });
+    t.text = text; t.areaIds = areaIds; t.assignees = assignees; t.priority = priorityObj; t.doneByArea = dba;
+    await saveRecord('tasks', { id: t.id, text, area_ids: areaIds, assignees, done: t.done, done_by_area: dba, archived: t.archived||false, priority: priorityObj, project_id: CURRENT_PROJECT });
   } else {
     const id = uid();
     S.tasks.push({ id, areaIds, text, done: false, doneByArea: {}, archived: false, assignees, priority: priorityObj });
@@ -5157,22 +5127,13 @@ async function toggleArchiveTask(id) {
   await saveRecord('tasks', { id, text: t.text, area_ids: t.areaIds, assignees: t.assignees, done: t.done, archived: t.archived, project_id: CURRENT_PROJECT });
   showToast(t.archived ? 'Task archived' : 'Task unarchived');
 }
-async function toggleTask(id, areaId) {
-  if (!isEditor()) { showToast('View only — ask Ben or Brian to tick this off'); return; }
+async function toggleTask(id) {
+  // The circle is the final sign-off — admin only. Areas are ticked off in Edit.
+  if (!isAdmin()) { showToast('Tick off finished areas in Edit — the admin signs the task off'); return; }
   const t = S.tasks.find(x=>x.id===id);
   if (!t) return;
   if (!t.doneByArea) t.doneByArea = {};
-
-  if (areaId) {
-    // Toggle for specific area
-    t.doneByArea[areaId] = !t.doneByArea[areaId];
-    // Global done = done in ALL areas
-    t.done = t.areaIds.every(aid => t.doneByArea[aid]);
-  } else {
-    // No area context — toggle global
-    t.done = !t.done;
-    t.areaIds.forEach(aid => { t.doneByArea[aid] = t.done; });
-  }
+  t.done = !t.done;
 
   refreshCurrentPage();
   await saveRecord('tasks', { id, text: t.text, area_ids: t.areaIds, assignees: t.assignees, done: t.done, done_by_area: t.doneByArea, archived: t.archived||false, priority: t.priority||{}, project_id: CURRENT_PROJECT });
@@ -5216,10 +5177,9 @@ async function saveMaterial() {
     .filter(o => o.matId === editId && o.status === 'delivered')
     .reduce((s,o) => s + Number(o.qty), 0) : 0;
 
-  // Only update total if user has added something new
-  // If box is 0, preserve existing directQty
+  const taskSum = assignments.reduce((s,a)=>s+a.qty,0);
   const existingTotal = editId ? (S.materials.find(x=>x.id===editId)?.directQty || 0) : 0;
-  const directQty = neededNow > 0 ? neededNow + alreadyDelivered : existingTotal;
+  const directQty = taskSum > 0 ? taskSum : (neededNow > 0 ? neededNow : existingTotal);
 
   if (editId) {
     const m = S.materials.find(x=>x.id===editId);
