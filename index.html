@@ -194,14 +194,21 @@ select.ctl { display: block; font-size: 13px !important; font-weight: 500; paddi
 .toolbar-line .tb-more { width: 36px; flex-shrink: 0; font-size: 16px; padding-left: 0 !important; padding-right: 0 !important; }
 .tb-summary { display: none; }
 .toolbar-line { margin-bottom: 12px !important; }
-.lozenge { font-family: 'DM Mono', monospace; font-size: 11px; line-height: 1; height: 24px; width: 84px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid; flex-shrink: 0; white-space: nowrap; box-sizing: border-box; }
+.lozenge { font-family: 'DM Mono', monospace; font-size: 11px; line-height: 1; height: 20px; width: 76px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid; flex-shrink: 0; white-space: nowrap; box-sizing: border-box; }
 .toolbar-line .ctl, .toolbar-line input.ctl { height: 32px !important; min-height: 32px; line-height: 32px; -webkit-appearance: none; appearance: none; border-radius: 8px; }
 .toolbar-line input[type=search]::-webkit-search-decoration { -webkit-appearance: none; }
 .btn-soft { background: #fff !important; color: #1a1916 !important; border: 1px solid #1a1916 !important; }
 .task-name-full { flex: 1; min-width: 0; font-size: 14px; font-weight: 500; line-height: 1.3; white-space: normal; overflow: visible; }
 .mini-tag { font-family: 'DM Mono', monospace; font-size: 11px; color: #8a8578; background: #f5f3ee; border: 1px solid #ddd9d0; border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
-.task-actions .btn { flex: 1; justify-content: center; height: 30px; padding: 0 6px !important; font-size: 11px; }
-.task-actions .more { flex: 0 0 36px; font-size: 16px; }
+.task-actions .btn { flex: 1; justify-content: center; height: 20px; padding: 0 6px !important; font-size: 11px; line-height: 1; border-radius: 6px; display: inline-flex; align-items: center; }
+.task-actions .more { flex: 0 0 30px; font-size: 13px; }
+/* Compact rows: the white box is only a touch taller than its status button */
+.mat-row { padding: 2px 2px 2px 12px !important; min-height: 26px; }
+.mat-row .lozenge { margin: 0; }
+.mat-row .mat-row-chevron { margin-right: 8px; }
+.mat-detail { padding: 4px 12px 6px !important; }
+.mat-detail .avatar { width: 20px !important; height: 20px !important; font-size: 10px !important; }
+.mini-tag { height: 20px; display: inline-flex; align-items: center; box-sizing: border-box; }
 .notes-on { background: #f0fdf4 !important; color: #15803d !important; border-color: #15803d !important; }
 .toolbar-grid { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; margin-bottom: 12px; align-items: center; }
 .toolbar-grid .row-fill { display: flex; gap: 6px; }
@@ -2025,7 +2032,7 @@ function renderTaskRow(t, areaId=null) {
   `).join('') + (assignees.length>3?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-left:3px">+${assignees.length-3}</span>`:'');
 
   const matsHtml = `
-    <div class="task-mats-block" style="border-top:1px solid #ddd9d0;margin-bottom:8px">
+    <div class="task-mats-block" style="border-top:1px solid #ddd9d0;margin-bottom:5px">
       ${liveMats.length ? liveMats.map(m=>{
         const assign = m.assignments.find(a=>a.taskId===t.id);
         const matOrders = S.orders.filter(o=>o.matId===m.id);
@@ -2033,7 +2040,7 @@ function renderTaskRow(t, areaId=null) {
         const delivered = matOrders.filter(o=>o.status==='delivered').reduce((s,o)=>s+o.qty,0);
         const mst = matOrderStatus(m);
         return `
-          <div ${isEditor() ? `onclick="event.stopPropagation();openAddMat('${m.id}')"` : ''} style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #ece9e2;${isEditor()?'cursor:pointer':''}">
+          <div ${isEditor() ? `onclick="event.stopPropagation();openAddMat('${m.id}')"` : ''} style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid #ece9e2;${isEditor()?'cursor:pointer':''}">
             <div style="flex:1;min-width:0;font-size:14px;font-weight:500;line-height:1.3">${m.name}</div>
             <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
             ${statusLozenge(mst, (mst==='toorder' && isEditor()) ? `openOrderModal('${m.id}')` : '')}
@@ -2043,7 +2050,7 @@ function renderTaskRow(t, areaId=null) {
 
   const detail = `
     <div class="mat-detail open">
-      <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;flex-wrap:wrap">
         ${assignees.map(i=>{
           const u = S.users[i];
           return u ? `<div class="avatar" title="${u.name}" style="width:20px;height:20px;font-size:11px;background:${uColor(i)};color:#fff">${initials(u.name)}</div>` : '';
