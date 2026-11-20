@@ -1386,6 +1386,8 @@ function renderHeader() {
 
 // ═══════════════ PAGE NAV ═══════════════
 function showPage(p) {
+  currentPageName = p;
+  setTimeout(saveView, 0);
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
@@ -1610,6 +1612,33 @@ let taskSelectedAreas = new Set();
 let taskSelectedPeople = new Set();
 let taskFilter = 'open';
 let taskAreaFilter = 'all';
+let taskStatuses = new Set(['open']);        // open / done / archived — always at least one
+let taskAreaMode = 'all';                    // 'all' | 'none' (no headings) | 'some'
+let taskAreaPicked = new Set();
+function syncTaskFilterDerived() {
+  taskFilter = taskStatuses.size === 1 ? [...taskStatuses][0] : 'all';
+  taskHeadingsVisible = taskAreaMode !== 'none';
+  taskAreaFilter = 'all';
+}
+function toggleTaskStatus(k) {
+  if (k === 'all') taskStatuses = new Set(['open','done','archived']);
+  else {
+    if (taskStatuses.has(k)) { if (taskStatuses.size > 1) taskStatuses.delete(k); }
+    else taskStatuses.add(k);
+  }
+  syncTaskFilterDerived(); renderTasksPage();
+}
+function toggleTaskAreaTick(k) {
+  if (k === 'all') { taskAreaMode = 'all'; taskAreaPicked = new Set(); }
+  else if (k === 'none') { taskAreaMode = 'none'; taskAreaPicked = new Set(); }
+  else {
+    if (taskAreaMode !== 'some') { taskAreaPicked = taskAreaMode === 'all' ? new Set(S.areas.map(a=>a.id)) : new Set(); taskAreaMode = 'some'; }
+    if (taskAreaPicked.has(k)) taskAreaPicked.delete(k); else taskAreaPicked.add(k);
+    if (!taskAreaPicked.size) taskAreaMode = 'none';
+    else if (S.areas.every(a => taskAreaPicked.has(a.id))) { taskAreaMode = 'all'; taskAreaPicked = new Set(); }
+  }
+  syncTaskFilterDerived(); renderTasksPage();
+}
 
 function setTaskAreaFilter(areaId) {
   taskAreaFilter = areaId;
@@ -1867,8 +1896,7 @@ let allTasksCollapsed = false;
 
 function toggleAllTasks() {
   let tasks = [...S.tasks];
-  if (taskFilter==='open') tasks = tasks.filter(t=>!t.done);
-  if (taskFilter==='done') tasks = tasks.filter(t=>t.done);
+  tasks = tasks.filter(t => t.archived ? taskStatuses.has('archived') : (taskStatuses.has('open') || taskStatuses.has('done')));
   const anyExpanded = tasks.some(t => expandedTaskRows.has(t.id));
   if (anyExpanded) {
     tasks.forEach(t => expandedTaskRows.delete(t.id));
@@ -1883,8 +1911,7 @@ function syncTaskExpandLabel() {
   const btn = document.getElementById('taskExpandToggle');
   if (!btn) return;
   let tasks = [...S.tasks];
-  if (taskFilter==='open') tasks = tasks.filter(t=>!t.done);
-  if (taskFilter==='done') tasks = tasks.filter(t=>t.done);
+  tasks = tasks.filter(t => t.archived ? taskStatuses.has('archived') : (taskStatuses.has('open') || taskStatuses.has('done')));
   const anyExpanded = tasks.some(t => expandedTaskRows.has(t.id));
   btn.textContent = anyExpanded ? 'Collapse all' : 'Expand all';
 }
@@ -1920,26 +1947,18 @@ function renderTasksPage() {
   if (isTradesman()) {
     tasks = tasks.filter(t => (t.assignees||[t.assignee??0]).includes(S.currentUser));
   }
-  if (taskFilter==='archived') {
-    tasks = tasks.filter(t=>t.archived);
-  } else {
-    tasks = tasks.filter(t=>!t.archived);
-    // Open/Done is judged per area: a task drops out of a flat as soon as that flat is ticked
-    const doneIn = (t, aId) => (t.areaIds||[]).length ? !!(t.doneByArea?.[aId]) : !!t.done;
-    const keepFor = (t, aId) => taskFilter==='open' ? !doneIn(t,aId) : taskFilter==='done' ? doneIn(t,aId) : true;
-    if (taskFilter==='open' || taskFilter==='done') {
-      if (taskAreaFilter !== 'all') {
-        tasks = tasks.filter(t => keepFor(t, taskAreaFilter));
-      } else {
-        tasks = tasks.filter(t => (t.areaIds||[]).length ? t.areaIds.some(a => keepFor(t, a)) : keepFor(t, null));
-      }
-    }
-    var _taskKeepFor = keepFor;
-  }
+  // Ticked statuses (Open / Done / Archived — any combination)
+  const incOpen = taskStatuses.has('open'), incDone = taskStatuses.has('done'), incArch = taskStatuses.has('archived');
+  tasks = tasks.filter(t => t.archived ? incArch : (incOpen || incDone));
+  // Open/Done is judged per area: a task drops out of a flat as soon as that flat is ticked
+  const doneIn = (t, aId) => (t.areaIds||[]).length ? !!(t.doneByArea?.[aId]) : !!t.done;
+  const keepFor = (t, aId) => t.archived ? true : (incOpen && incDone) ? true : incOpen ? !doneIn(t,aId) : incDone ? doneIn(t,aId) : false;
+  tasks = tasks.filter(t => (t.areaIds||[]).length ? t.areaIds.some(a => keepFor(t, a)) : keepFor(t, null));
+  var _taskKeepFor = keepFor;
 
-  // Filter by area if selected
-  if (taskAreaFilter !== 'all') {
-    tasks = tasks.filter(t => (t.areaIds||[]).includes(taskAreaFilter));
+  // Ticked areas
+  if (taskAreaMode === 'some') {
+    tasks = tasks.filter(t => (t.areaIds||[]).some(a => taskAreaPicked.has(a)));
   }
 
   // Group by area — show task under EACH area it belongs to
@@ -1947,6 +1966,7 @@ function renderTasksPage() {
   tasks.forEach(t=>{
     (t.areaIds||[]).forEach(aId=>{
       if (typeof _taskKeepFor === 'function' && !_taskKeepFor(t, aId)) return;
+      if (taskAreaMode === 'some' && !taskAreaPicked.has(aId)) return;
       (byArea[aId]||(byArea[aId]=[])).push(t);
     });
   });
@@ -1973,7 +1993,7 @@ function renderTasksPage() {
       }).join('');
 
   const areaIdSet = new Set(S.areas.map(a=>a.id));
-  const noArea = S.areas.length ? tasks.filter(t => !(t.areaIds||[]).some(id => areaIdSet.has(id))) : [];
+  const noArea = (S.areas.length && taskAreaMode !== 'some') ? tasks.filter(t => !(t.areaIds||[]).some(id => areaIdSet.has(id))) : [];
   const noAreaHtml = noArea.length ? `${taskHeadingsVisible ? `<div class="section-head">No area</div>` : ''}${noArea.map(t=>renderTaskRow(t)).join('')}` : '';
   const fullHtml = (html || '') + noAreaHtml;
   document.getElementById('taskListGlobal').innerHTML = (tasks.length && fullHtml) ? fullHtml : tasks.length ? tasks.map(t=>renderTaskRow(t)).join('') : `
@@ -2071,10 +2091,50 @@ function renderTaskRow(t, areaId=null) {
   return row + detail;
 }
 
+// ── Remember each device's view (page, filters, areas/categories) ──
+let currentPageName = 'tasks';
+function saveView() {
+  try {
+    localStorage.setItem('sh_view', JSON.stringify({
+      page: currentPageName,
+      taskStatuses: [...taskStatuses], taskAreaMode, taskAreaPicked: [...taskAreaPicked],
+      matFilters: [...matFilters], matCatMode, matCatPicked: [...matCatPicked],
+      orderFilter, orderGroupBy, project: CURRENT_PROJECT,
+    }));
+  } catch(e) {}
+}
+function restoreView() {
+  let v = null;
+  try { v = JSON.parse(localStorage.getItem('sh_view') || 'null'); } catch(e) {}
+  if (!v) return 'tasks';
+  if (Array.isArray(v.taskStatuses) && v.taskStatuses.length) taskStatuses = new Set(v.taskStatuses);
+  const sameProject = v.project === CURRENT_PROJECT;
+  if (['all','none','some'].includes(v.taskAreaMode)) {
+    taskAreaMode = v.taskAreaMode;
+    taskAreaPicked = new Set((v.taskAreaPicked||[]).filter(id => sameProject && S.areas.some(a => a.id === id)));
+    if (taskAreaMode === 'some' && !taskAreaPicked.size) taskAreaMode = 'all';
+  }
+  if (Array.isArray(v.matFilters) && v.matFilters.length) matFilters = new Set(v.matFilters);
+  if (['all','none','some'].includes(v.matCatMode)) {
+    matCatMode = v.matCatMode;
+    matCatPicked = new Set((v.matCatPicked||[]).filter(c => matCategories().includes(c)));
+    if (matCatMode === 'some' && !matCatPicked.size) matCatMode = 'all';
+  }
+  matHeadingsVisible = matCatMode !== 'none';
+  if (v.orderFilter) orderFilter = v.orderFilter;
+  if (v.orderGroupBy === 'material' || v.orderGroupBy === 'supplier') {
+    orderGroupBy = v.orderGroupBy;
+    const gb = document.getElementById('orderGroupToggle');
+    if (gb) gb.textContent = orderGroupBy === 'material' ? 'By Supplier' : 'By Material';
+  }
+  syncTaskFilterDerived();
+  return ['tasks','materials','orders','diary','lists'].includes(v.page) ? v.page : 'tasks';
+}
+
 // ── Page toolbars: ⋮ menu holds the filters ──
 const TB_MENUS = {
-  tasks:     [{ t:'', ids:['taskExpandToggle'] }, { t:'Show', ids:['tf-all','tf-open','tf-done','tf-archived'] }, { t:'Area', area:true }],
-  materials: [{ t:'', ids:['matExpandToggle','matHeadingToggle'] }, { t:'Show (tick any)', multi:true, ids:['mf-all','mf-pending','mf-ordered','mf-delivered','mf-archived'] }],
+  tasks:     [{ t:'', ids:['taskExpandToggle'] }, { t:'Show', taskStatus:true }, { t:'Areas', taskAreas:true }],
+  materials: [{ t:'', ids:['matExpandToggle'] }, { t:'Show', multi:true, ids:['mf-all','mf-pending','mf-ordered','mf-delivered','mf-archived'] }, { t:'Categories', matCats:true }],
   orders:    [{ t:'Show', ids:['of-all','of-pending','of-ordered','of-collect','of-delivered'] }, { t:'', ids:['orderExpandToggle'] }],
 };
 function closeToolbarMenu() {
@@ -2096,12 +2156,15 @@ function openToolbarMenu(anchor, page) {
   TB_MENUS[page].forEach((g, gi) => {
     if (gi) html += `<div style="height:1px;background:#ece9e2;margin:4px 0"></div>`;
     html += head(g.t);
-    if (g.area) {
-      const sel = document.getElementById('taskAreaFilter');
-      [...sel.options].forEach((o, oi) => {
-        html += item(o.textContent, o.value === sel.value, 'area:' + o.value);
-        if (oi === 0) { const hb = document.getElementById('taskHeadingToggle'); if (hb) html += item(hb.textContent, false, 'btn:taskHeadingToggle'); }
-      });
+    if (g.taskStatus) {
+      html += tick('All', ['open','done','archived'].every(k => taskStatuses.has(k)), 'ts:all');
+      [['open','Open'],['done','Done'],['archived','Archived']].forEach(([k,l]) => html += tick(l, taskStatuses.has(k), 'ts:' + k));
+    } else if (g.taskAreas) {
+      html += tick('All', taskAreaMode === 'all', 'ta:all') + tick('None (hide areas)', taskAreaMode === 'none', 'ta:none');
+      S.areas.forEach(a => html += tick(a.name, taskAreaMode === 'all' || (taskAreaMode === 'some' && taskAreaPicked.has(a.id)), 'ta:' + a.id));
+    } else if (g.matCats) {
+      html += tick('All', matCatMode === 'all', 'mc:all') + tick('None (hide categories)', matCatMode === 'none', 'mc:none');
+      matCategories().forEach(c => html += tick(c, matCatMode === 'all' || (matCatMode === 'some' && matCatPicked.has(c)), 'mc:' + c));
     } else {
       g.ids.forEach(id => { const b = document.getElementById(id); if (b) html += (g.multi ? tick : item)(b.textContent, b.classList.contains('btn-primary'), 'btn:' + id); });
     }
@@ -2116,11 +2179,14 @@ function openToolbarMenu(anchor, page) {
   menu.addEventListener('click', e => {
     const b = e.target.closest('button[data-key]'); if (!b) return;
     const [kind, val] = b.dataset.key.split(/:(.*)/s);
-    const multi = TB_MENUS[page].some(g => g.multi && g.ids && g.ids.includes(val));
+    const multi = ['ts','ta','mc'].includes(kind) || TB_MENUS[page].some(g => g.multi && g.ids && g.ids.includes(val));
     const scroll = menu.scrollTop;
     closeToolbarMenu();
-    if (kind === 'area') { document.getElementById('taskAreaFilter').value = val; setTaskAreaFilter(val); }
+    if (kind === 'ts') toggleTaskStatus(val);
+    else if (kind === 'ta') toggleTaskAreaTick(val);
+    else if (kind === 'mc') toggleMatCat(val);
     else document.getElementById(val)?.click();
+    saveView();
     updateTbSummary(page);
     if (multi) { openToolbarMenu(anchor, page); const m2 = document.getElementById('tbMenu'); if (m2) m2.scrollTop = scroll; }
   });
@@ -2164,6 +2230,7 @@ function updateTbSummary(page) {
 (function(){
   const wrap = (name, page) => { const f = window[name]; if (typeof f !== 'function') return; window[name] = function(){ const r = f.apply(this, arguments); try { updateTbSummary(page); } catch(e) {} return r; }; };
   wrap('renderTasksPage', 'tasks'); wrap('renderMaterials', 'materials'); wrap('renderOrdersPage', 'orders');
+  ['setMatFilter','setOrderFilter','toggleOrderGrouping'].forEach(n => { const f = window[n]; if (typeof f === 'function') window[n] = function(){ const r = f.apply(this, arguments); saveView(); return r; }; });
 })();
 
 // ── Lists: edit mode ──
@@ -2724,8 +2791,7 @@ function syncMatFilterButtons() {
 }
 function setMatFilter(f) {
   if (f === 'all') {
-    const allOn = MAT_FILTER_KEYS.every(k => matFilters.has(k));
-    matFilters = allOn ? new Set(['pending']) : new Set(MAT_FILTER_KEYS);
+    matFilters = new Set(MAT_FILTER_KEYS);
   } else {
     if (matFilters.has(f)) matFilters.delete(f); else matFilters.add(f);
     if (!matFilters.size) matFilters.add('pending');
@@ -2736,6 +2802,21 @@ function setMatFilter(f) {
 }
 
 let matHeadingsVisible = true;
+let matCatMode = 'all';          // 'all' | 'none' (no headings) | 'some'
+let matCatPicked = new Set();
+function matCategories() { return [...new Set(S.materials.map(m => m.cat || 'General'))].sort(); }
+function toggleMatCat(k) {
+  if (k === 'all') { matCatMode = 'all'; matCatPicked = new Set(); }
+  else if (k === 'none') { matCatMode = 'none'; matCatPicked = new Set(); }
+  else {
+    if (matCatMode !== 'some') { matCatPicked = matCatMode === 'all' ? new Set(matCategories()) : new Set(); matCatMode = 'some'; }
+    if (matCatPicked.has(k)) matCatPicked.delete(k); else matCatPicked.add(k);
+    if (!matCatPicked.size) matCatMode = 'none';
+    else if (matCategories().every(c => matCatPicked.has(c))) { matCatMode = 'all'; matCatPicked = new Set(); }
+  }
+  matHeadingsVisible = matCatMode !== 'none';
+  renderMaterials();
+}
 let taskHeadingsVisible = true;
 
 function toggleMatHeadings() {
@@ -2804,6 +2885,7 @@ function renderMaterials() {
 
   // Ticked filters first; search then looks across everything ticked (archived included if ticked)
   let mats = visibleMaterials();
+  if (matCatMode === 'some') mats = mats.filter(m => matCatPicked.has(m.cat || 'General'));
   // Search filter — matches material name or assigned task names
   const matSearchEl = document.getElementById('matSearchBox');
   const matSearchQ = matSearchEl ? matSearchEl.value.trim().toLowerCase() : '';
@@ -5321,8 +5403,9 @@ async function loadFromSupabase() {
 
     hideLoading();
     renderHeader();
-    showPage('tasks');
-    renderTasksPage();
+    const startPage = restoreView();
+    showPage(startPage);
+    if (startPage === 'tasks') renderTasksPage();
 
   } catch(e) {
     hideLoading();
