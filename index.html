@@ -240,6 +240,8 @@ z-index: 200; align-items: flex-end;
 backdrop-filter: blur(2px);
 }
 .overlay.open { display: flex; overscroll-behavior: contain; }
+.sheet > * { flex-shrink: 0; }
+body.sheet-locked { position: fixed; left: 0; right: 0; overflow: hidden; }
 html:has(.overlay.open), body:has(.overlay.open) { overflow: hidden; }
 .sheet {
 background: #ffffff;
@@ -1776,6 +1778,7 @@ function renderTaskAreaChips() {
   const cycle = function(e) {
     const chip = e.target.closest('.area-chip');
     if (!chip) return;
+    if (e.type === 'touchend' && _touchMoved(e)) return;
     e.preventDefault(); e.stopPropagation();
     const now = Date.now();
     if (now - _lastAreaToggle < 500) return;
@@ -1820,6 +1823,7 @@ function renderTaskPersonChips() {
   container.ontouchend = function(e) {
     const chip = e.target.closest('.area-chip');
     if (!chip) return;
+    if (_touchMoved(e)) return;
     e.preventDefault(); e.stopPropagation();
     const now = Date.now();
     if (now - _lastPersonToggle < 500) return;
@@ -2641,6 +2645,38 @@ function closeReassign() {
   refreshCurrentPage();
 }
 
+// ── Freeze the page behind an open sheet so swipes scroll the sheet, not the page ──
+(function(){
+  let lockedY = null;
+  function sync() {
+    const anyOpen = !!document.querySelector('.overlay.open');
+    if (anyOpen && lockedY === null) {
+      lockedY = window.scrollY || 0;
+      document.body.style.top = `-${lockedY}px`;
+      document.body.classList.add('sheet-locked');
+    } else if (!anyOpen && lockedY !== null) {
+      document.body.classList.remove('sheet-locked');
+      document.body.style.top = '';
+      window.scrollTo(0, lockedY);
+      lockedY = null;
+    }
+  }
+  function watch() {
+    const mo = new MutationObserver(sync);
+    document.querySelectorAll('.overlay').forEach(o => mo.observe(o, { attributes: true, attributeFilter: ['class'] }));
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
+})();
+
+// A swipe that starts on a chip is a scroll, not a tap
+let _touchStartXY = null;
+document.addEventListener('touchstart', e => { const t = e.touches[0]; _touchStartXY = t ? [t.clientX, t.clientY] : null; }, { passive: true, capture: true });
+function _touchMoved(e) {
+  const t = e.changedTouches && e.changedTouches[0];
+  if (!t || !_touchStartXY) return false;
+  return Math.abs(t.clientX - _touchStartXY[0]) > 10 || Math.abs(t.clientY - _touchStartXY[1]) > 10;
+}
+
 function refreshCurrentPage() {
   if (document.getElementById('page-areas').classList.contains('active')) renderAreaPage();
   if (document.getElementById('page-tasks').classList.contains('active')) renderTasksPage();
@@ -3138,6 +3174,7 @@ function renderTaskChips() {
     // Only handle unselected chip tap (+ button)
     const tapBtn = e.target.closest('[id^="chiptap-"]');
     if (!tapBtn) return;
+    if (_touchMoved(e)) return;
     e.preventDefault(); e.stopPropagation();
     const now = Date.now();
     if (now - _lastChipToggle < 400) return;
@@ -5190,14 +5227,14 @@ async function saveMaterial() {
     m.productUrl=productUrl; m.suppliers=suppliers; m.directQty=directQty;
     closeAddMat();
     renderMaterials(); renderAreaPage();
-    if (document.getElementById('page-orders').classList.contains('active')) renderOrdersPage();
+    refreshCurrentPage();
     await saveRecord('materials', { id: editId, name, unit, cat, assignments, product_url: productUrl, suppliers, direct_qty: directQty, archived: m.archived||false, project_id: CURRENT_PROJECT });
   } else {
     const id = uid();
     S.materials.push({ id, name, unit, cat, assignments, productUrl, suppliers, directQty, archived: false });
     closeAddMat();
     renderMaterials(); renderAreaPage();
-    if (document.getElementById('page-orders').classList.contains('active')) renderOrdersPage();
+    refreshCurrentPage();
     await saveRecord('materials', { id, name, unit, cat, assignments, product_url: productUrl, suppliers, direct_qty: directQty, archived: false, project_id: CURRENT_PROJECT });
   }
 }
