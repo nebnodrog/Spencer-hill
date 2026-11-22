@@ -663,9 +663,11 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
       <button class="btn btn-ghost btn-sm" id="matHeadingToggle" onclick="toggleMatHeadings()">Hide categories</button>
       <button class="btn btn-ghost btn-sm" id="matExpandToggle" onclick="toggleAllMats()">Expand all</button>
       <button class="btn btn-sm btn-ghost" id="mf-all" onclick="setMatFilter('all')">All</button>
-      <button class="btn btn-sm btn-ghost" id="mf-pending" onclick="setMatFilter('pending')">Pending</button>
-      <button class="btn btn-sm btn-ghost" id="mf-ordered" onclick="setMatFilter('ordered')">Ordered</button>
-      <button class="btn btn-sm btn-ghost" id="mf-delivered" onclick="setMatFilter('delivered')">Delivered</button>
+      <button class="btn btn-sm btn-ghost" id="mf-pending" onclick="setMatFilter('pending')">To order</button>
+      <button class="btn btn-sm btn-ghost" id="mf-ordered" onclick="setMatFilter('ordered')">On order</button>
+      <button class="btn btn-sm btn-ghost" id="mf-collect" onclick="setMatFilter('collect')">To collect</button>
+      <button class="btn btn-sm btn-ghost" id="mf-delivered" onclick="setMatFilter('delivered')">Delivered / collected</button>
+      <button class="btn btn-sm btn-ghost" id="matBulkBtn" data-editor="1" onclick="openBulkOrder()">Bulk order…</button>
       <button class="btn btn-sm btn-ghost" id="mf-archived" onclick="setMatFilter('archived')">Archived</button>
     </div>
 
@@ -839,10 +841,6 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <button class="nav-btn" id="nav-materials" onclick="showPage('materials')">
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
     Materials
-  </button>
-  <button class="nav-btn" id="nav-orders" onclick="showPage('orders')">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.8" d="M16 11c0 2.21-1.79 4-4 4s-4-1.79-4-4 1.79-4 4-4 4 1.79 4 4z"/><path stroke-width="1.8" d="M3 3h2l.4 2M7 13H5L3 5H1M7 13l-1.4 7h12.8L17 13M17 13H7"/></svg>
-    Orders
   </button>
   <button class="nav-btn" id="nav-diary" onclick="showPage('diary')">
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke-width="1.8"/><path stroke-width="1.8" d="M16 2v4M8 2v4M3 10h18"/><path stroke-width="1.8" d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
@@ -1398,12 +1396,13 @@ function renderHeader() {
 
 // ═══════════════ PAGE NAV ═══════════════
 function showPage(p) {
+  if (p === 'orders') p = 'materials';   // Orders now lives in Materials
   currentPageName = p;
   setTimeout(saveView, 0);
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
-  document.getElementById('nav-'+p).classList.add('active');
+  document.getElementById('nav-'+p)?.classList.add('active');
   const labels = { tasks:'All Tasks', materials:'All Materials', diary:'Diary', orders:'Orders', lists:'Lists' };
   document.getElementById('headerPageLabel').textContent = labels[p]||'';
   if (p==='areas') renderAreaPage();
@@ -2112,7 +2111,8 @@ function saveView() {
     localStorage.setItem('sh_view', JSON.stringify({
       page: currentPageName,
       taskStatuses: [...taskStatuses], taskAreaMode, taskAreaPicked: [...taskAreaPicked],
-      matFilters: [...matFilters], matCatMode, matCatPicked: [...matCatPicked],
+      matFilters: [...matFilters], matCatMode, matCatPicked: [...matCatPicked], matFiltersV: 2,
+      matSupMode, matSupPicked: [...matSupPicked],
       orderFilter, orderGroupBy, project: CURRENT_PROJECT,
     }));
   } catch(e) {}
@@ -2128,7 +2128,15 @@ function restoreView() {
     taskAreaPicked = new Set((v.taskAreaPicked||[]).filter(id => sameProject && S.areas.some(a => a.id === id)));
     if (taskAreaMode === 'some' && !taskAreaPicked.size) taskAreaMode = 'all';
   }
-  if (Array.isArray(v.matFilters) && v.matFilters.length) matFilters = new Set(v.matFilters);
+  if (Array.isArray(v.matFilters) && v.matFilters.length) {
+    matFilters = new Set(v.matFilters);
+    if (v.matFiltersV !== 2 && matFilters.has('ordered')) matFilters.add('collect');
+  }
+  if (['all','none','some'].includes(v.matSupMode)) {
+    matSupMode = v.matSupMode;
+    matSupPicked = new Set((v.matSupPicked||[]).filter(id => id === '__none' || S.suppliers.some(x => x.id === id)));
+    if (matSupMode === 'some' && !matSupPicked.size) matSupMode = 'all';
+  }
   if (['all','none','some'].includes(v.matCatMode)) {
     matCatMode = v.matCatMode;
     matCatPicked = new Set((v.matCatPicked||[]).filter(c => matCategories().includes(c)));
@@ -2142,13 +2150,13 @@ function restoreView() {
     if (gb) gb.textContent = orderGroupBy === 'material' ? 'By Supplier' : 'By Material';
   }
   syncTaskFilterDerived();
-  return ['tasks','materials','orders','diary','lists'].includes(v.page) ? v.page : 'tasks';
+  return v.page === 'orders' ? 'materials' : ['tasks','materials','diary','lists'].includes(v.page) ? v.page : 'tasks';
 }
 
 // ── Page toolbars: ⋮ menu holds the filters ──
 const TB_MENUS = {
   tasks:     [{ t:'', ids:['taskExpandToggle'] }, { t:'Show', taskStatus:true }, { t:'Areas', taskAreas:true }],
-  materials: [{ t:'', ids:['matExpandToggle'] }, { t:'Show', multi:true, ids:['mf-all','mf-pending','mf-ordered','mf-delivered','mf-archived'] }, { t:'Categories', matCats:true }],
+  materials: [{ t:'', ids:['matExpandToggle','matBulkBtn'] }, { t:'Show', multi:true, ids:['mf-all','mf-pending','mf-ordered','mf-collect','mf-delivered','mf-archived'] }, { t:'Categories', matCats:true }, { t:'Suppliers', matSups:true }],
   orders:    [{ t:'Show', ids:['of-all','of-pending','of-ordered','of-collect','of-delivered'] }, { t:'', ids:['orderExpandToggle'] }],
 };
 function closeToolbarMenu() {
@@ -2179,8 +2187,11 @@ function openToolbarMenu(anchor, page) {
     } else if (g.matCats) {
       html += `<div style="display:flex">` + tick('All', matCatMode === 'all', 'mc:all', 1) + tick('None', matCatMode === 'none', 'mc:none', 1) + `</div>`;
       matCategories().forEach(c => html += tick(c, matCatMode === 'all' || (matCatMode === 'some' && matCatPicked.has(c)), 'mc:' + c));
+    } else if (g.matSups) {
+      html += `<div style="display:flex">` + tick('All', matSupMode === 'all', 'ms:all', 1) + tick('None', matSupMode === 'none', 'ms:none', 1) + `</div>`;
+      matSupplierKeys().forEach(([id, name]) => html += tick(name, matSupMode === 'all' || (matSupMode === 'some' && matSupPicked.has(id)), 'ms:' + id));
     } else {
-      g.ids.forEach(id => { const b = document.getElementById(id); if (b) html += (g.multi ? tick : item)(b.textContent, b.classList.contains('btn-primary'), 'btn:' + id); });
+      g.ids.forEach(id => { const b = document.getElementById(id); if (b && b.dataset.editor && !isEditor()) return; if (b) html += (g.multi ? tick : item)(b.textContent, b.classList.contains('btn-primary'), 'btn:' + id); });
     }
   });
   menu.innerHTML = html;
@@ -2193,12 +2204,13 @@ function openToolbarMenu(anchor, page) {
   menu.addEventListener('click', e => {
     const b = e.target.closest('button[data-key]'); if (!b) return;
     const [kind, val] = b.dataset.key.split(/:(.*)/s);
-    const multi = ['ts','ta','mc'].includes(kind) || TB_MENUS[page].some(g => g.multi && g.ids && g.ids.includes(val));
+    const multi = ['ts','ta','mc','ms'].includes(kind) || TB_MENUS[page].some(g => g.multi && g.ids && g.ids.includes(val));
     const scroll = menu.scrollTop;
     closeToolbarMenu();
     if (kind === 'ts') toggleTaskStatus(val);
     else if (kind === 'ta') toggleTaskAreaTick(val);
     else if (kind === 'mc') toggleMatCat(val);
+    else if (kind === 'ms') toggleMatSup(val);
     else document.getElementById(val)?.click();
     saveView();
     updateTbSummary(page);
@@ -2216,8 +2228,10 @@ function updateTbSummary(page) {
     const sel = document.getElementById('taskAreaFilter');
     parts.push(sel && sel.selectedOptions[0] ? sel.selectedOptions[0].textContent : 'All Areas');
   } else if (page === 'materials') {
-    parts.push(active(TB_MENUS.materials[0].ids));
-    if (typeof matHeadingsVisible !== 'undefined' && !matHeadingsVisible) parts.push('categories hidden');
+    const st = MAT_FILTER_KEYS.every(k => matFilters.has(k)) ? ['All'] : MAT_FILTER_KEYS.filter(k => matFilters.has(k)).map(k => document.getElementById('mf-' + k)?.textContent || k);
+    parts.push(st.join(', '));
+    if (matCatMode === 'some') parts.push([...matCatPicked].join(', '));
+    if (matSupMode === 'some') parts.push(matSupplierKeys().filter(([id]) => matSupPicked.has(id)).map(([, n]) => n).join(', '));
   } else if (page === 'orders') {
     parts.push(active(TB_MENUS.orders[0].ids));
     parts.push(orderGroupBy === 'supplier' ? 'by supplier' : 'by material');
@@ -2817,15 +2831,55 @@ function saveArea() {
 
 // ═══════════════ MATERIALS PAGE ═══════════════
 let matFilter = 'pending';
-const MAT_FILTER_KEYS = ['pending','ordered','delivered','archived'];
+const MAT_FILTER_KEYS = ['pending','ordered','collect','delivered','archived'];
 let matFilters = new Set(['pending']);
 function matStatusKey(m) {
   if (m.archived) return 'archived';
   const st = matEffectiveStatus(m);
   return st === 'none' ? 'delivered' : st;   // nothing left to do counts as done
 }
+function matStatusKeys(m) {
+  if (m.archived) return ['archived'];
+  const os = S.orders.filter(o => o.matId === m.id && o.status !== 'cancelled');
+  const keys = [];
+  const k = matOrderStatus(m);
+  if (k === 'toorder') keys.push('pending');
+  if (os.some(o => o.status === 'ordered' && !o.isCollection)) keys.push('ordered');
+  if (os.some(o => o.status === 'ordered' && o.isCollection)) keys.push('collect');
+  if (k === 'delivered' || k === 'collected') keys.push('delivered');
+  return keys.length ? keys : ['pending'];
+}
 function visibleMaterials() {
-  return S.materials.filter(m => matFilters.has(matStatusKey(m)));
+  return S.materials.filter(m => matStatusKeys(m).some(k => matFilters.has(k)));
+}
+
+// ── Suppliers filter (⋮ menu), same as Categories: All, None, then one tick per supplier ──
+let matSupMode = 'all';          // 'all' | 'none' | 'some'
+let matSupPicked = new Set();    // supplier ids, '__none' = no supplier set
+function matSupplierIdsOf(m) {
+  const ids = new Set((m.suppliers || []).map(x => x.supplierId).filter(Boolean));
+  S.orders.forEach(o => { if (o.matId === m.id && o.status !== 'cancelled' && o.supplierId) ids.add(o.supplierId); });
+  return ids;
+}
+function matSupplierKeys() {
+  return [...S.suppliers.map(x => [x.id, x.name]), ['__none', 'No supplier']];
+}
+function matMatchesSupplier(m, picked) {
+  const ids = matSupplierIdsOf(m);
+  if (!ids.size) return picked.has('__none');
+  return [...ids].some(id => picked.has(id));
+}
+function toggleMatSup(k) {
+  const allKeys = matSupplierKeys().map(([id]) => id);
+  if (k === 'all') { matSupMode = 'all'; matSupPicked = new Set(); }
+  else if (k === 'none') { matSupMode = 'none'; matSupPicked = new Set(); }
+  else {
+    if (matSupMode !== 'some') { matSupPicked = matSupMode === 'all' ? new Set(allKeys) : new Set(); matSupMode = 'some'; }
+    if (matSupPicked.has(k)) matSupPicked.delete(k); else matSupPicked.add(k);
+    if (!matSupPicked.size) matSupMode = 'none';
+    else if (allKeys.every(id => matSupPicked.has(id))) { matSupMode = 'all'; matSupPicked = new Set(); }
+  }
+  renderMaterials();
 }
 function syncMatFilterButtons() {
   const allOn = MAT_FILTER_KEYS.every(k => matFilters.has(k));
@@ -2931,6 +2985,7 @@ function renderMaterials() {
   // Ticked filters first; search then looks across everything ticked (archived included if ticked)
   let mats = visibleMaterials();
   if (matCatMode === 'some') mats = mats.filter(m => matCatPicked.has(m.cat || 'General'));
+  if (matSupMode === 'some') mats = mats.filter(m => matMatchesSupplier(m, matSupPicked));
   // Search filter — matches material name or assigned task names
   const matSearchEl = document.getElementById('matSearchBox');
   const matSearchQ = matSearchEl ? matSearchEl.value.trim().toLowerCase() : '';
@@ -2958,6 +3013,22 @@ function renderMaterials() {
       <div style="font-family:'DM Mono',monospace;font-size:13px;letter-spacing:1px">Nothing to show</div>
     </div>`;
   syncExpandToggleLabel();
+}
+
+// What tapping a material's status lozenge does
+function matNextStepJs(m, k) {
+  if (k === 'toorder') return `openOrderModal('${m.id}')`;
+  if (k === 'onorder' || k === 'collect') {
+    const open = S.orders.filter(o => o.matId === m.id && o.status === 'ordered' && !!o.isCollection === (k === 'collect'));
+    if (open.length === 1) return `markDelivered('${open[0].id}')`;
+    return `expandedMats.add('${m.id}');renderMaterials()`;   // several orders: open it so the right one can be picked
+  }
+  return '';
+}
+function orderStatusKey(o) {
+  if (o.status === 'delivered') return o.isCollection ? 'collected' : 'delivered';
+  if (o.status === 'pending') return 'toorder';
+  return o.isCollection ? 'collect' : 'onorder';
 }
 
 function renderMatCard(m) {
@@ -2990,7 +3061,7 @@ function renderMatCard(m) {
       <div class="task-name-full" style="${m.archived?'opacity:.55':''}">${m.name}</div>
       ${m.archived
         ? `<span class="lozenge" style="background:#f5f3ee;color:#8a8578;border-color:#bdb8ad">Archived</span>`
-        : (() => { const k = matOrderStatus(m); return statusLozenge(k, (k==='toorder' && isEditor()) ? `openOrderModal('${m.id}')` : ''); })()}
+        : (() => { const k = matOrderStatus(m); return statusLozenge(k, isEditor() ? matNextStepJs(m, k) : ''); })()}
     </div>`;
 
   if (!isExpanded) return row;
@@ -3016,6 +3087,20 @@ function renderMatCard(m) {
       ${sumLine('To order', `${outstanding} ${unit}`, outstanding>0?'#b45309':'#8a8578', outstanding>0)}
     </div>`;
 
+  const orderList = matOrders.filter(o => o.status !== 'cancelled')
+    .sort((a,b) => (b.orderedAt||'').localeCompare(a.orderedAt||''));
+  const ordersHtml = orderList.length ? `<div style="border-top:1px solid #ece9e2;margin-top:4px">${orderList.map(o => {
+      const sup = o.supplierId ? S.suppliers.find(x => x.id === o.supplierId) : null;
+      const k = orderStatusKey(o);
+      const when = o.status === 'delivered' ? o.deliveredAt : (o.expectedDelivery || o.orderedAt);
+      const tap = isEditor() ? ` onclick="event.stopPropagation();openOrderModal('${m.id}','${o.id}')" style="cursor:pointer"` : '';
+      const loz = statusLozenge(k, (isEditor() && (k === 'onorder' || k === 'collect')) ? `markDelivered('${o.id}')` : '');
+      return `<div class="mat-task-line"${tap}>
+        <div style="flex:1;min-width:0;line-height:1.3;font-size:14px">${o.qty} ${o.unit || unit}<span style="color:#8a8578"> · ${sup ? sup.name : 'No supplier'}${when ? ' · ' + fmtDate(when) : ''}</span></div>
+        ${loz}
+      </div>`;
+    }).join('')}</div>` : '';
+
   const sups = (m.suppliers||[]);
   const primary = sups[0] ? S.suppliers.find(x=>x.id===sups[0].supplierId) : null;
   const supplierHtml = `
@@ -3032,6 +3117,7 @@ function renderMatCard(m) {
     <div class="mat-detail open">
       <div style="border-top:1px solid #ddd9d0">${taskRows || `<div class="mat-task-line"><span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">No tasks assigned</span></div>`}</div>
       ${totalsHtml}
+      ${ordersHtml}
       ${supplierHtml}
       <div class="row task-actions" style="gap:5px;flex-wrap:nowrap">
         ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAddMat('${m.id}')">Edit</button>` : ''}
@@ -4501,10 +4587,12 @@ function setBulkType(type) {
 
 function openBulkOrder() {
   bulkSelected.clear();
-  // Populate supplier dropdown
+  // Supplier box filters the list: All, No supplier, or one supplier (starts from the Materials filter)
   const sel = document.getElementById('bulkSupplierInput');
-  sel.innerHTML = `<option value="">No supplier / TBC</option>` +
+  sel.innerHTML = `<option value="__all">All suppliers</option><option value="__none">No supplier</option>` +
     S.suppliers.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  const picked = matSupMode === 'some' ? [...matSupPicked] : [];
+  sel.value = picked.length === 1 ? picked[0] : '__all';
   // Default date to today
   document.getElementById('bulkDateInput').value = new Date().toISOString().slice(0,10);
   bulkOrderType = 'delivery';
@@ -4519,10 +4607,15 @@ function closeBulkOrder() {
 }
 
 function renderBulkMaterialList() {
-  const supId = document.getElementById('bulkSupplierInput').value || null;
+  const supId = document.getElementById('bulkSupplierInput').value || '__all';
+  const q = (document.getElementById('matSearchBox')?.value || '').trim().toLowerCase();
 
-  // Show all materials that have outstanding qty
+  // Materials with something still to order, narrowed by the supplier box and the Materials categories/search
   const materials = S.materials.filter(m => {
+    if (m.archived) return false;
+    if (supId !== '__all' && !matMatchesSupplier(m, new Set([supId]))) return false;
+    if (matCatMode === 'some' && !matCatPicked.has(m.cat || 'General')) return false;
+    if (q && !m.name.toLowerCase().includes(q) && !(m.assignments||[]).some(a => taskName(a.taskId).toLowerCase().includes(q))) return false;
     const needed = totalQty(m);
     if (needed === 0) return false;
     const accounted = S.orders
@@ -4531,9 +4624,13 @@ function renderBulkMaterialList() {
     return accounted < needed;
   });
 
+  // Everything listed starts ticked; untick what you don't want
+  bulkSelected.clear();
+  materials.forEach(m => bulkSelected.add(m.id));
   if (!materials.length) {
     document.getElementById('bulkMatList').innerHTML = `
       <div style="padding:20px;text-align:center;font-family:'DM Mono',monospace;font-size:13px;color:#8a8578">No materials need ordering</div>`;
+    updateBulkCount();
     return;
   }
 
@@ -4592,8 +4689,9 @@ function updateBulkCount() {
 
 async function placeBulkOrder() {
   if (bulkSelected.size === 0) { alert('Please select at least one material'); return; }
-  const supplierId = document.getElementById('bulkSupplierInput').value || null;
+  const supSel = document.getElementById('bulkSupplierInput').value;
   const date = document.getElementById('bulkDateInput').value || null;
+  const placed = bulkSelected.size;
   const isCollection = bulkOrderType === 'collection';
   const today = new Date().toISOString().slice(0,10);
 
@@ -4602,6 +4700,7 @@ async function placeBulkOrder() {
     if (!m) continue;
     const qtyEl = document.getElementById('bulkqty-'+matId);
     const qty = parseFloat(qtyEl?.value) || totalQty(m);
+    const supplierId = (supSel && supSel !== '__all' && supSel !== '__none') ? supSel : ((m.suppliers||[])[0]?.supplierId || null);
     const id = uid();
     const order = {
       id, matId, qty, unit: m.unit,
@@ -4628,7 +4727,7 @@ async function placeBulkOrder() {
   renderOrdersPage();
   renderMaterials();
   renderAreaPage();
-  showToast(`${bulkSelected.size} orders placed`);
+  showToast(`${placed} order${placed!==1?'s':''} placed`);
 }
 // ═══════════════ LISTS PAGE ═══════════════
 const listSectionOpen = { projects: false, areas: false, team: false, suppliers: false };
