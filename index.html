@@ -198,6 +198,7 @@ select.ctl { display: block; font-size: 13px !important; font-weight: 500; paddi
 .toolbar-line .ctl, .toolbar-line input.ctl { height: 28px !important; min-height: 28px; line-height: 28px; font-size: 11px !important; -webkit-appearance: none; appearance: none; border-radius: 8px; }
 .toolbar-line input.ctl.search { font-size: 13px !important; padding-left: 10px !important; }
 .toolbar-line input[type=search]::-webkit-search-decoration { -webkit-appearance: none; }
+.toolbar-line .btn-soft { width: 122px; justify-content: center; }
 .btn-soft { background: #fff !important; color: #1a1916 !important; border: 1px solid #1a1916 !important; }
 .task-name-full { flex: 1; min-width: 0; font-size: 15px; font-weight: 500; line-height: 1.3; white-space: normal; overflow: visible; }
 .mini-tag { font-family: 'DM Mono', monospace; font-size: 11px; color: #8a8578; background: #f5f3ee; border: 1px solid #ddd9d0; border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
@@ -210,6 +211,8 @@ select.ctl { display: block; font-size: 13px !important; font-weight: 500; paddi
 /* Compact rows: the white box is only a touch taller than its status button */
 .mat-row { padding: 3px 3px 3px 12px !important; min-height: 28px; box-sizing: border-box; }
 .mat-row .lozenge { margin: 0; }
+.diary-row .lozenge { height: auto; align-self: stretch; font-size: 13px; width: 96px; }
+.diary-row .diary-more { align-self: stretch; height: auto; width: 36px; padding: 0 !important; justify-content: center; font-size: 22px; font-weight: 700; color: #1a1916; flex-shrink: 0; }
 .mat-row .mat-row-chevron { margin-right: 8px; }
 .mat-detail { padding: 4px 12px 6px !important; }
 .mat-detail .avatar { width: 20px !important; height: 20px !important; font-size: 10px !important; }
@@ -710,6 +713,16 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div id="page-diary" class="page">
   <div class="page-pad">
+    <div class="toolbar-line">
+      <input id="diarySearchBox" class="ctl search" type="search" placeholder="Search" oninput="renderDiary()">
+      <div id="diaryAddBtn"></div>
+      <button class="btn btn-ghost btn-sm ctl tb-more" aria-label="More options" onclick="openToolbarMenu(this,'diary')">⋮</button>
+    </div>
+    <div class="tb-summary" id="tbSummary-diary"></div>
+    <div style="display:none">
+      <button class="btn btn-sm btn-primary" id="df-out" onclick="toggleDiaryShow('out')">Outstanding</button>
+      <button class="btn btn-sm btn-ghost" id="df-hist" onclick="toggleDiaryShow('hist')">History</button>
+    </div>
         <div id="diaryList"></div>
   </div>
 </div>
@@ -2165,7 +2178,7 @@ function saveView() {
       taskStatuses: [...taskStatuses], taskAreaMode, taskAreaPicked: [...taskAreaPicked],
       matFilters: [...matFilters], matCatMode, matCatPicked: [...matCatPicked], matFiltersV: 3,
       matSupMode, matSupPicked: [...matSupPicked],
-      orderFilter, orderGroupBy, project: CURRENT_PROJECT,
+      orderFilter, orderGroupBy, project: CURRENT_PROJECT, diaryShow: [...diaryShow],
     }));
   } catch(e) {}
 }
@@ -2196,6 +2209,8 @@ function restoreView() {
   }
   matHeadingsVisible = matCatMode !== 'none';
   if (v.orderFilter) orderFilter = v.orderFilter;
+  if (Array.isArray(v.diaryShow) && v.diaryShow.length) diaryShow = new Set(v.diaryShow.filter(k => k === 'out' || k === 'hist'));
+  if (!diaryShow.size) diaryShow = new Set(['out']);
   if (v.orderGroupBy === 'material' || v.orderGroupBy === 'supplier') {
     orderGroupBy = v.orderGroupBy;
     const gb = document.getElementById('orderGroupToggle');
@@ -2209,6 +2224,7 @@ function restoreView() {
 const TB_MENUS = {
   tasks:     [{ t:'', ids:['taskReorderBtn','taskExpandToggle'] }, { t:'Show', taskStatus:true }, { t:'Areas', taskAreas:true }],
   materials: [{ t:'', ids:['matExpandToggle','matBulkBtn'] }, { t:'Show', multi:true, ids:['mf-all','mf-pending','mf-ordered','mf-collect','mf-delivered','mf-archived'] }, { t:'Categories', matCats:true }, { t:'Suppliers', matSups:true }],
+  diary:     [{ t:'Show', multi:true, ids:['df-out','df-hist'] }],
   orders:    [{ t:'Show', ids:['of-all','of-pending','of-ordered','of-collect','of-delivered'] }, { t:'', ids:['orderExpandToggle'] }],
 };
 function closeToolbarMenu() {
@@ -3209,7 +3225,7 @@ function renderMatCard(m) {
       const tap = isEditor() ? ` onclick="event.stopPropagation();openOrderModal('${m.id}','${o.id}')" style="cursor:pointer"` : '';
       const loz = statusLozenge(k, (isEditor() && (k === 'onorder' || k === 'collect')) ? `markDelivered('${o.id}')` : '');
       return `<div class="mat-task-line"${tap}>
-        <div style="flex:1;min-width:0;${MD}">${o.qty} ${o.unit || unit} · ${sup ? sup.name : 'No supplier'}${when ? ' · ' + fmtDate(when) : ''}</div>
+        <div style="flex:1;min-width:0;${MD}">${o.qty} ${qtyUnit(o.qty, o.unit || unit)} · ${sup ? sup.name : 'No supplier'}${when ? ' · ' + fmtDate(when) : ''}</div>
         ${loz}
       </div>`;
     }).join('')}</div>` : '';
@@ -3633,33 +3649,40 @@ function renderMatSupplierPreview() {
   }).join('');
 }
 // ═══════════════ DIARY ═══════════════
-let diaryShowHistory = false;
-function toggleDiaryHistory() { diaryShowHistory = !diaryShowHistory; renderDiary(); }
+let diaryShow = new Set(['out']);     // 'out' = outstanding, 'hist' = delivered / collected
+function toggleDiaryShow(k) {
+  if (diaryShow.has(k)) { if (diaryShow.size > 1) diaryShow.delete(k); } else diaryShow.add(k);
+  renderDiary();
+}
+// "1 units" -> "1 unit"
+function qtyUnit(q, u) { u = u || ''; return (Number(q) === 1 && /[^s]s$/i.test(u)) ? u.slice(0, -1) : u; }
+// Date an order sits under in the Diary; a collection with no date goes under its order date
+function diaryDate(o) {
+  if (o.status === 'delivered') return o.deliveredAt || o.expectedDelivery || o.orderedAt;
+  return o.expectedDelivery || (o.isCollection ? o.orderedAt : null);
+}
 
 function renderDiary() {
   const today = new Date().toISOString().slice(0,10);
   const NO_DATE = '9999-12-31';
-  const toggleBar = `
-    <div class="row-wrap" style="gap:6px;margin-bottom:14px">
-      <button class="btn btn-sm ${diaryShowHistory?'btn-ghost':'btn-primary'}" onclick="if(diaryShowHistory)toggleDiaryHistory()">Outstanding</button>
-      <button class="btn btn-sm ${diaryShowHistory?'btn-primary':'btn-ghost'}" onclick="if(!diaryShowHistory)toggleDiaryHistory()">Show history</button>
-    </div>`;
+  const toggleBar = '';
+  ['out','hist'].forEach(k => { const b = document.getElementById('df-' + k); if (b) b.className = 'btn btn-sm ' + (diaryShow.has(k) ? 'btn-primary' : 'btn-ghost'); });
+  const addBox = document.getElementById('diaryAddBtn');
+  if (addBox) addBox.innerHTML = isEditor() ? `<button class="btn btn-sm ctl btn-soft" onclick="openBulkOrder()">+ Add Order</button>` : '';
+  const dq = (document.getElementById('diarySearchBox')?.value || '').trim().toLowerCase();
+  const showOut = diaryShow.has('out'), showHist = diaryShow.has('hist');
 
   const upcoming = S.orders
     .filter(o => o.status !== 'cancelled')
-    .filter(o => diaryShowHistory
-      ? o.status === 'delivered' && (o.deliveredAt || o.expectedDelivery)
-      : o.status !== 'delivered' && (o.expectedDelivery || o.status === 'ordered'))
-    .sort((a,b) => {
-      const da = o => o.status==='delivered' ? (o.deliveredAt||o.expectedDelivery) : o.expectedDelivery;
-      return (da(a)||'').localeCompare(da(b)||'');
-    });
+    .filter(o => o.status === 'delivered' ? showHist : (showOut && o.status === 'ordered'))
+    .filter(o => !dq || orderMatchesSearch(o, dq) || taskNamesForMat(o.matId).includes(dq))
+    .sort((a,b) => (diaryDate(a)||'').localeCompare(diaryDate(b)||''));
 
   if (!upcoming.length) {
     document.getElementById('diaryList').innerHTML = toggleBar + `
       <div style="text-align:center;padding:48px 20px;color:#8a8578">
         <div style="font-size:32px;margin-bottom:8px">📅</div>
-        <div style="font-family:'DM Mono',monospace;font-size:13px;letter-spacing:1px">${diaryShowHistory ? 'No delivery history' : 'Nothing outstanding'}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:13px;letter-spacing:1px">${dq ? 'No matches' : showOut ? 'Nothing outstanding' : 'No delivery history'}</div>
         <div style="font-size:13px;margin-top:8px;color:#8a8578">Add an expected delivery date when placing an order</div>
       </div>`;
     return;
@@ -3668,12 +3691,12 @@ function renderDiary() {
   // Group by date — delivered items use deliveredAt, pending use expectedDelivery
   const byDate = {};
   upcoming.forEach(o => {
-    const d = (o.status==='delivered' ? (o.deliveredAt||o.expectedDelivery) : o.expectedDelivery) || NO_DATE;
+    const d = diaryDate(o) || NO_DATE;
     (byDate[d]||(byDate[d]=[])).push(o);
   });
 
   const formatDate = (d, allDelivered) => {
-    if (d === NO_DATE) return 'No delivery date set';
+    if (d === NO_DATE) return 'No date set';
     const dt = new Date(d + 'T00:00:00');
     const diff = Math.round((dt - new Date(today + 'T00:00:00')) / 86400000);
     const dayStr = dt.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
@@ -3684,7 +3707,7 @@ function renderDiary() {
   };
 
   const dates = Object.keys(byDate).sort();
-  if (diaryShowHistory) dates.reverse();
+  if (showHist && !showOut) dates.reverse();
   document.getElementById('diaryList').innerHTML = toggleBar + dates.map(date => {
     const orders = byDate[date];
     const dt = new Date(date + 'T00:00:00');
@@ -3705,16 +3728,16 @@ function renderDiary() {
           const sup = o.supplierId ? S.suppliers.find(x=>x.id===o.supplierId) : null;
           const isDelivered = o.status === 'delivered';
           const k = orderStatusKey(o);
-          const what = [`${o.qty} ${m.unit}`, sup ? sup.name : 'No supplier', o.isCollection ? 'Collection' : 'Delivery'];
+          const what = [`${o.qty} ${qtyUnit(o.qty, m.unit)}`, sup ? sup.name : 'No supplier', o.isCollection ? 'Collection' : 'Delivery'];
           if (o.notes) what.push(`"${o.notes}"`);
           return `
-            <div class="mat-row" style="display:flex;align-items:center;gap:8px;${isDelivered?'opacity:.7':''}">
-              <div style="flex:1;min-width:0">
+            <div class="mat-row diary-row" ${isEditor() ? `onclick="openOrderModal('${m.id}','${o.id}')"` : ''} style="display:flex;align-items:stretch;gap:6px;cursor:pointer;${isDelivered?'opacity:.7':''}">
+              <div style="flex:1;min-width:0;align-self:center">
                 <div class="task-name-full">${m.name}</div>
                 <div style="font-size:13px;color:#8a8578;line-height:1.3">${what.join(' · ')}${sup&&sup.phone ? ` · <a href="tel:${sup.phone}" onclick="event.stopPropagation()" style="color:#1d4ed8;text-decoration:none">📞</a>` : ''}</div>
               </div>
               ${statusLozenge(k, (isEditor() && !isDelivered) ? `markDelivered('${o.id}')` : '')}
-              ${isEditor() ? `<button class="btn btn-ghost btn-sm" style="height:22px;width:30px;padding:0 !important;justify-content:center;flex-shrink:0" onclick="event.stopPropagation();openDiaryMenu('${o.id}',this)">⋮</button>` : ''}
+              ${isEditor() ? `<button class="btn btn-ghost btn-sm diary-more" onclick="event.stopPropagation();openDiaryMenu('${o.id}',this)">⋮</button>` : ''}
             </div>`;
           return `
             <div style="background:#ffffff;border:1px solid ${isDelivered?'#15803d':isOverdue?'#c8440e':'#ddd9d0'};border-radius:10px;padding:12px 14px;margin-bottom:6px;${isDelivered?'opacity:0.7':''}">
@@ -3745,6 +3768,10 @@ function renderDiary() {
   }).join('');
 }
 
+function taskNamesForMat(matId) {
+  const m = S.materials.find(x => x.id === matId);
+  return m ? (m.assignments||[]).map(a => taskName(a.taskId)).join(' ').toLowerCase() : '';
+}
 function openDiaryMenu(orderId, btn) {
   const already = document.getElementById('taskActionMenu');
   const sameOne = already && already.dataset.taskId === 'order:' + orderId;
