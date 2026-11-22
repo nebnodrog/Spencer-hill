@@ -241,6 +241,7 @@ backdrop-filter: blur(2px);
 }
 .overlay.open { display: flex; overscroll-behavior: contain; }
 .sheet > * { flex-shrink: 0; }
+.sheet-top-save { margin-left: auto; margin-right: 8px; height: 32px; padding: 0 14px !important; font-size: 13px; flex-shrink: 0; }
 body.sheet-locked { position: fixed; left: 0; right: 0; overflow: hidden; }
 html:has(.overlay.open), body:has(.overlay.open) { overflow: hidden; }
 .sheet {
@@ -691,6 +692,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div class="tb-summary" id="tbSummary-tasks" onclick="openToolbarMenu(document.querySelector('#page-tasks .tb-more'),'tasks')"></div>
     <div style="display:none" id="taskFilters">
       <select id="taskAreaFilter" onchange="setTaskAreaFilter(this.value)"><option value="all">All Areas</option></select>
+      <button class="btn btn-ghost btn-sm" id="taskReorderBtn" data-editor="1" onclick="toggleTaskReorder()">Reorder</button>
       <button class="btn btn-ghost btn-sm" id="taskExpandToggle" onclick="toggleAllTasks()">Expand all</button>
       <button class="btn btn-ghost btn-sm" id="taskHeadingToggle" onclick="toggleTaskHeadings()">Hide areas</button>
       <button class="btn btn-sm btn-ghost" id="tf-all" onclick="setTaskFilter('all')">All</button>
@@ -962,23 +964,19 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 </div>
 
 <div style="flex-shrink:0;border-top:1px solid #ddd9d0;padding-top:8px">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-    <label style="font-family:'DM Mono', monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578">Suppliers</label>
-    <div style="display:flex;align-items:center;gap:6px">
-      <div id="matSupplierPreview" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"></div>
-      <button class="btn btn-ghost btn-sm" onclick="openPickSupplier()">Select</button>
-    </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <label style="font-family:'DM Mono', monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;flex-shrink:0">Suppliers</label>
+    <div id="matSupplierPreview" style="flex:1;min-width:0;display:flex;gap:4px;flex-wrap:wrap"></div>
+    <button class="btn btn-ghost" style="width:132px;height:36px;justify-content:center;flex-shrink:0" onclick="openPickSupplier()">Select</button>
   </div>
 
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-    <input id="matProductUrl" placeholder="https://… product link" style="flex:1;box-sizing:border-box">
-    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-      <div style="text-align:right">
-        <div style="font-family:'DM Mono', monospace;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Total Qty</div>
-        <div style="font-family:'DM Mono', monospace;font-size:11px;color:#8a8578" id="chipTotalHint">enter directly</div>
-      </div>
+    <input id="matProductUrl" placeholder="https://… product link" style="flex:1;min-width:0;box-sizing:border-box;height:36px">
+    <div style="width:132px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:4px;padding:0 10px;box-sizing:border-box;border-radius:8px;background:#edeae3">
+      <span style="font-family:'DM Mono', monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578">Total</span>
+      <span id="chipTotalHint" style="display:none">enter directly</span>
       <input type="number" id="matDirectQty" min="0" step="1" placeholder="0"
-        style="font-family:'DM Mono', monospace;font-size:20px;font-weight:700;text-align:center;padding:2px 6px;width:72px;box-sizing:border-box;border-radius:8px;background:#edeae3;color:#8a8578"
+        style="font-family:'DM Mono', monospace;font-size:15px;font-weight:700;text-align:right;padding:0;width:56px;height:32px;box-sizing:border-box;border:none;background:transparent;color:#1a1916"
         readonly>
     </div>
   </div>
@@ -1944,6 +1942,58 @@ function toggleTaskRow(taskId, e) {
   renderTasksPage();
 }
 
+// ── Your own task order, set separately in each area ──
+let taskReorder = false;
+const taskReorderDirty = new Set();
+function taskAreaPos(t, aId) { const v = t.sortByArea && t.sortByArea[aId]; return (v === undefined || v === null) ? 1e9 : Number(v); }
+async function toggleTaskReorder() {
+  if (!isEditor()) return;
+  taskReorder = !taskReorder;
+  renderTasksPage();
+  if (!taskReorder && taskReorderDirty.size) {
+    const ids = [...taskReorderDirty]; taskReorderDirty.clear();
+    await refreshSessionIfNeeded();
+    const results = await Promise.all(ids.map(id => {
+      const t = S.tasks.find(x => x.id === id); if (!t) return true;
+      return fetch(`${SB_URL}/tasks?id=eq.${encodeURIComponent(id)}`, {
+        method: 'PATCH', headers: { ...getAuthHeaders(), 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ sort_by_area: t.sortByArea || {} })
+      }).then(r => r.ok).catch(() => false);
+    }));
+    showToast(results.every(Boolean) ? 'Order saved' : '⚠️ Order not saved — check connection');
+  }
+}
+function renderTaskReorder() {
+  const tb = document.getElementById('tbSummary-tasks');
+  const areas = S.areas.filter(a => taskAreaMode !== 'some' || taskAreaPicked.has(a.id));
+  const lists = areas.map(a => {
+    const list = S.tasks.filter(t => !t.archived && !t.done && (t.areaIds||[]).includes(a.id) && !(t.doneByArea||{})[a.id]
+      && (!isTradesman() || (t.assignees||[]).includes(S.currentUser)));
+    list.sort((x, y) => taskAreaPos(x, a.id) - taskAreaPos(y, a.id));
+    return { a, list };
+  }).filter(g => g.list.length);
+  window._reorderLists = lists;
+  document.getElementById('taskListGlobal').innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin:4px 0 8px">
+      <span style="flex:1;font-size:13px;color:#8a8578">Drag ☰ to set the order in each area</span>
+      <button class="btn btn-primary btn-sm" style="height:28px" onclick="toggleTaskReorder()">Done</button>
+    </div>` + (lists.length ? lists.map((g, gi) => `
+    <div class="section-head">${g.a.name}</div>
+    <div class="reorder-list" data-g="${gi}">${g.list.map((t, i) => `
+      <div data-idx="${i}" class="mat-row" style="display:flex;align-items:center;gap:8px;padding:0 0 0 12px !important;margin-bottom:4px">
+        <div class="task-name-full">${t.text}</div>${dragHandleHtml()}
+      </div>`).join('')}</div>`).join('') : `<div style="text-align:center;padding:48px 20px;color:#8a8578;font-size:13px">No open tasks to order</div>`);
+  document.querySelectorAll('#taskListGlobal .reorder-list').forEach(el => {
+    const g = lists[Number(el.dataset.g)];
+    enableDrag(el, (from, to) => {
+      if (from === to) return;
+      moveInArray(g.list, from, to);
+      g.list.forEach((t, i) => { t.sortByArea = { ...(t.sortByArea||{}), [g.a.id]: i + 1 }; taskReorderDirty.add(t.id); });
+      renderTaskReorder();
+    });
+  });
+}
+
 function renderTasksPage() {
   ['all','open','done'].forEach(x=>{
     const b=document.getElementById('tf-'+x);
@@ -1953,6 +2003,7 @@ function renderTasksPage() {
   const addTaskBtn = document.getElementById('taskAddBtn');
   if (addTaskBtn) addTaskBtn.innerHTML = isEditor() ? `<button class="btn btn-sm ctl btn-soft" onclick="openAddTask()">+ Add Task</button>` : '';
 
+  if (taskReorder) { renderTaskReorder(); return; }
   let tasks = [...S.tasks];
   const taskQ = (document.getElementById('taskSearchBox')?.value || '').trim().toLowerCase();
   if (taskQ) tasks = tasks.filter(t => (t.text||'').toLowerCase().includes(taskQ) || (t.notes||'').toLowerCase().includes(taskQ)
@@ -1992,6 +2043,8 @@ function renderTasksPage() {
           const aDone = !!a.done;
           const bDone = !!b.done;
           if (aDone !== bDone) return aDone ? 1 : -1;
+          const so = taskAreaPos(a, area.id) - taskAreaPos(b, area.id);
+          if (so) return so;
           const getPri = (t) => {
             const p = t.priority && typeof t.priority === 'object' ? (t.priority[area.id]||'none') : 'none';
             return priorityOrder[p] ?? 3;
@@ -2154,7 +2207,7 @@ function restoreView() {
 
 // ── Page toolbars: ⋮ menu holds the filters ──
 const TB_MENUS = {
-  tasks:     [{ t:'', ids:['taskExpandToggle'] }, { t:'Show', taskStatus:true }, { t:'Areas', taskAreas:true }],
+  tasks:     [{ t:'', ids:['taskReorderBtn','taskExpandToggle'] }, { t:'Show', taskStatus:true }, { t:'Areas', taskAreas:true }],
   materials: [{ t:'', ids:['matExpandToggle','matBulkBtn'] }, { t:'Show', multi:true, ids:['mf-all','mf-pending','mf-ordered','mf-collect','mf-delivered','mf-archived'] }, { t:'Categories', matCats:true }, { t:'Suppliers', matSups:true }],
   orders:    [{ t:'Show', ids:['of-all','of-pending','of-ordered','of-collect','of-delivered'] }, { t:'', ids:['orderExpandToggle'] }],
 };
@@ -2679,6 +2732,47 @@ function closeReassign() {
     document.querySelectorAll('.overlay').forEach(o => mo.observe(o, { attributes: true, attributeFilter: ['class'] }));
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
+})();
+
+// ── Save button on the top line of each edit sheet (bottom one stays; keyboard often hides it) ──
+const SHEET_SAVE_RE = /^(save|place|confirm|add)[A-Za-z]*\(\)$/;
+function sheetBottomSave(sheet) {
+  return [...sheet.querySelectorAll('button.btn-accent, button.btn-primary')]
+    .find(b => SHEET_SAVE_RE.test((b.getAttribute('onclick') || '').trim()) && /width:\s*100%/.test(b.getAttribute('style') || ''));
+}
+function topSaveLabel(t) {
+  t = (t || '').replace(/^✓\s*/, '').trim();
+  if (/^Save/i.test(t)) return 'Save';
+  if (/^Mark as /i.test(t)) return 'Confirm';
+  return t.length > 12 ? t.split(' ')[0] : t;
+}
+function addSheetTopSaves() {
+  document.querySelectorAll('.overlay .sheet').forEach(sheet => {
+    if (sheet.querySelector('.sheet-top-save')) return;
+    const bottom = sheetBottomSave(sheet);
+    const close = [...sheet.querySelectorAll('button[onclick^="close"]')].find(b => b.textContent.trim() === '✕');
+    if (!bottom || !close || !close.parentElement) return;
+    const top = document.createElement('button');
+    top.type = 'button';
+    top.className = 'btn ' + (bottom.classList.contains('btn-primary') ? 'btn-primary' : 'btn-accent') + ' sheet-top-save';
+    top.onclick = () => bottom.click();
+    top._bottom = bottom;
+    close.parentElement.insertBefore(top, close);
+  });
+}
+function syncSheetTopSaves() {
+  document.querySelectorAll('.sheet-top-save').forEach(b => {
+    b.textContent = topSaveLabel(b._bottom.textContent);
+    b.style.display = b._bottom.offsetParent === null && b._bottom.style.display === 'none' ? 'none' : '';
+  });
+}
+(function(){
+  const go = () => {
+    addSheetTopSaves(); syncSheetTopSaves();
+    const mo = new MutationObserver(() => setTimeout(syncSheetTopSaves, 0));
+    document.querySelectorAll('.overlay').forEach(o => mo.observe(o, { attributes: true, attributeFilter: ['class'] }));
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
 })();
 
 // A swipe that starts on a chip is a scroll, not a tap
@@ -3479,22 +3573,14 @@ function renderPickSupplierList() {
     const isPrimary = existing && matSelectedSuppliers.indexOf(existing)===0;
     const isAlt = existing && !isPrimary;
     return `
-      <div style="background:#ffffff;border:1px solid ${existing?'#1a1916':'#ddd9d0'};border-radius:10px;padding:12px;margin-bottom:8px">
-        <div class="row" style="justify-content:space-between;margin-bottom:${existing?'8px':'0'}">
-          <div>
-            <div style="font-weight:600;font-size:14px">${s.name}</div>
-            ${s.phone?`<div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">${s.phone}</div>`:''}
-          </div>
-          <div class="row" style="gap:6px">
-            ${existing ? `<span style="font-family:'DM Mono',monospace;font-size:11px;background:${isPrimary?'#1a1916':'#edeae3'};color:${isPrimary?'#fff':'#8a8578'};padding:2px 7px;border-radius:4px">${isPrimary?'PRIMARY':'ALT'}</span>` : ''}
-            <button class="btn btn-sm ${existing?'btn-ghost':'btn-primary'}" onclick="togglePickSupplier('${s.id}')">${existing?'Remove':'Add'}</button>
-          </div>
+      <div style="background:#ffffff;border:1px solid ${existing?'#1a1916':'#ddd9d0'};border-radius:8px;padding:3px 3px 3px 12px;margin-bottom:4px;box-sizing:border-box">
+        <div onclick="togglePickSupplier('${s.id}')" style="display:flex;align-items:center;gap:8px;min-height:22px;cursor:pointer">
+          <div class="task-name-full">${s.name}</div>
+          ${existing ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">${isPrimary?'Primary':'Alt'}</span>` : ''}
+          <span class="lozenge" style="background:${existing?'#f5f3ee':'#1a1916'};color:${existing?'#8a8578':'#fff'};border-color:${existing?'#bdb8ad':'#1a1916'}">${existing?'Remove':'+ Add'}</span>
         </div>
         ${existing ? `
-          <div>
-            <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px">Product Link</label>
-            <input value="${existing.productUrl||''}" placeholder="https://… product URL" onchange="updateSupplierProductUrl('${s.id}',this.value)" style="font-size:13px">
-          </div>` : ''}
+          <input value="${existing.productUrl||''}" placeholder="https://… product link" onclick="event.stopPropagation()" onchange="updateSupplierProductUrl('${s.id}',this.value)" style="font-size:13px;height:30px;margin:4px 9px 3px 0;width:calc(100% - 9px);box-sizing:border-box">` : ''}
       </div>`;
   }).join('');
 }
@@ -3518,13 +3604,13 @@ function renderMatSupplierPreview() {
   const el = document.getElementById('matSupplierPreview');
   if (!el) return;
   if (!matSelectedSuppliers.length) {
-    el.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">None selected</div>`;
+    el.innerHTML = `<div style="font-size:13px;color:#8a8578">None selected</div>`;
     return;
   }
   el.innerHTML = matSelectedSuppliers.map((entry,i)=>{
     const s = S.suppliers.find(x=>x.id===entry.supplierId);
     if (!s) return '';
-    return `<span style="font-family:'DM Mono', monospace;font-size:11px;background:${i===0?'#1a1916':'#ddd9d0'};color:${i===0?'#fff':'#8a8578'};padding:2px 8px;border-radius:4px">${i===0?'✓ ':''} ${s.name}</span>`;
+    return `<span style="font-size:13px;font-weight:${i===0?'500':'400'};color:${i===0?'#1a1916':'#8a8578'};white-space:nowrap">${s.name}${i<matSelectedSuppliers.length-1?',':''}</span>`;
   }).join('');
 }
 // ═══════════════ DIARY ═══════════════
@@ -5491,7 +5577,7 @@ async function loadFromSupabase() {
 
     S.areas = areasR.map((r,k)=>({ id:r.id, name:r.name, description:r.description||'', notes:r.notes||'', sortOrder:r.sort_order||0, _k:k }))
       .sort((a,b)=>(a.sortOrder||1e9)-(b.sortOrder||1e9) || a._k-b._k).map(({_k,...a})=>a);
-    S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false, doneByArea: typeof r.done_by_area==='object'&&r.done_by_area!==null ? r.done_by_area : {}, archived:r.archived||false, priority:typeof r.priority==='object'&&r.priority!==null ? r.priority : {}, notes:r.notes||'' }));
+    S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false, doneByArea: typeof r.done_by_area==='object'&&r.done_by_area!==null ? r.done_by_area : {}, sortByArea: typeof r.sort_by_area==='object'&&r.sort_by_area!==null ? r.sort_by_area : {}, archived:r.archived||false, priority:typeof r.priority==='object'&&r.priority!==null ? r.priority : {}, notes:r.notes||'' }));
     S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[], directQty:r.direct_qty||0, archived:r.archived||false, notes:r.notes||'' }));
     S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false })).filter(o => o.status !== 'pending' && o.status !== 'cancelled');
     S.suppliers = supsR.map((r,k)=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'', projectIds:Array.isArray(r.project_ids)?r.project_ids:[], sortOrder:r.sort_order||0, _k:k }))
