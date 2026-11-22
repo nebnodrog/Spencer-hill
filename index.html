@@ -3668,7 +3668,7 @@ function renderDiary() {
   const toggleBar = '';
   ['out','hist'].forEach(k => { const b = document.getElementById('df-' + k); if (b) b.className = 'btn btn-sm ' + (diaryShow.has(k) ? 'btn-primary' : 'btn-ghost'); });
   const addBox = document.getElementById('diaryAddBtn');
-  if (addBox) addBox.innerHTML = isEditor() ? `<button class="btn btn-sm ctl btn-soft" onclick="openBulkOrder()">+ Add Order</button>` : '';
+  if (addBox) addBox.innerHTML = isEditor() ? `<button class="btn btn-sm ctl btn-soft" onclick="openBulkOrder()">+ Bulk Order</button>` : '';
   const dq = (document.getElementById('diarySearchBox')?.value || '').trim().toLowerCase();
   const showOut = diaryShow.has('out'), showHist = diaryShow.has('hist');
 
@@ -4781,6 +4781,7 @@ function openBulkOrder() {
 }
 
 function closeBulkOrder() {
+  try { document.activeElement && document.activeElement.blur(); } catch(e) {}
   document.getElementById('bulkOrderOverlay').classList.remove('open');
   bulkSelected.clear();
 }
@@ -4821,12 +4822,12 @@ function renderBulkMaterialList() {
     const primarySup = S.suppliers.find(x=>x.id===(m.suppliers||[])[0]?.supplierId);
     return `
       <div id="bulkrow-${m.id}" onclick="toggleBulkMat('${m.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #f5f3ee;cursor:pointer;background:${sel?'#f0fdf4':'#fff'}">
-        <div style="width:22px;height:22px;border:2px solid ${sel?'#15803d':'#ddd9d0'};border-radius:6px;background:${sel?'#15803d':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <div class="bulk-box" style="width:22px;height:22px;border:2px solid ${sel?'#15803d':'#ddd9d0'};border-radius:6px;background:${sel?'#15803d':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
           ${sel?'<span style="color:#fff;font-size:14px;line-height:1">✓</span>':''}
         </div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.name}</div>
-          <div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">${outstanding} ${m.unit} to order${primarySup?' · '+primarySup.name:''}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">${outstanding} ${qtyUnit(outstanding, m.unit)} to order${primarySup?' · '+primarySup.name:''}</div>
         </div>
         <input type="number" id="bulkqty-${m.id}" value="${outstanding}" min="1"
           style="width:60px;font-family:'DM Mono',monospace;font-size:14px;font-weight:600;text-align:center;padding:2px 4px;border-radius:6px;box-sizing:border-box;flex-shrink:0;${sel?'opacity:1':'opacity:0.4'}"
@@ -4849,7 +4850,7 @@ function toggleBulkMat(matId) {
   const sel = bulkSelected.has(matId);
   if (row) {
     row.style.background = sel ? '#f0fdf4' : '#fff';
-    const box = row.querySelector('div[style*="border:2px"]');
+    const box = row.querySelector('.bulk-box');
     if (box) {
       box.style.borderColor = sel ? '#15803d' : '#ddd9d0';
       box.style.background = sel ? '#15803d' : 'transparent';
@@ -4871,16 +4872,18 @@ async function placeBulkOrder() {
   const supSel = document.getElementById('bulkSupplierInput').value;
   const date = document.getElementById('bulkDateInput').value || null;
   const placed = bulkSelected.size;
+  const picked = [...bulkSelected].map(id => [id, parseFloat(document.getElementById('bulkqty-'+id)?.value)]);
+  closeBulkOrder();
+  const saves = [];
   const isCollection = bulkOrderType === 'collection';
   const today = new Date().toISOString().slice(0,10);
 
-  for (const matId of bulkSelected) {
+  for (const [matId, qtyIn] of picked) {
     const m = S.materials.find(x=>x.id===matId);
     if (!m) continue;
-    const qtyEl = document.getElementById('bulkqty-'+matId);
-    const qty = parseFloat(qtyEl?.value) || totalQty(m);
+    const qty = qtyIn || totalQty(m);
     const supplierId = (supSel && supSel !== '__all' && supSel !== '__none') ? supSel : ((m.suppliers||[])[0]?.supplierId || null);
-    await adoptOrderSupplier(matId, supplierId);
+    saves.push(adoptOrderSupplier(matId, supplierId));
     const id = uid();
     const order = {
       id, matId, qty, unit: m.unit,
@@ -4893,20 +4896,20 @@ async function placeBulkOrder() {
       isCollection,
     };
     S.orders.push(order);
-    await saveRecord('orders', {
+    saves.push(saveRecord('orders', {
       id, mat_id: matId, qty, unit: m.unit,
       supplier_id: supplierId, status: 'ordered',
       ordered_by: S.currentUser, ordered_at: today,
       expected_delivery: date, delivered_at: null,
       notes: '', is_collection: isCollection,
       project_id: CURRENT_PROJECT,
-    });
+    }));
   }
 
-  closeBulkOrder();
-  renderOrdersPage();
+  refreshCurrentPage();
   renderMaterials();
-  renderAreaPage();
+  if (document.getElementById('page-diary').classList.contains('active')) renderDiary();
+  await Promise.all(saves);
   showToast(`${placed} order${placed!==1?'s':''} placed`);
 }
 // ═══════════════ LISTS PAGE ═══════════════
