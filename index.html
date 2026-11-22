@@ -3068,17 +3068,18 @@ function renderMatCard(m) {
 
   // ── EXPANDED DETAIL ──
   const unit = m.unit || '';
-  const fig = (v, color, bold) => `<span style="font-family:'DM Mono',monospace;font-size:11px;color:${color||'#1a1814'};${bold?'font-weight:600;':''}flex-shrink:0;white-space:nowrap;text-align:right;min-width:70px">${v}</span>`;
+  const MD = 'font-size:13px;color:#8a8578;line-height:1.3';   // open material: one small grey size below the name
+  const fig = (v, color, bold) => `<span style="${MD};color:${color||'#8a8578'};${bold?'font-weight:600;':''}flex-shrink:0;white-space:nowrap;text-align:right;min-width:70px">${v}</span>`;
   const taskRows = (m.assignments||[]).map(a=>{
     const t = S.tasks.find(x=>x.id===a.taskId);
     if (!t) return '';
     const areasTxt = (t.areaIds||[]).map(id=>areaName(id)).join(', ');
     return `<div class="mat-task-line" style="${t.done?'opacity:.45':''}">
-      <div style="flex:1;min-width:0;line-height:1.3"><span style="font-size:14px;font-weight:500;color:#1a1814">${t.text}</span>${areasTxt?`<span style="font-size:14px;color:#8a8578"> · ${areasTxt}</span>`:''}</div>
+      <div style="flex:1;min-width:0;${MD}">${t.text}${areasTxt?` · ${areasTxt}`:''}</div>
       ${fig(`${a.qty} ${unit}`)}
     </div>`;
   }).join('');
-  const sumLine = (label, v, color, bold) => `<div class="mat-task-line" style="border-bottom:none;padding:2px 0"><span style="flex:1;font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">${label}</span>${fig(v, color, bold)}</div>`;
+  const sumLine = (label, v, color, bold) => `<div class="mat-task-line" style="border-bottom:none;padding:2px 0"><span style="flex:1;${MD}">${label}</span>${fig(v, color, bold)}</div>`;
   const totalsHtml = `<div style="padding-top:3px">
       ${sumLine('Total needed', `${total} ${unit}`)}
       ${totalDelivered>0 ? sumLine('Delivered', `${totalDelivered} ${unit}`, '#15803d') : ''}
@@ -3096,7 +3097,7 @@ function renderMatCard(m) {
       const tap = isEditor() ? ` onclick="event.stopPropagation();openOrderModal('${m.id}','${o.id}')" style="cursor:pointer"` : '';
       const loz = statusLozenge(k, (isEditor() && (k === 'onorder' || k === 'collect')) ? `markDelivered('${o.id}')` : '');
       return `<div class="mat-task-line"${tap}>
-        <div style="flex:1;min-width:0;line-height:1.3;font-size:14px">${o.qty} ${o.unit || unit}<span style="color:#8a8578"> · ${sup ? sup.name : 'No supplier'}${when ? ' · ' + fmtDate(when) : ''}</span></div>
+        <div style="flex:1;min-width:0;${MD}">${o.qty} ${o.unit || unit} · ${sup ? sup.name : 'No supplier'}${when ? ' · ' + fmtDate(when) : ''}</div>
         ${loz}
       </div>`;
     }).join('')}</div>` : '';
@@ -3105,8 +3106,8 @@ function renderMatCard(m) {
   const primary = sups[0] ? S.suppliers.find(x=>x.id===sups[0].supplierId) : null;
   const supplierHtml = `
       <div style="display:flex;align-items:center;gap:6px;margin:4px 0 6px;flex-wrap:wrap">
-        <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0">Supplier</span>
-        ${primary ? `<span style="font-size:14px;font-weight:500">${primary.name}</span>` : '<span style="font-family:\'DM Mono\',monospace;font-size:11px;color:#8a8578">None assigned</span>'}
+        <span style="${MD};flex-shrink:0">Supplier</span>
+        <span style="${MD}">${primary ? primary.name : 'None assigned'}</span>
         ${primary&&primary.phone ? `<a href="tel:${primary.phone}" onclick="event.stopPropagation()" style="font-size:11px;text-decoration:none">📞</a>` : ''}
         ${primary&&primary.website ? `<a href="https://${primary.website.replace(/^https?:\/\//,'')}" target="_blank" onclick="event.stopPropagation()" style="font-size:11px;text-decoration:none">🌐</a>` : ''}
         ${sups[0]&&sups[0].productUrl ? `<a href="${sups[0].productUrl}" target="_blank" onclick="event.stopPropagation()" style="font-size:11px;text-decoration:none">🔗</a>` : ''}
@@ -3115,7 +3116,7 @@ function renderMatCard(m) {
   const notesOn = m.notes && m.notes.trim() ? 'notes-on' : '';
   const detail = `
     <div class="mat-detail open">
-      <div style="border-top:1px solid #ddd9d0">${taskRows || `<div class="mat-task-line"><span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">No tasks assigned</span></div>`}</div>
+      <div style="border-top:1px solid #ddd9d0">${taskRows || `<div class="mat-task-line"><span style="${MD}">No tasks assigned</span></div>`}</div>
       ${totalsHtml}
       ${ordersHtml}
       ${supplierHtml}
