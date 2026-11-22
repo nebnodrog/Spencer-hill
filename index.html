@@ -199,7 +199,7 @@ select.ctl { display: block; font-size: 13px !important; font-weight: 500; paddi
 .toolbar-line input.ctl.search { font-size: 13px !important; padding-left: 10px !important; }
 .toolbar-line input[type=search]::-webkit-search-decoration { -webkit-appearance: none; }
 .btn-soft { background: #fff !important; color: #1a1916 !important; border: 1px solid #1a1916 !important; }
-.task-name-full { flex: 1; min-width: 0; font-size: 14px; font-weight: 500; line-height: 1.3; white-space: normal; overflow: visible; }
+.task-name-full { flex: 1; min-width: 0; font-size: 15px; font-weight: 500; line-height: 1.3; white-space: normal; overflow: visible; }
 .mini-tag { font-family: 'DM Mono', monospace; font-size: 11px; color: #8a8578; background: #f5f3ee; border: 1px solid #ddd9d0; border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
 .task-actions .btn { flex: 1; justify-content: center; height: 22px; padding: 0 6px !important; font-size: 11px; line-height: 1; border-radius: 6px; display: inline-flex; align-items: center; }
 .task-actions .more { flex: 0 0 30px; font-size: 13px; }
@@ -870,10 +870,9 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
         <div style="flex:1">
           <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Status</label>
           <select id="orderStatusInput">
-            <option value="pending">Pending</option>
             <option value="ordered">Ordered</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
+            <option value="delivered">Delivered / collected</option>
+            <option value="remove">Not ordered (remove)</option>
           </select>
         </div>
       </div>
@@ -3784,7 +3783,7 @@ function syncOrderExpandLabel() {
 async function reloadOrders() {
   try {
     const ordersR = await sbGet('orders');
-    S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false }));
+    S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false })).filter(o => o.status !== 'pending' && o.status !== 'cancelled');
   } catch(e) { console.error('reloadOrders failed', e); }
 }
 
@@ -5366,6 +5365,13 @@ async function deleteMat(id) {
 
 const _origSaveOrder = saveOrder;
 async function saveOrder() {
+  if (editingOrderId && document.getElementById('orderStatusInput').value === 'remove') {
+    const id = editingOrderId;
+    closeOrderModal();
+    await deleteOrder(id);   // goes back to To order; toast has Undo
+    if (document.getElementById('page-diary').classList.contains('active')) renderDiary();
+    return;
+  }
   const qty = parseFloat(document.getElementById('orderQtyInput').value);
   if (!qty||qty<=0) { alert('Please enter a quantity'); return; }
   const m = S.materials.find(x=>x.id===orderingMatId);
@@ -5487,7 +5493,7 @@ async function loadFromSupabase() {
       .sort((a,b)=>(a.sortOrder||1e9)-(b.sortOrder||1e9) || a._k-b._k).map(({_k,...a})=>a);
     S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false, doneByArea: typeof r.done_by_area==='object'&&r.done_by_area!==null ? r.done_by_area : {}, archived:r.archived||false, priority:typeof r.priority==='object'&&r.priority!==null ? r.priority : {}, notes:r.notes||'' }));
     S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[], directQty:r.direct_qty||0, archived:r.archived||false, notes:r.notes||'' }));
-    S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false }));
+    S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false })).filter(o => o.status !== 'pending' && o.status !== 'cancelled');
     S.suppliers = supsR.map((r,k)=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'', projectIds:Array.isArray(r.project_ids)?r.project_ids:[], sortOrder:r.sort_order||0, _k:k }))
       .sort((a,b)=>(a.sortOrder||1e9)-(b.sortOrder||1e9) || a._k-b._k).map(({_k,...x})=>x);
     const normPerm = p => p==='editor' ? 'foreman' : p==='viewer' ? 'tradesman' : (p||'foreman');
