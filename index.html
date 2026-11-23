@@ -245,7 +245,7 @@ backdrop-filter: blur(2px);
 .overlay.open { display: flex; overscroll-behavior: contain; }
 .sheet > * { flex-shrink: 0; }
 .sheet-top-save { margin-left: auto; margin-right: 8px; height: 32px; padding: 0 14px !important; font-size: 13px; flex-shrink: 0; }
-body.sheet-locked { position: fixed; left: 0; right: 0; overflow: hidden; }
+html { touch-action: manipulation; }   /* no double-tap zoom */
 html:has(.overlay.open), body:has(.overlay.open) { overflow: hidden; }
 .sheet {
 background: #ffffff;
@@ -1147,7 +1147,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
         <select id="bulkSupplierInput" style="width:100%;box-sizing:border-box" onchange="renderBulkMaterialList()"></select>
       </div>
       <div style="flex:1">
-        <label style="font-family:'DM Mono', monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px">Delivery Date</label>
+        <label id="bulkDateLabel" style="font-family:'DM Mono', monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px">Delivery Date</label>
         <input type="date" id="bulkDateInput" style="width:100%;box-sizing:border-box">
       </div>
     </div>
@@ -2727,27 +2727,20 @@ function closeReassign() {
   refreshCurrentPage();
 }
 
-// ── Freeze the page behind an open sheet so swipes scroll the sheet, not the page ──
+// ── Keep swipes inside an open sheet from moving the page behind it ──
+// (No position:fixed on the body: on iPhone that throws taps off target once the page has scrolled.)
 (function(){
-  let lockedY = null;
-  function sync() {
-    const anyOpen = !!document.querySelector('.overlay.open');
-    if (anyOpen && lockedY === null) {
-      lockedY = window.scrollY || 0;
-      document.body.style.top = `-${lockedY}px`;
-      document.body.classList.add('sheet-locked');
-    } else if (!anyOpen && lockedY !== null) {
-      document.body.classList.remove('sheet-locked');
-      document.body.style.top = '';
-      window.scrollTo(0, lockedY);
-      lockedY = null;
-    }
+  function canScroll(el) {
+    const cs = getComputedStyle(el);
+    return /(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 1;
   }
-  function watch() {
-    const mo = new MutationObserver(sync);
-    document.querySelectorAll('.overlay').forEach(o => mo.observe(o, { attributes: true, attributeFilter: ['class'] }));
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
+  document.addEventListener('touchmove', e => {
+    const ov = document.querySelector('.overlay.open');
+    if (!ov) return;
+    let el = e.target;
+    while (el && el !== ov) { if (el.nodeType === 1 && canScroll(el)) return; el = el.parentElement; }
+    e.preventDefault();   // nothing scrollable under the finger: don't let the page move
+  }, { passive: false });
 })();
 
 // ── Save button on the top line of each edit sheet (bottom one stays; keyboard often hides it) ──
@@ -2811,6 +2804,7 @@ function refreshCurrentPage() {
   if (document.getElementById('page-overview').classList.contains('active')) renderOverview();
   if (document.getElementById('page-team').classList.contains('active')) renderTeam();
   if (document.getElementById('page-lists').classList.contains('active')) renderListsPage();
+  if (document.getElementById('page-diary').classList.contains('active')) renderDiary();
 }
 
 // ═══════════════ ADD AREA ═══════════════
@@ -3799,7 +3793,7 @@ function openDiaryMenu(orderId, btn) {
     if (!b) return;
     closeTaskMenu();
     if (b.dataset.act === 'edit') openOrderModal(o.matId, o.id);
-    else if (b.dataset.act === 'delete') { await deleteOrder(o.id); renderDiary(); }
+    else if (b.dataset.act === 'delete') deleteOrder(o.id);
   });
   setTimeout(() => {
     document.addEventListener('click', e => { if (!menu.contains(e.target) && !btn.contains(e.target)) closeTaskMenu(); }, { capture:true, once:true });
@@ -4429,17 +4423,14 @@ async function deleteOrder(id) {
   S.orders.splice(idx,1);
 
   // If delivered, reduce material directQty accordingly
+  let matToSave = null;
   if (o.status === 'delivered') {
     const m = S.materials.find(x=>x.id===o.matId);
-    if (m) {
-      m.directQty = Math.max(0, (m.directQty||0) - Number(o.qty));
-      await saveRecord('materials', { id: m.id, name: m.name, unit: m.unit, cat: m.cat, assignments: m.assignments, product_url: m.productUrl||'', suppliers: m.suppliers, direct_qty: m.directQty, archived: m.archived||false, project_id: CURRENT_PROJECT });
-    }
+    if (m) { m.directQty = Math.max(0, (m.directQty||0) - Number(o.qty)); matToSave = m; }
   }
 
+  // Screen and Undo first, then save, so there's no pause
   refreshCurrentPage();
-  if (document.getElementById('page-orders').classList.contains('active')) renderOrdersPage();
-  await deleteRecord('orders', id);
   showToast('Order deleted', async ()=>{
     S.orders.splice(idx,0,snapshot);
     if (o.status === 'delivered') {
@@ -4450,8 +4441,10 @@ async function deleteOrder(id) {
       }
     }
     await saveRecord('orders', { id: snapshot.id, mat_id: snapshot.matId, qty: snapshot.qty, unit: snapshot.unit, supplier_id: snapshot.supplierId, status: snapshot.status, ordered_by: snapshot.orderedBy, ordered_at: snapshot.orderedAt, expected_delivery: snapshot.expectedDelivery, delivered_at: snapshot.deliveredAt, notes: snapshot.notes, is_collection: snapshot.isCollection||false, project_id: CURRENT_PROJECT });
-    refreshCurrentPage(); renderOrdersPage();
+    refreshCurrentPage();
   });
+  await deleteRecord('orders', id);
+  if (matToSave) await saveRecord('materials', { id: matToSave.id, name: matToSave.name, unit: matToSave.unit, cat: matToSave.cat, assignments: matToSave.assignments, product_url: matToSave.productUrl||'', suppliers: matToSave.suppliers, direct_qty: matToSave.directQty, archived: matToSave.archived||false, project_id: CURRENT_PROJECT });
 }
 
 function reorderClone(orderId) {
@@ -4762,6 +4755,8 @@ function setBulkType(type) {
   document.getElementById('bulkTypeDelivery').style.color = type==='delivery' ? '#fff' : '#1a1916';
   document.getElementById('bulkTypeCollection').style.background = type==='collection' ? '#1a1916' : '#fff';
   document.getElementById('bulkTypeCollection').style.color = type==='collection' ? '#fff' : '#1a1916';
+  const lbl = document.getElementById('bulkDateLabel');
+  if (lbl) lbl.textContent = type === 'collection' ? 'Collection Date' : 'Delivery Date';
 }
 
 function openBulkOrder() {
@@ -5467,12 +5462,22 @@ async function deleteTask(id) {
   const snapshot = JSON.parse(JSON.stringify(t));
   const idx = S.tasks.findIndex(x=>x.id===id);
   S.tasks.splice(idx, 1);
-  refreshCurrentPage();
-  await deleteRecord('tasks', id);
-  showToast(`"${t.text.slice(0,30)}" deleted`, async ()=>{
-    await saveRecord('tasks', { id: snapshot.id, text: snapshot.text, area_ids: snapshot.areaIds, assignees: snapshot.assignees, done: snapshot.done, project_id: CURRENT_PROJECT });
-    refreshCurrentPage();
+  const matSave = m => saveRecord('materials', { id: m.id, name: m.name, unit: m.unit, cat: m.cat, assignments: m.assignments, product_url: m.productUrl||'', suppliers: m.suppliers, direct_qty: m.directQty, archived: m.archived||false, project_id: CURRENT_PROJECT });
+  const removed = [];
+  S.materials.forEach(m => {
+    const a = (m.assignments||[]).find(x => x.taskId === id);
+    if (a) { removed.push([m, a]); m.assignments = m.assignments.filter(x => x.taskId !== id); }
   });
+  refreshCurrentPage();
+  showToast(`"${t.text.slice(0,30)}" deleted`, async ()=>{
+    S.tasks.splice(idx, 0, snapshot);
+    removed.forEach(([m, a]) => { m.assignments = [...(m.assignments||[]), a]; });
+    refreshCurrentPage();
+    await saveRecord('tasks', { id: snapshot.id, text: snapshot.text, area_ids: snapshot.areaIds, assignees: snapshot.assignees, done: snapshot.done, project_id: CURRENT_PROJECT });
+    await Promise.all(removed.map(([m]) => matSave(m)));
+  });
+  await deleteRecord('tasks', id);
+  await Promise.all(removed.map(([m]) => matSave(m)));
 }
 
 const _origSaveMaterial = saveMaterial;
