@@ -1640,7 +1640,7 @@ let taskPersonPicked = new Set();             // empty = everyone; otherwise tea
 function projectPeople() {
   return S.users.map((u, i) => ({ u, i })).filter(({ u }) => !u.projectIds || !u.projectIds.length || u.projectIds.includes(CURRENT_PROJECT));
 }
-function toggleTaskPerson(k) {
+function toggleTaskTeamFilter(k) {
   if (k === 'all') taskPersonPicked = new Set();
   else { const i = Number(k); if (taskPersonPicked.has(i)) taskPersonPicked.delete(i); else taskPersonPicked.add(i); }
   if (projectPeople().every(({ i }) => taskPersonPicked.has(i))) taskPersonPicked = new Set();
@@ -1933,17 +1933,21 @@ function initTaskFilters() {
 }
 
 let collapsedTaskGroups = new Set(); // area ids whose group is collapsed
-let expandedTaskRows = new Set();   // individual task ids that are expanded
+let expandedTaskRows = new Set();   // "taskId|areaId" — a task opens only in the area you tapped
+function taskRowKey(id, areaId) { return id + '|' + (areaId || ''); }
+function taskRowOpen(id, areaId) { return expandedTaskRows.has(taskRowKey(id, areaId)); }
+function anyTaskRowOpen(id) { for (const k of expandedTaskRows) if (k.startsWith(id + '|')) return true; return false; }
+function closeTaskRows(id) { [...expandedTaskRows].forEach(k => { if (k.startsWith(id + '|')) expandedTaskRows.delete(k); }); }
 let allTasksCollapsed = false;
 
 function toggleAllTasks() {
   let tasks = [...S.tasks];
   tasks = tasks.filter(t => t.archived ? taskStatuses.has('archived') : (taskStatuses.has('open') || taskStatuses.has('done')));
-  const anyExpanded = tasks.some(t => expandedTaskRows.has(t.id));
+  const anyExpanded = tasks.some(t => anyTaskRowOpen(t.id));
   if (anyExpanded) {
-    tasks.forEach(t => expandedTaskRows.delete(t.id));
+    expandedTaskRows.clear();
   } else {
-    tasks.forEach(t => expandedTaskRows.add(t.id));
+    tasks.forEach(t => ['', ...(t.areaIds||[])].forEach(a => expandedTaskRows.add(taskRowKey(t.id, a))));
   }
   syncTaskExpandLabel();
   renderTasksPage();
@@ -1954,7 +1958,7 @@ function syncTaskExpandLabel() {
   if (!btn) return;
   let tasks = [...S.tasks];
   tasks = tasks.filter(t => t.archived ? taskStatuses.has('archived') : (taskStatuses.has('open') || taskStatuses.has('done')));
-  const anyExpanded = tasks.some(t => expandedTaskRows.has(t.id));
+  const anyExpanded = tasks.some(t => anyTaskRowOpen(t.id));
   btn.textContent = anyExpanded ? 'Collapse all' : 'Expand all';
 }
 
@@ -1965,12 +1969,67 @@ function toggleTaskGroup(areaId) {
   renderTasksPage();
 }
 
-function toggleTaskRow(taskId, e) {
+function toggleTaskRow(taskId, e, areaId) {
   e && e.stopPropagation();
-  if (expandedTaskRows.has(taskId)) expandedTaskRows.delete(taskId);
-  else expandedTaskRows.add(taskId);
+  const k = taskRowKey(taskId, areaId);
+  if (expandedTaskRows.has(k)) expandedTaskRows.delete(k);
+  else expandedTaskRows.add(k);
   renderTasksPage();
 }
+
+// ── Subtasks: swipe a task right to tuck it under the one above; swipe left to bring it back out ──
+async function setTaskParent(id, parentId) {
+  const t = S.tasks.find(x => x.id === id);
+  if (!t) return false;
+  t.parentId = parentId;
+  renderTasksPage();
+  await refreshSessionIfNeeded();
+  const ok = await fetch(`${SB_URL}/tasks?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH', headers: { ...getAuthHeaders(), 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ parent_id: parentId })
+  }).then(r => r.ok).catch(() => false);
+  if (!ok) showToast('⚠️ Not saved — check connection');
+  return ok;
+}
+function taskSwipe(row, dir) {
+  if (!isEditor() || taskReorder) return;
+  const id = row.dataset.tid, aId = row.dataset.aid || null;
+  const t = S.tasks.find(x => x.id === id);
+  if (!t) return;
+  if (dir < 0) {
+    if (!t.parentId) return;
+    const was = t.parentId;
+    setTaskParent(id, null);
+    showToast('Moved out', () => setTaskParent(id, was));
+    return;
+  }
+  if (t.parentId) return;
+  if (taskKids(id).length) { showToast('It has subtasks of its own — one level only'); return; }
+  let prev = row.previousElementSibling;
+  while (prev && !prev.dataset.tid) { if (prev.classList.contains('section-head')) prev = null; else prev = prev.previousElementSibling; }
+  if (!prev) { showToast('No task above to tuck it under'); return; }
+  let parent = S.tasks.find(x => x.id === prev.dataset.tid);
+  if (parent && parent.parentId) parent = S.tasks.find(x => x.id === parent.parentId);
+  if (!parent || parent.id === id) return;
+  expandedTaskRows.add(taskRowKey(parent.id, aId));
+  setTaskParent(id, parent.id);
+  showToast(`Under "${parent.text.slice(0,28)}"`, () => setTaskParent(id, null));
+}
+(function(){
+  let start = null;
+  document.addEventListener('touchstart', e => {
+    const row = e.target.closest && e.target.closest('#taskListGlobal .mat-row[data-tid]');
+    const p = e.touches[0];
+    start = row && p ? { row, x: p.clientX, y: p.clientY } : null;
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (!start) return;
+    const p = e.changedTouches[0], s0 = start; start = null;
+    if (!p) return;
+    const dx = p.clientX - s0.x, dy = p.clientY - s0.y;
+    if (Math.abs(dx) > 50 && Math.abs(dy) < 30) taskSwipe(s0.row, dx > 0 ? 1 : -1);
+  }, { passive: true });
+})();
 
 // ── Your own task order, set separately in each area ──
 let taskReorder = false;
@@ -2093,8 +2152,15 @@ function renderTasksPage() {
   const pIdx = orderPersonIdx();
   const pPos = t => pIdx === null ? 0 : taskPersonPos(t, pIdx);
   const flat = [...tasks].sort((a,b) => (!!a.done - !!b.done) || (pPos(a) - pPos(b)) || (priOf(a) - priOf(b)));
+  // Subtasks sit under their main task and only show once it's opened in that place
+  const nested = (rows, aId) => {
+    const here = new Set(rows.map(t => t.id));
+    return rows.filter(t => !t.parentId || !here.has(t.parentId)).map(t =>
+      renderTaskRow(t, aId) + (taskRowOpen(t.id, aId) ? rows.filter(c => c.parentId === t.id).map(c => renderTaskRow(c, aId, true)).join('') : '')
+    ).join('');
+  };
   const html = (S.areas.length === 0 || taskAreaMode === 'none')
-    ? flat.map(t => renderTaskRow(t)).join('')
+    ? nested(flat, null)
     : S.areas.filter(a=>byArea[a.id]).map(area=>{
         const rows = byArea[area.id].sort((a,b) => {
           const aDone = !!a.done;
@@ -2113,7 +2179,7 @@ function renderTasksPage() {
         if (!rows || !rows.length) return '';
         return `
           ${taskHeadingsVisible ? `<div class="section-head" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>${area.name}</span><span onclick="event.stopPropagation();openNotes('area','${area.id}')" style="cursor:pointer;color:${area.notes&&area.notes.trim()?'#c8440e':'#8a8578'};padding:2px 0 2px 12px">Notes${area.notes&&area.notes.trim()?' •':''}</span></div>` : ''}
-          ${rows.map(t=>renderTaskRow(t, area.id)).join('')}`;
+          ${nested(rows, area.id)}`;
       }).join('');
 
   const areaIdSet = new Set(S.areas.map(a=>a.id));
@@ -2128,10 +2194,13 @@ function renderTasksPage() {
   syncTaskExpandLabel();
 }
 
-function renderTaskRow(t, areaId=null) {
+function taskKids(id) { return S.tasks.filter(c => c.parentId === id && !c.archived); }
+function renderTaskRow(t, areaId=null, isSub=false) {
   const assignees = t.assignees || [t.assignee ?? 0];
   const areaIds = t.areaIds || [];
-  const isExpanded = expandedTaskRows.has(t.id);
+  const isExpanded = taskRowOpen(t.id, areaId);
+  const kids = isSub ? [] : taskKids(t.id);
+  const kidBadge = kids.length ? `<span onclick="toggleTaskRow('${t.id}',event,'${areaId||''}')" style="font-family:'DM Mono',monospace;font-size:10px;color:#8a8578;border:1px solid #ddd9d0;border-radius:4px;padding:1px 5px;flex-shrink:0">${kids.filter(c=>c.done).length}/${kids.length}</span>` : '';
   const taskMats = matsForTask(t.id);
   const liveMats = taskMats.filter(m=>!m.archived);
   const archivedMats = taskMats.filter(m=>m.archived);
@@ -2155,14 +2224,15 @@ function renderTaskRow(t, areaId=null) {
   const statusPill = isDoneInArea
     ? `<span class="lozenge" style="background:#f0fdf4;color:#15803d;border-color:#15803d">Done</span>`
     : `<span class="lozenge" style="background:#fffbeb;color:#b45309;border-color:#b45309">Open</span>`;
-  const areaTag = (!taskHeadingsVisible && areaId) ? `<span style="font-family:'DM Mono',monospace;font-size:10px;color:#8a8578;background:#f5f3ee;border:1px solid #ddd9d0;border-radius:4px;padding:1px 5px;flex-shrink:0;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" onclick="toggleTaskRow('${t.id}',event)">${areaName(areaId)}</span>` : '';
+  const areaTag = (!taskHeadingsVisible && areaId) ? `<span style="font-family:'DM Mono',monospace;font-size:10px;color:#8a8578;background:#f5f3ee;border:1px solid #ddd9d0;border-radius:4px;padding:1px 5px;flex-shrink:0;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" onclick="toggleTaskRow('${t.id}',event,'${areaId||''}')">${areaName(areaId)}</span>` : '';
 
   // ── COLLAPSED ROW — mirrors mat-row exactly ──
   const row = `
-    <div class="mat-row ${isExpanded?'expanded':''}" id="trow-${t.id}">
+    <div class="mat-row ${isExpanded?'expanded':''}" id="trow-${t.id}-${areaId||''}" data-tid="${t.id}" data-aid="${areaId||''}" data-sub="${isSub?1:''}" style="${isSub?'margin-left:22px;':''}">
       ${tickCircle(isDoneInArea, !!(t.notes&&t.notes.trim()), priColor, `toggleTask('${t.id}','${areaId||""}')`)}
-      <div class="task-name-full" onclick="toggleTaskRow('${t.id}',event)" style="${isDoneInArea?'text-decoration:line-through;opacity:0.5':''}">${t.text}</div>
-      <span onclick="toggleTaskRow('${t.id}',event)" style="display:flex">${statusPill}</span>
+      <div class="task-name-full" onclick="toggleTaskRow('${t.id}',event,'${areaId||''}')" style="${isDoneInArea?'text-decoration:line-through;opacity:0.5':''}">${t.text}</div>
+      ${kidBadge}
+      <span onclick="toggleTaskRow('${t.id}',event,'${areaId||''}')" style="display:flex">${statusPill}</span>
     </div>`;
 
   if (!isExpanded) return row;
@@ -2266,7 +2336,7 @@ function restoreView() {
 
 // ── Page toolbars: ⋮ menu holds the filters ──
 const TB_MENUS = {
-  tasks:     [{ t:'', ids:['taskReorderBtn','taskExpandToggle'] }, { t:'Show', taskStatus:true }, { t:'Areas', taskAreas:true }, { t:'People', taskPeople:true, editorOnly:true }],
+  tasks:     [{ t:'', ids:['taskReorderBtn','taskExpandToggle'] }, { t:'Show', taskStatus:true }, { t:'Areas', taskAreas:true }, { t:'Team', taskPeople:true, editorOnly:true }],
   materials: [{ t:'', ids:['matExpandToggle','matBulkBtn'] }, { t:'Show', multi:true, ids:['mf-all','mf-pending','mf-ordered','mf-collect','mf-delivered','mf-archived'] }, { t:'Categories', matCats:true }, { t:'Suppliers', matSups:true }],
   diary:     [{ t:'Show', multi:true, ids:['df-out','df-hist'] }],
   orders:    [{ t:'Show', ids:['of-all','of-pending','of-ordered','of-collect','of-delivered'] }, { t:'', ids:['orderExpandToggle'] }],
@@ -2287,6 +2357,17 @@ function armMenuOutside(menu, btn, close) {
 function disarmMenuOutside() {
   if (_menuOutside) { document.removeEventListener('click', _menuOutside, true); _menuOutside = null; }
 }
+let _menuFold = null;
+function menuFoldSet() {
+  if (!_menuFold) { try { _menuFold = new Set(JSON.parse(localStorage.getItem('sh_menu_fold') || '[]')); } catch(e) { _menuFold = new Set(); } }
+  return _menuFold;
+}
+function menuFolded(page, t) { return menuFoldSet().has(page + ':' + t); }
+function toggleMenuFold(page, t) {
+  const f = menuFoldSet(), k = page + ':' + t;
+  if (f.has(k)) f.delete(k); else f.add(k);
+  try { localStorage.setItem('sh_menu_fold', JSON.stringify([...f])); } catch(e) {}
+}
 function closeToolbarMenu() {
   const m = document.getElementById('tbMenu');
   if (m) m.remove();
@@ -2298,7 +2379,8 @@ function openToolbarMenu(anchor, page) {
   const menu = document.createElement('div');
   menu.id = 'tbMenu';
   menu.style.cssText = 'position:fixed;z-index:9999;background:#fff;border:1px solid #ddd9d0;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.15);min-width:210px;max-height:70vh;overflow-y:auto;padding:4px 0';
-  const head = t => t ? `<div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#8a8578;padding:8px 14px 2px">${t}</div>` : '';
+  // Section headings fold up: tap to collapse or open (remembered on this device; all open to start)
+  const head = t => t ? `<button data-key="fold:${t}" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#8a8578;padding:8px 14px 4px;box-sizing:border-box"><span>${t}</span><span style="font-size:12px;letter-spacing:0">${menuFolded(page, t) ? '▸' : '▾'}</span></button>` : '';
   const tick = (label, on, key, w) => `<button data-key="${key}" style="${w?'flex:1;min-width:0;':''}display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;padding:9px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:#1a1814;cursor:pointer;box-sizing:border-box"><span style="width:16px;height:16px;border:1.5px solid ${on?'#c8440e':'#bdb8ad'};background:${on?'#c8440e':'#fff'};border-radius:4px;color:#fff;font-size:11px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${on?'✓':''}</span>${label}</button>`;
   const item = (label, active, key) => `<button data-key="${key}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;background:none;border:none;padding:9px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:#1a1814;cursor:pointer;font-weight:${active?'600':'400'}">${label}<span style="color:#c8440e">${active?'✓':''}</span></button>`;
   let html = '';
@@ -2306,6 +2388,7 @@ function openToolbarMenu(anchor, page) {
     if (g.editorOnly && !isEditor()) return;
     if (gi) html += `<div style="height:1px;background:#ece9e2;margin:4px 0"></div>`;
     html += head(g.t);
+    if (g.t && menuFolded(page, g.t)) return;
     if (g.taskStatus) {
       html += tick('All', ['open','done','archived'].every(k => taskStatuses.has(k)), 'ts:all');
       [['open','Open'],['done','Done'],['archived','Archived']].forEach(([k,l]) => html += tick(l, taskStatuses.has(k), 'ts:' + k));
@@ -2335,12 +2418,13 @@ function openToolbarMenu(anchor, page) {
   menu.addEventListener('click', e => {
     const b = e.target.closest('button[data-key]'); if (!b) return;
     const [kind, val] = b.dataset.key.split(/:(.*)/s);
-    const multi = ['ts','ta','tp','mc','ms'].includes(kind) || TB_MENUS[page].some(g => g.multi && g.ids && g.ids.includes(val));
+    const multi = ['ts','ta','tp','mc','ms','fold'].includes(kind) || TB_MENUS[page].some(g => g.multi && g.ids && g.ids.includes(val));
     const scroll = menu.scrollTop;
     closeToolbarMenu();
-    if (kind === 'ts') toggleTaskStatus(val);
+    if (kind === 'fold') toggleMenuFold(page, val);
+    else if (kind === 'ts') toggleTaskStatus(val);
     else if (kind === 'ta') toggleTaskAreaTick(val);
-    else if (kind === 'tp') toggleTaskPerson(val);
+    else if (kind === 'tp') toggleTaskTeamFilter(val);
     else if (kind === 'mc') toggleMatCat(val);
     else if (kind === 'ms') toggleMatSup(val);
     else document.getElementById(val)?.click();
@@ -5550,7 +5634,7 @@ async function toggleArchiveTask(id) {
   const t = S.tasks.find(x=>x.id===id);
   if (!t) return;
   t.archived = !t.archived;
-  expandedTaskRows.delete(id);
+  closeTaskRows(id);
   refreshCurrentPage();
   await saveRecord('tasks', { id, text: t.text, area_ids: t.areaIds, assignees: t.assignees, done: t.done, archived: t.archived, project_id: CURRENT_PROJECT });
   showToast(t.archived ? 'Task archived' : 'Task unarchived');
@@ -5561,6 +5645,7 @@ async function toggleTask(id) {
   const t = S.tasks.find(x=>x.id===id);
   if (!t) return;
   if (!t.doneByArea) t.doneByArea = {};
+  if (!t.done && taskKids(id).some(c => !c.done)) { showToast('Tick off its subtasks first'); return; }
   t.done = !t.done;
 
   refreshCurrentPage();
@@ -5799,7 +5884,7 @@ async function loadFromSupabase() {
 
     S.areas = areasR.map((r,k)=>({ id:r.id, name:r.name, description:r.description||'', notes:r.notes||'', sortOrder:r.sort_order||0, _k:k }))
       .sort((a,b)=>(a.sortOrder||1e9)-(b.sortOrder||1e9) || a._k-b._k).map(({_k,...a})=>a);
-    S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false, doneByArea: typeof r.done_by_area==='object'&&r.done_by_area!==null ? r.done_by_area : {}, sortByArea: typeof r.sort_by_area==='object'&&r.sort_by_area!==null ? r.sort_by_area : {}, archived:r.archived||false, priority:typeof r.priority==='object'&&r.priority!==null ? r.priority : {}, notes:r.notes||'' }));
+    S.tasks = tasksR.map(r=>({ id:r.id, text:r.text, areaIds:r.area_ids||[], assignees:r.assignees||[0], done:r.done||false, doneByArea: typeof r.done_by_area==='object'&&r.done_by_area!==null ? r.done_by_area : {}, sortByArea: typeof r.sort_by_area==='object'&&r.sort_by_area!==null ? r.sort_by_area : {}, archived:r.archived||false, priority:typeof r.priority==='object'&&r.priority!==null ? r.priority : {}, notes:r.notes||'', parentId:r.parent_id||null }));
     S.materials = matsR.map(r=>({ id:r.id, name:r.name, unit:r.unit, cat:r.cat, assignments:r.assignments||[], productUrl:r.product_url||'', suppliers:r.suppliers||[], directQty:r.direct_qty||0, archived:r.archived||false, notes:r.notes||'' }));
     S.orders = ordersR.map(r=>({ id:r.id, matId:r.mat_id, qty:r.qty, unit:r.unit, supplierId:r.supplier_id, status:r.status, orderedBy:r.ordered_by||0, orderedAt:r.ordered_at, expectedDelivery:r.expected_delivery, deliveredAt:r.delivered_at, notes:r.notes||'', isCollection:r.is_collection||false })).filter(o => o.status !== 'pending' && o.status !== 'cancelled');
     S.suppliers = supsR.map((r,k)=>({ id:r.id, name:r.name, phone:r.phone||'', website:r.website||'', account:r.account||'', notes:r.notes||'', projectIds:Array.isArray(r.project_ids)?r.project_ids:[], sortOrder:r.sort_order||0, _k:k }))
