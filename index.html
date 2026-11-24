@@ -166,6 +166,8 @@ transition: border-color 0.15s;
 -webkit-appearance: none;
 }
 input:focus, select:focus, textarea:focus { border-color: #1a1916; }
+/* Tick boxes: the general input rule above strips their look on iPhone, so ticks never show */
+input[type=checkbox] { -webkit-appearance: checkbox; appearance: auto; width: 20px; height: 20px; padding: 0; border: none; accent-color: #c8440e; }
 input::placeholder { color: #8a8578; }
 select option { background: #ffffff; }
 
