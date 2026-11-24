@@ -202,7 +202,7 @@ select.ctl { display: block; font-size: 13px !important; font-weight: 500; paddi
 .toolbar-line input[type=search]::-webkit-search-decoration { -webkit-appearance: none; }
 .toolbar-line .btn-soft { width: 122px; justify-content: center; }
 .btn-soft { background: #fff !important; color: #1a1916 !important; border: 1px solid #1a1916 !important; }
-.task-name-full { flex: 1; min-width: 0; font-size: 15px; font-weight: 500; line-height: 1.3; white-space: normal; overflow: visible; }
+.task-name-full { flex: 1; min-width: 0; font-size: 15px; font-weight: 400; line-height: 1.3; white-space: normal; overflow: visible; }
 .mini-tag { font-family: 'DM Mono', monospace; font-size: 11px; color: #8a8578; background: #f8f7f3; border: 1px solid #ddd9d0; border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
 .task-actions .btn { flex: 1; justify-content: center; height: 22px; padding: 0 6px !important; font-size: 11px; line-height: 1; border-radius: 6px; display: inline-flex; align-items: center; }
 .task-actions .more { flex: 0 0 30px; font-size: 13px; }
@@ -223,6 +223,8 @@ select.ctl { display: block; font-size: 13px !important; font-weight: 500; paddi
 .mat-detail { padding: 4px 3px 6px 12px !important; }   /* right edge matches the title row, so status buttons line up */
 .mat-detail .avatar { width: 20px !important; height: 20px !important; font-size: 10px !important; }
 .mini-tag { height: 20px; display: inline-flex; align-items: center; box-sizing: border-box; }
+/* Buttons inside an opened task or material: white with a pale grey border, so they sit back */
+.mat-detail .btn-ghost { background: #fff; border-color: #ddd9d0; color: #1a1916; }
 .notes-on { background: #f0fdf4 !important; color: #15803d !important; border-color: #15803d !important; }
 .toolbar-grid { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; margin-bottom: 12px; align-items: center; }
 .toolbar-grid .row-fill { display: flex; gap: 6px; }
