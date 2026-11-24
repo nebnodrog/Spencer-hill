@@ -2229,12 +2229,27 @@ const TB_MENUS = {
   diary:     [{ t:'Show', multi:true, ids:['df-out','df-hist'] }],
   orders:    [{ t:'Show', ids:['of-all','of-pending','of-ordered','of-collect','of-delivered'] }, { t:'', ids:['orderExpandToggle'] }],
 };
+// A tap outside an open ⋮ menu only closes it; the tap does not go through to what's underneath.
+// A tap on the ⋮ button that opened it is left alone, so that button toggles the menu.
+let _menuOutside = null;
+function armMenuOutside(menu, btn, close) {
+  disarmMenuOutside();
+  _menuOutside = e => {
+    if (!menu.isConnected) { disarmMenuOutside(); return; }
+    if (menu.contains(e.target) || (btn && btn.contains(e.target))) return;
+    e.stopPropagation(); e.preventDefault();
+    close();
+  };
+  document.addEventListener('click', _menuOutside, true);
+}
+function disarmMenuOutside() {
+  if (_menuOutside) { document.removeEventListener('click', _menuOutside, true); _menuOutside = null; }
+}
 function closeToolbarMenu() {
   const m = document.getElementById('tbMenu');
   if (m) m.remove();
-  document.removeEventListener('pointerdown', tbOutside, true);
+  disarmMenuOutside();
 }
-function tbOutside(e) { const m = document.getElementById('tbMenu'); if (m && !m.contains(e.target)) { e.stopPropagation(); closeToolbarMenu(); } }
 function openToolbarMenu(anchor, page) {
   if (document.getElementById('tbMenu')) { closeToolbarMenu(); return; }
   if (page === 'tasks') populateTaskAreaDropdown();
@@ -2286,7 +2301,7 @@ function openToolbarMenu(anchor, page) {
     updateTbSummary(page);
     if (multi) { openToolbarMenu(anchor, page); const m2 = document.getElementById('tbMenu'); if (m2) m2.scrollTop = scroll; }
   });
-  setTimeout(() => document.addEventListener('pointerdown', tbOutside, true), 0);
+  setTimeout(() => armMenuOutside(menu, anchor, closeToolbarMenu), 0);
 }
 function updateTbSummary(page) {
   const el = document.getElementById('tbSummary-' + page);
@@ -2561,7 +2576,7 @@ async function closeNotes() {
 function closeTaskMenu() {
   const m = document.getElementById('taskActionMenu');
   if (m) m.remove();
-  document.removeEventListener('click', closeTaskMenu, true);
+  disarmMenuOutside();
   window.removeEventListener('scroll', closeTaskMenu, true);
 }
 function openTaskMenu(taskId, btn, areaId='') {
@@ -2612,7 +2627,7 @@ function openTaskMenu(taskId, btn, areaId='') {
     }
   });
   setTimeout(() => {
-    document.addEventListener('click', e => { if (!menu.contains(e.target) && !btn.contains(e.target)) closeTaskMenu(); }, { capture:true, once:true });
+    armMenuOutside(menu, btn, closeTaskMenu);
     window.addEventListener('scroll', closeTaskMenu, true);
   }, 0);
 }
@@ -2657,7 +2672,7 @@ function openMatMenu(matId, btn) {
     }
   });
   setTimeout(() => {
-    document.addEventListener('click', e => { if (!menu.contains(e.target) && !btn.contains(e.target)) closeTaskMenu(); }, { capture:true, once:true });
+    armMenuOutside(menu, btn, closeTaskMenu);
     window.addEventListener('scroll', closeTaskMenu, true);
   }, 0);
 }
@@ -3798,7 +3813,7 @@ function openDiaryMenu(orderId, btn) {
     else if (b.dataset.act === 'delete') deleteOrder(o.id);
   });
   setTimeout(() => {
-    document.addEventListener('click', e => { if (!menu.contains(e.target) && !btn.contains(e.target)) closeTaskMenu(); }, { capture:true, once:true });
+    armMenuOutside(menu, btn, closeTaskMenu);
     window.addEventListener('scroll', closeTaskMenu, true);
   }, 0);
 }
