@@ -11,9 +11,9 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #f5f3ee;
+  --bg: #f8f7f3;
   --surface: #ffffff;
-  --surface2: #edeae3;
+  --surface2: #f1efea;
   --border: #ddd9d0;
   --ink: #1a1916;
   --muted: #8a8578;
@@ -38,7 +38,7 @@ overscroll-behavior-x: none;
 }
 
 body {
-background: #f5f3ee;
+background: #f8f7f3;
 color: #1a1916;
 font-family: 'DM Sans', sans-serif;
 min-height: 100vh;
@@ -185,7 +185,7 @@ white-space: nowrap;
 .btn-primary { background: #1a1916; color: #fff; }
 .btn-accent { background: #c8440e; color: #fff; }
 .btn-ghost {
-background: #edeae3; color: #1a1916;
+background: #f1efea; color: #1a1916;
 border: 1px solid #ddd9d0;
 }
 .btn-sm { padding: 5px 10px; font-size: 11px; }
@@ -203,11 +203,11 @@ select.ctl { display: block; font-size: 13px !important; font-weight: 500; paddi
 .toolbar-line .btn-soft { width: 122px; justify-content: center; }
 .btn-soft { background: #fff !important; color: #1a1916 !important; border: 1px solid #1a1916 !important; }
 .task-name-full { flex: 1; min-width: 0; font-size: 15px; font-weight: 500; line-height: 1.3; white-space: normal; overflow: visible; }
-.mini-tag { font-family: 'DM Mono', monospace; font-size: 11px; color: #8a8578; background: #f5f3ee; border: 1px solid #ddd9d0; border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
+.mini-tag { font-family: 'DM Mono', monospace; font-size: 11px; color: #8a8578; background: #f8f7f3; border: 1px solid #ddd9d0; border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
 .task-actions .btn { flex: 1; justify-content: center; height: 22px; padding: 0 6px !important; font-size: 11px; line-height: 1; border-radius: 6px; display: inline-flex; align-items: center; }
 .task-actions .more { flex: 0 0 30px; font-size: 13px; }
-.sheet-mat-row { display: flex; align-items: center; gap: 8px; min-height: 26px; padding: 2px 0; border-bottom: 1px solid #ece9e2; cursor: pointer; box-sizing: border-box; }
-.mat-task-line { display: flex; align-items: center; gap: 8px; padding: 3px 0; border-bottom: 1px solid #ece9e2; width: 100%; box-sizing: border-box; }
+.sheet-mat-row { display: flex; align-items: center; gap: 8px; min-height: 26px; padding: 2px 0; border-bottom: 1px solid #f0eee9; cursor: pointer; box-sizing: border-box; }
+.mat-task-line { display: flex; align-items: center; gap: 8px; padding: 3px 0; border-bottom: 1px solid #f0eee9; width: 100%; box-sizing: border-box; }
 .area-chip.done { border-color: #15803d; background: #15803d; color: #fff; }
 .mini-tag.done { background: #f0fdf4; color: #15803d; border-color: #15803d; }
 /* Compact rows: the white box is only a touch taller than its status button */
@@ -216,7 +216,7 @@ select.ctl { display: block; font-size: 13px !important; font-weight: 500; paddi
 .diary-row .lozenge { height: auto; align-self: stretch; font-size: 13px; width: 96px; }
 .diary-row .diary-more { align-self: stretch; height: auto; width: 36px; padding: 0 !important; justify-content: center; font-size: 22px; font-weight: 700; color: #1a1916; flex-shrink: 0; }
 .mat-row .mat-row-chevron { margin-right: 8px; }
-.mat-detail { padding: 4px 12px 6px !important; }
+.mat-detail { padding: 4px 3px 6px 12px !important; }   /* right edge matches the title row, so status buttons line up */
 .mat-detail .avatar { width: 20px !important; height: 20px !important; font-size: 10px !important; }
 .mini-tag { height: 20px; display: inline-flex; align-items: center; box-sizing: border-box; }
 .notes-on { background: #f0fdf4 !important; color: #15803d !important; border-color: #15803d !important; }
@@ -235,7 +235,7 @@ padding: 2px 7px; border-radius: 4px;
 .tag-pending { background: #fffbeb; color: #b45309; }
 .tag-ordered { background: #eff3ff; color: #1d4ed8; }
 .tag-delivered { background: #f0fdf4; color: #15803d; }
-.tag-area { background: #edeae3; color: #8a8578; border: 1px solid #ddd9d0; }
+.tag-area { background: #f1efea; color: #8a8578; border: 1px solid #ddd9d0; }
 
 /* ── MODAL ── */
 .overlay {
@@ -284,7 +284,7 @@ margin-bottom: 16px; color: #1a1916;
 display: flex; align-items: center; gap: 5px;
 border: 1px solid #ddd9d0; border-radius: 8px;
 padding: 5px 10px;
-cursor: pointer; background: #edeae3;
+cursor: pointer; background: #f1efea;
 transition: all 0.15s;
 }
 .area-chip.selected { border-color: #1a1916; background: #1a1916; color: #fff; }
@@ -325,7 +325,7 @@ color: #1a1916; white-space: nowrap;
 .mat-areas { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 4px; }
 .mat-area-pill {
 display: flex; align-items: center; gap: 3px;
-background: #edeae3; border: 1px solid #ddd9d0;
+background: #f1efea; border: 1px solid #ddd9d0;
 border-radius: 5px; padding: 3px 8px;
 font-size: 12px; color: #8a8578;
 font-family: 'DM Mono', monospace;
@@ -512,7 +512,7 @@ margin-bottom: 4px;
 }
 .task-detail.open { display: block; }
 .mat-row {
-background: #ece9e2;
+background: #f0eee9;
 border: 1px solid #ddd9d0;
 border-radius: 8px;
 padding: 6px 12px;
@@ -622,7 +622,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <!-- MODAL: Projects (switch / new) -->
 <div class="overlay" id="projectsOverlay" onclick="if(event.target===this)closeProjects()">
   <div class="sheet" style="height:auto;max-height:82vh">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Projects</span><button onclick="closeProjects()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Projects</span><button onclick="closeProjects()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div id="projectsList" style="overflow-y:auto"></div>
   </div>
 </div>
@@ -631,7 +631,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="projectSettingsOverlay" onclick="if(event.target===this)closeProjectSettings()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="projectSettingsTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Project Settings</span><button onclick="closeProjectSettings()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="projectSettingsTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Project Settings</span><button onclick="closeProjectSettings()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div style="margin-bottom:14px">
       <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Project Name</label>
       <input id="projectNameInput" placeholder="e.g. Spencer Hill">
@@ -872,8 +872,8 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="orderModalOverlay" onclick="if(event.target===this)closeOrderModal()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="orderModalTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Place Order</span><button onclick="closeOrderModal()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
-    <div style="background:#edeae3;border-radius:8px;padding:10px 12px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="orderModalTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Place Order</span><button onclick="closeOrderModal()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="background:#f1efea;border-radius:8px;padding:10px 12px;margin-bottom:14px">
       <div style="font-size:13px;font-weight:600" id="orderMatName"></div>
       <div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-top:2px" id="orderMatMeta"></div>
     </div>
@@ -906,7 +906,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
             🚚 Delivery
           </button>
           <button id="btnCollection" onclick="setCollectionMode(true)"
-            style="flex:1;padding:10px;font-size:14px;border:none;cursor:pointer;background:#f5f3ee;color:#8a8578;font-weight:500">
+            style="flex:1;padding:10px;font-size:14px;border:none;cursor:pointer;background:#f8f7f3;color:#8a8578;font-weight:500">
             🚗 Collection
           </button>
         </div>
@@ -934,7 +934,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="orderHistoryOverlay" onclick="if(event.target===this)closeOrderHistory()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="historyMatName" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Order History</span><button onclick="closeOrderHistory()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="historyMatName" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Order History</span><button onclick="closeOrderHistory()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div id="orderHistoryList"></div>
     <div class="divider"></div>
     <button class="btn btn-accent" style="width:100%" id="historyReorderBtn" onclick="">Reorder (clone last)</button>
@@ -947,7 +947,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="addMatOverlay" onclick="if(event.target===this)closeAddMat()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-shrink:0"><span id="addMatTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Material</span><button onclick="closeAddMat()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-shrink:0"><span id="addMatTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Material</span><button onclick="closeAddMat()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
 
 <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
   <input id="matNameInput" placeholder="Material name" style="flex:1;box-sizing:border-box;font-weight:600">
@@ -985,7 +985,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
     <input id="matProductUrl" placeholder="https://… product link" style="flex:1;min-width:0;box-sizing:border-box;height:36px">
-    <div style="width:132px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:4px;padding:0 10px;box-sizing:border-box;border-radius:8px;background:#edeae3">
+    <div style="width:132px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:4px;padding:0 10px;box-sizing:border-box;border-radius:8px;background:#f1efea">
       <span style="font-family:'DM Mono', monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578">Total</span>
       <span id="chipTotalHint" style="display:none">enter directly</span>
       <input type="number" id="matDirectQty" min="0" step="1" placeholder="0"
@@ -1005,7 +1005,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="addTaskOverlay" onclick="if(event.target===this)closeAddTask()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="addTaskTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Task</span><button onclick="closeAddTask()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="addTaskTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Task</span><button onclick="closeAddTask()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
 
 <div style="margin-bottom:10px">
   <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Description</label>
@@ -1055,7 +1055,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="reassignOverlay" onclick="if(event.target===this)closeReassign()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Reassign Task</span><button onclick="closeReassign()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Reassign Task</span><button onclick="closeReassign()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div style="font-size:14px;color:#8a8578;margin-bottom:14px;font-style:italic" id="reassignTaskName"></div>
     <div id="reassignPersonList"></div>
   </div>
@@ -1066,7 +1066,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <!-- MODAL: Edit Single Area -->
 <div class="overlay" id="editAreaOverlay" onclick="if(event.target===this)closeEditAreaModal()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="editAreaTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Edit Area</span><button onclick="closeEditAreaModal()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="editAreaTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Edit Area</span><button onclick="closeEditAreaModal()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
       <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Name</label>
       <input id="editAreaInput" placeholder="Area name" style="margin-bottom:12px">
@@ -1086,7 +1086,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <!-- MODAL: Add / Edit team member -->
 <div class="overlay" id="teamMemberOverlay" onclick="if(event.target===this)closeTeamMember()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0"><span id="teamFormTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Team Member</span><button onclick="closeTeamMember()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0"><span id="teamFormTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Team Member</span><button onclick="closeTeamMember()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
       <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Name</label>
       <input id="newUserName" placeholder="Name" style="margin-bottom:12px">
@@ -1112,7 +1112,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="userOverlay" onclick="if(event.target===this)closeUserModal()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Switch User</span><button onclick="closeUserModal()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Switch User</span><button onclick="closeUserModal()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div id="userSwitchList"></div>
   </div>
 </div>
@@ -1120,7 +1120,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 <!-- MODAL: Manage Categories -->
 <div class="overlay" id="manageCatsOverlay" onclick="if(event.target===this)closeManageCategories()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Manage Categories</span><button onclick="closeManageCategories()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Manage Categories</span><button onclick="closeManageCategories()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div id="catList" style="margin-bottom:16px"></div>
     <div style="border-top:1px solid #ddd9d0;padding-top:14px">
       <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Add New Category</label>
@@ -1138,7 +1138,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <div class="sheet">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0">
       <span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Bulk Order</span>
-      <button onclick="closeBulkOrder()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button>
+      <button onclick="closeBulkOrder()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button>
     </div>
 
     <div style="display:flex;gap:8px;margin-bottom:8px;flex-shrink:0">
@@ -1181,7 +1181,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <div class="sheet" style="height:auto;max-height:50vh">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-shrink:0">
       <span id="deliveryPickerTitle" style="font-family:'DM Mono',monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Confirm Delivery Date</span>
-      <button onclick="closeDeliveryDatePicker()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button>
+      <button onclick="closeDeliveryDatePicker()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button>
     </div>
     <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Date</label>
     <input type="date" id="deliveryPickerDate" style="margin-bottom:16px;font-size:16px">
@@ -1197,7 +1197,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
         <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Notes</div>
         <div id="notesTitle" style="font-size:13px;color:#8a8578;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
       </div>
-      <button onclick="closeNotes()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button>
+      <button onclick="closeNotes()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button>
     </div>
     <textarea id="notesText" oninput="notesChanged()" placeholder="Type notes here…" style="flex:1;min-height:45vh;width:100%;box-sizing:border-box;font-size:14px;color:#8a8578;line-height:1.45;padding:12px;border:1px solid #ddd9d0;border-radius:8px;resize:none;font-family:'DM Sans',sans-serif"></textarea>
     <div id="notesStatus" style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin:8px 0 12px;flex-shrink:0;min-height:14px"></div>
@@ -1209,7 +1209,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
   <div class="sheet">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0">
       <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Project Overview</span>
-      <button onclick="closeAreaOverview()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button>
+      <button onclick="closeAreaOverview()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button>
     </div>
     <div style="overflow-y:auto;flex:1">
       <div class="stat-row" id="ovStatsSheet"></div>
@@ -1223,7 +1223,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="addSupplierOverlay" onclick="if(event.target===this)closeAddSupplier()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="addSupplierTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Supplier</span><button onclick="closeAddSupplier()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span id="addSupplierTitle" style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Add Supplier</span><button onclick="closeAddSupplier()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
       <div>
         <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:5px">Company Name *</label>
@@ -1258,7 +1258,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div class="overlay" id="pickSupplierOverlay" onclick="if(event.target===this)closePickSupplier()">
   <div class="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Assign Suppliers</span><button onclick="closePickSupplier()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Assign Suppliers</span><button onclick="closePickSupplier()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button></div>
     <p style="font-size:13px;color:#8a8578;margin-bottom:12px;font-family:'DM Mono',monospace">PRIMARY supplier first, then alternatives</p>
     <div id="pickSupplierList"></div>
     <div class="divider"></div>
@@ -1775,7 +1775,7 @@ function renderTaskMatsList(taskId) {
   }
   el.innerHTML = sortMatsByStatus(mats).map(m=>{
     const assign = m.assignments.find(a=>a.taskId===taskId);
-    const lz = m.archived ? `<span class="lozenge" style="background:#f5f3ee;color:#8a8578;border-color:#bdb8ad">Archived</span>` : statusLozenge(matOrderStatus(m), '');
+    const lz = m.archived ? `<span class="lozenge" style="background:#f8f7f3;color:#8a8578;border-color:#bdb8ad">Archived</span>` : statusLozenge(matOrderStatus(m), '');
     return `
       <div class="sheet-mat-row" onclick="closeAddTask();openAddMat('${m.id}','${taskId}')">
         <div style="flex:1;min-width:0;font-size:14px;font-weight:500;line-height:1.25">${m.name}</div>
@@ -1882,7 +1882,7 @@ function setTaskPriority(p) {
   ['none','low','medium','high'].forEach(x => {
     const btn = document.getElementById('pri-'+x);
     if (!btn) return;
-    const s = x===p ? { bg: x==='none'?'#1a1916':'#fef2f2', color: x==='none'?'#fff':styles[x].color, border: styles[x].border } : { bg:'#edeae3', color: styles[x].color, border:'#ddd9d0' };
+    const s = x===p ? { bg: x==='none'?'#1a1916':'#fef2f2', color: x==='none'?'#fff':styles[x].color, border: styles[x].border } : { bg:'#f1efea', color: styles[x].color, border:'#ddd9d0' };
     btn.style.cssText = `flex:1;background:${x===p?(x==='none'?'#1a1916':styles[x].bg):''};color:${styles[x].color};border:2px solid ${x===p?styles[x].border:'#ddd9d0'};font-weight:${x===p?'700':'400'}`;
   });
 }
@@ -2295,7 +2295,7 @@ function renderTaskRow(t, areaId=null, isSub=false) {
   const statusPill = isDoneInArea
     ? `<span class="lozenge" style="background:#f0fdf4;color:#15803d;border-color:#15803d">Done</span>`
     : `<span class="lozenge" style="background:#fffbeb;color:#b45309;border-color:#b45309">Open</span>`;
-  const areaTag = (!taskHeadingsVisible && areaId) ? `<span style="font-family:'DM Mono',monospace;font-size:10px;color:#8a8578;background:#f5f3ee;border:1px solid #ddd9d0;border-radius:4px;padding:1px 5px;flex-shrink:0;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" onclick="toggleTaskRow('${t.id}',event,'${areaId||''}')">${areaName(areaId)}</span>` : '';
+  const areaTag = (!taskHeadingsVisible && areaId) ? `<span style="font-family:'DM Mono',monospace;font-size:10px;color:#8a8578;background:#f8f7f3;border:1px solid #ddd9d0;border-radius:4px;padding:1px 5px;flex-shrink:0;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" onclick="toggleTaskRow('${t.id}',event,'${areaId||''}')">${areaName(areaId)}</span>` : '';
 
   // ── COLLAPSED ROW — mirrors mat-row exactly ──
   const row = `
@@ -2323,9 +2323,9 @@ function renderTaskRow(t, areaId=null, isSub=false) {
         const delivered = matOrders.filter(o=>o.status==='delivered').reduce((s,o)=>s+o.qty,0);
         const mst = matOrderStatus(m);
         return `
-          <div ${isEditor() ? `onclick="event.stopPropagation();openAddMat('${m.id}')"` : ''} style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid #ece9e2;${isEditor()?'cursor:pointer':''}">
-            <div style="flex:1;min-width:0;font-size:14px;font-weight:400;color:#8a8578;line-height:1.3">${m.name}</div>
-            <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
+          <div ${isEditor() ? `onclick="event.stopPropagation();openAddMat('${m.id}')"` : ''} style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid #f0eee9;${isEditor()?'cursor:pointer':''}">
+            <div style="flex:1;min-width:0;font-size:13px;color:#8a8578;line-height:1.3">${m.name}</div>
+            <span style="font-size:13px;color:#8a8578;line-height:1.3;flex-shrink:0;white-space:nowrap">${assign?assign.qty:''} ${m.unit}</span>
             ${statusLozenge(mst, (mst==='toorder' && isEditor()) ? `openOrderModal('${m.id}')` : '')}
           </div>`;
       }).join('') : ''}
@@ -2333,19 +2333,23 @@ function renderTaskRow(t, areaId=null, isSub=false) {
 
   const detail = `
     <div class="mat-detail open">
-      <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;flex-wrap:wrap">
-        ${assignees.map(i=>{
-          const u = S.users[i];
-          return u ? `<div class="avatar" title="${u.name}" style="width:20px;height:20px;font-size:11px;${avStyle(i)}">${initials(u.name)}</div>` : '';
-        }).join('')}
-        ${areaIds.map(id=>`<span class="mini-tag ${t.doneByArea?.[id]?'done':''}">${t.doneByArea?.[id]?'✓ ':''}${areaName(id)}</span>`).join('')}
-        ${priorityPill}
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;flex:1;min-width:0">
+          ${areaIds.map(id=>`<span class="mini-tag ${t.doneByArea?.[id]?'done':''}">${t.doneByArea?.[id]?'✓ ':''}${areaName(id)}</span>`).join('')}
+          ${priorityPill}
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+          ${assignees.map(i=>{
+            const u = S.users[i];
+            return u ? `<div class="avatar" title="${u.name}" style="width:20px;height:20px;font-size:11px;${avStyle(i)}">${initials(u.name)}</div>` : '';
+          }).join('')}
+        </div>
       </div>
       ${matsHtml}
       <div class="row task-actions" style="gap:5px;flex-wrap:nowrap">
         ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAddTask(null,'${t.id}','${areaId||''}')">Edit</button>` : ''}
-        <button class="btn btn-ghost btn-sm ${t.notes&&t.notes.trim()?'notes-on':''}" onclick="event.stopPropagation();openNotes('task','${t.id}')">Notes</button>
         ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAddMat(null,'${t.id}')">+ Add Mat</button>` : ''}
+        <button class="btn btn-ghost btn-sm ${t.notes&&t.notes.trim()?'notes-on':''}" onclick="event.stopPropagation();openNotes('task','${t.id}')">Notes</button>
         ${(isEditor() || archivedMats.length) ? `<button class="btn btn-ghost btn-sm more" title="More actions" onclick="event.stopPropagation();openTaskMenu('${t.id}',this,'${areaId||''}')">⋮</button>` : ''}
       </div>
     </div>`;
@@ -2458,7 +2462,7 @@ function openToolbarMenu(anchor, page) {
   let html = '';
   TB_MENUS[page].forEach((g, gi) => {
     if (g.editorOnly && !isEditor()) return;
-    if (gi) html += `<div style="height:1px;background:#ece9e2;margin:4px 0"></div>`;
+    if (gi) html += `<div style="height:1px;background:#f0eee9;margin:4px 0"></div>`;
     html += head(g.t);
     if (g.t && menuFolded(page, g.t)) return;
     if (g.taskStatus) {
@@ -2663,7 +2667,7 @@ function renderProjectList() {
   const editing = listEdit.projects;
   const list = (S.projects && S.projects.length) ? S.projects : [{ id: CURRENT_PROJECT, name: S.projectName, description: S.projectDesc }];
   el.innerHTML = list.map((p,i)=>`
-    <div data-idx="${i}" onclick="${editing ? `openEditProject('${p.id}')` : `switchProject('${p.id}')`}" style="display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid #ddd9d0;cursor:pointer;background:#f5f3ee">
+    <div data-idx="${i}" onclick="${editing ? `openEditProject('${p.id}')` : `switchProject('${p.id}')`}" style="display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid #ddd9d0;cursor:pointer;background:#f8f7f3">
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:${p.id===CURRENT_PROJECT?'700':'500'}">${p.name}</div>
         ${p.description ? `<div style="font-size:12px;color:#8a8578;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.description}</div>` : ''}
@@ -2899,7 +2903,7 @@ function toggleArchivedMatsPanel(taskId, btn) {
   const archivedMats = matsForTask(taskId).filter(m=>m.archived);
   panel = document.createElement('div');
   panel.className = 'archived-mats-panel';
-  panel.style.cssText = 'margin:6px 0 10px;padding:8px;background:#f5f3ee;border-radius:6px;border:1px solid #ddd9d0';
+  panel.style.cssText = 'margin:6px 0 10px;padding:8px;background:#f8f7f3;border-radius:6px;border:1px solid #ddd9d0';
   panel.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;margin-bottom:6px">Archived materials</div>` +
     archivedMats.map(m=>`
       <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #ddd9d0">
@@ -3058,7 +3062,7 @@ function renderAreaManagerList() {
   }
   const editing = listEdit.areas;
   list.innerHTML = S.areas.map((a,i)=>`
-    <div data-idx="${i}" onclick="${isEditor() ? `openEditAreaModal(${i})` : `openNotes('area','${a.id}')`}" style="display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid #ddd9d0;cursor:pointer;background:#f5f3ee">
+    <div data-idx="${i}" onclick="${isEditor() ? `openEditAreaModal(${i})` : `openNotes('area','${a.id}')`}" style="display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid #ddd9d0;cursor:pointer;background:#f8f7f3">
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:500">${a.name}</div>
         ${a.description ? `<div style="font-size:12px;color:#8a8578;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.description}</div>` : ''}
@@ -3412,7 +3416,7 @@ function renderMatCard(m) {
         return tickCircle(inStock, !!(m.notes&&m.notes.trim()), '', (isEditor() && !m.archived) ? `toggleMatInStock('${m.id}')` : ''); })()}
       <div class="task-name-full" style="${m.archived?'opacity:.55':''}${(()=>{const k=matOrderStatus(m);return (k==='delivered'||k==='collected')?';text-decoration:line-through;opacity:.5':'';})()}">${m.name}</div>
       ${m.archived
-        ? `<span class="lozenge" style="background:#f5f3ee;color:#8a8578;border-color:#bdb8ad">Archived</span>`
+        ? `<span class="lozenge" style="background:#f8f7f3;color:#8a8578;border-color:#bdb8ad">Archived</span>`
         : (() => { const k = matOrderStatus(m); return statusLozenge(k, isEditor() ? matNextStepJs(m, k) : ''); })()}
     </div>`;
 
@@ -3442,7 +3446,7 @@ function renderMatCard(m) {
 
   const orderList = matOrders.filter(o => o.status !== 'cancelled')
     .sort((a,b) => (b.orderedAt||'').localeCompare(a.orderedAt||''));
-  const ordersHtml = orderList.length ? `<div style="border-top:1px solid #ece9e2;margin-top:4px">${orderList.map(o => {
+  const ordersHtml = orderList.length ? `<div style="border-top:1px solid #f0eee9;margin-top:4px">${orderList.map(o => {
       const sup = o.supplierId ? S.suppliers.find(x => x.id === o.supplierId) : null;
       const k = orderStatusKey(o);
       const when = o.status === 'delivered' ? o.deliveredAt : (o.expectedDelivery || o.orderedAt);
@@ -3591,7 +3595,7 @@ function renderTaskChips() {
     const sel = !!chipState[t.id];
     const qty = chipState[t.id]||1;
     const areas = (t.areaIds||[]).map(id=>areaName(id)).join(', ');
-    return `<div id="chip-${t.id}" style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;margin-bottom:2px;background:${sel?'#1a1916':'#f5f3ee'};box-sizing:border-box;width:100%;user-select:none">
+    return `<div id="chip-${t.id}" style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;margin-bottom:2px;background:${sel?'#1a1916':'#f8f7f3'};box-sizing:border-box;width:100%;user-select:none">
       <div style="flex:1;min-width:0;pointer-events:none">
         <div style="font-size:13px;font-weight:500;color:${sel?'#fff':'#1a1916'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.text}</div>
         <div style="font-family:'DM Mono',monospace;font-size:11px;color:${sel?'#aaa':'#8a8578'}">${areas}</div>
@@ -3838,7 +3842,7 @@ function renderPickSupplierList() {
         <div onclick="togglePickSupplier('${s.id}')" style="display:flex;align-items:center;gap:8px;min-height:22px;cursor:pointer">
           <div class="task-name-full">${s.name}</div>
           ${existing ? `<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">${isPrimary?'Primary':'Alt'}</span>` : ''}
-          <span class="lozenge" style="background:${existing?'#f5f3ee':'#1a1916'};color:${existing?'#8a8578':'#fff'};border-color:${existing?'#bdb8ad':'#1a1916'}">${existing?'Remove':'+ Add'}</span>
+          <span class="lozenge" style="background:${existing?'#f8f7f3':'#1a1916'};color:${existing?'#8a8578':'#fff'};border-color:${existing?'#bdb8ad':'#1a1916'}">${existing?'Remove':'+ Add'}</span>
         </div>
         ${existing ? `
           <input value="${existing.productUrl||''}" placeholder="https://… product link" onclick="event.stopPropagation()" onchange="updateSupplierProductUrl('${s.id}',this.value)" style="font-size:13px;height:30px;margin:4px 9px 3px 0;width:calc(100% - 9px);box-sizing:border-box">` : ''}
@@ -4163,7 +4167,7 @@ function renderOrderCards(q) {
           </div>
           <button class="btn btn-sm" style="flex-shrink:0;min-width:86px;justify-content:center;background:${st.bg};color:${st.color};border:1px solid ${st.color}" onclick="event.stopPropagation();${btnAction}">${c.status==='toorder' && isEditor() ? '+ ' : ''}${st.label}</button>
         </div>
-        ${open ? `<div style="border-top:1px solid #ece9e2;padding:6px 10px 10px">
+        ${open ? `<div style="border-top:1px solid #f0eee9;padding:6px 10px 10px">
           <div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;line-height:1.6">
             Needed <strong style="color:#1a1916">${c.needed} ${m.unit}</strong>
             ${forTasks.length ? `<br>For ${forTasks.join(', ')}` : ''}
@@ -4414,7 +4418,7 @@ function renderOrdersBySupplier(orders) {
               const accounted = S.orders.filter(o=>o.matId===m.id&&o.status!=='cancelled').reduce((s,o)=>s+Number(o.qty),0);
               const outstanding = needed - accounted;
               return `
-                <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f5f3ee">
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f8f7f3">
                   <div style="flex:1">
                     <div style="font-size:14px;font-weight:500">${m.name}</div>
                     <div style="font-family:'DM Mono',monospace;font-size:11px;color:#b45309;margin-top:2px">${outstanding} ${m.unit} to order</div>
@@ -4548,9 +4552,9 @@ function openOrderModal(matId, orderId=null) {
 
 function setCollectionMode(isCollection) {
   document.getElementById('orderIsCollection').value = isCollection ? 'true' : 'false';
-  document.getElementById('btnDelivery').style.background = isCollection ? '#f5f3ee' : '#1a1916';
+  document.getElementById('btnDelivery').style.background = isCollection ? '#f8f7f3' : '#1a1916';
   document.getElementById('btnDelivery').style.color = isCollection ? '#8a8578' : '#fff';
-  document.getElementById('btnCollection').style.background = isCollection ? '#1a1916' : '#f5f3ee';
+  document.getElementById('btnCollection').style.background = isCollection ? '#1a1916' : '#f8f7f3';
   document.getElementById('btnCollection').style.color = isCollection ? '#fff' : '#8a8578';
   document.getElementById('deliveryDateLabel').textContent = isCollection ? 'Collection Date' : 'Expected Delivery Date';
 }
@@ -4767,7 +4771,7 @@ function renderOrderHistory() {
 
   document.getElementById('orderHistoryList').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
-      <div style="background:#edeae3;border-radius:8px;padding:10px;text-align:center">
+      <div style="background:#f1efea;border-radius:8px;padding:10px;text-align:center">
         <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:#8a8578;margin-bottom:4px">NEEDED</div>
         <div style="font-family:'DM Mono',monospace;font-size:20px;font-weight:500">${needed}</div>
       </div>
@@ -4918,7 +4922,7 @@ function renderTeam() {
     const perm = u.permission || 'tradesman';
     const permLabel = perm==='admin' ? 'Admin' : perm==='foreman' ? 'Foreman' : 'Tradesman';
     const permColor = perm==='admin' ? '#c8440e' : perm==='foreman' ? '#1d4ed8' : '#8a8578';
-    const permBg = perm==='admin' ? '#fdf0eb' : perm==='foreman' ? '#eff3ff' : '#edeae3';
+    const permBg = perm==='admin' ? '#fdf0eb' : perm==='foreman' ? '#eff3ff' : '#f1efea';
     return `
       <div class="team-card" ${isAdmin() ? `onclick="openEditUser(${i})" style="cursor:pointer"` : ''}>
         <div class="avatar team-avatar" style="${avStyle(i)}">${initials(u.name)}</div>
@@ -5093,7 +5097,7 @@ function renderBulkMaterialList() {
     const sel = bulkSelected.has(m.id);
     const primarySup = S.suppliers.find(x=>x.id===(m.suppliers||[])[0]?.supplierId);
     return `
-      <div id="bulkrow-${m.id}" onclick="toggleBulkMat('${m.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #f5f3ee;cursor:pointer;background:${sel?'#f0fdf4':'#fff'}">
+      <div id="bulkrow-${m.id}" onclick="toggleBulkMat('${m.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #f8f7f3;cursor:pointer;background:${sel?'#f0fdf4':'#fff'}">
         <div class="bulk-box" style="width:22px;height:22px;border:2px solid ${sel?'#15803d':'#ddd9d0'};border-radius:6px;background:${sel?'#15803d':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
           ${sel?'<span style="color:#fff;font-size:14px;line-height:1">✓</span>':''}
         </div>
