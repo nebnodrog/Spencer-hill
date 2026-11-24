@@ -1977,6 +1977,69 @@ function toggleTaskRow(taskId, e, areaId) {
   renderTasksPage();
 }
 
+// ── Split by area: one task in several areas becomes a separate copy per area ──
+// Each copy keeps the name, notes, team, priority, tick and place in that area; subtasks that sit
+// only in that area follow it; materials are shared out evenly, ready to be adjusted per area.
+function taskRec(t) {
+  return { id: t.id, text: t.text, area_ids: t.areaIds||[], assignees: t.assignees||[], done: !!t.done,
+    done_by_area: t.doneByArea||{}, archived: !!t.archived, priority: t.priority||{}, notes: t.notes||'',
+    sort_by_area: t.sortByArea||{}, parent_id: t.parentId||null, project_id: CURRENT_PROJECT };
+}
+function matRec(m) {
+  return { id: m.id, name: m.name, unit: m.unit, cat: m.cat, assignments: m.assignments, product_url: m.productUrl||'', suppliers: m.suppliers, direct_qty: m.directQty, archived: m.archived||false, project_id: CURRENT_PROJECT };
+}
+function shareOut(q, n) {
+  q = Number(q) || 0;
+  if (Number.isInteger(q) && q >= n) { const b = Math.floor(q / n), r = q % n; return Array.from({ length: n }, (_, i) => b + (i < r ? 1 : 0)); }
+  if (Number.isInteger(q)) return Array.from({ length: n }, () => 1);   // whole items fewer than areas: one each, to adjust
+  const each = Math.round(q / n * 100) / 100;
+  return Array.from({ length: n }, (_, i) => i < n - 1 ? each : Math.round((q - each * (n - 1)) * 100) / 100);
+}
+async function splitTaskByArea(id) {
+  const t = S.tasks.find(x => x.id === id);
+  if (!t || !isEditor()) return;
+  const areas = (t.areaIds||[]).filter(a => S.areas.some(x => x.id === a));
+  if (areas.length < 2) { showToast('Only in one area — nothing to split'); return; }
+  if (!confirm(`Split "${t.text}" into ${areas.length} separate tasks, one for each area?\n\nEach can then have its own notes, team and materials.`)) return;
+
+  const before = { task: JSON.parse(JSON.stringify(t)), kids: taskKids(id).map(c => [c, c.parentId]),
+    mats: S.materials.filter(m => (m.assignments||[]).some(a => a.taskId === id)).map(m => [m, JSON.parse(JSON.stringify(m.assignments))]) };
+  const pick = (obj, a) => (obj && obj[a] !== undefined) ? { [a]: obj[a] } : {};
+  // Person-order keys (p:…) are kept on every copy
+  const personKeys = Object.fromEntries(Object.entries(t.sortByArea||{}).filter(([k]) => k.startsWith('p:')));
+  const copies = areas.map((a, i) => {
+    const c = i === 0 ? t : { ...JSON.parse(JSON.stringify(t)), id: uid() };
+    c.areaIds = [a];
+    c.priority = pick(before.task.priority, a);
+    c.doneByArea = pick(before.task.doneByArea, a);
+    c.sortByArea = { ...personKeys, ...pick(before.task.sortByArea, a) };
+    return c;
+  });
+  copies.slice(1).forEach(c => S.tasks.push(c));
+  // Subtasks living in just one of the areas move under that area's copy
+  before.kids.forEach(([k]) => {
+    const own = (k.areaIds||[]).filter(a => areas.includes(a));
+    if (own.length === 1) k.parentId = copies[areas.indexOf(own[0])].id;
+  });
+  // Materials: share each quantity out across the copies
+  before.mats.forEach(([m]) => {
+    const a = m.assignments.find(x => x.taskId === id);
+    const parts = shareOut(a.qty, copies.length);
+    m.assignments = m.assignments.filter(x => x.taskId !== id).concat(copies.map((c, i) => ({ ...a, taskId: c.id, qty: parts[i] })).filter(x => x.qty > 0));
+  });
+  refreshCurrentPage();
+  showToast(`Split into ${copies.length} tasks`, async () => {
+    const newIds = copies.slice(1).map(c => c.id);
+    S.tasks = S.tasks.filter(x => !newIds.includes(x.id));
+    Object.assign(t, before.task);
+    before.kids.forEach(([k, p]) => k.parentId = p);
+    before.mats.forEach(([m, as]) => m.assignments = as);
+    refreshCurrentPage();
+    await Promise.all([saveRecord('tasks', taskRec(t)), ...before.kids.map(([k]) => saveRecord('tasks', taskRec(k))), ...before.mats.map(([m]) => saveRecord('materials', matRec(m))), ...newIds.map(x => deleteRecord('tasks', x))]);
+  });
+  await Promise.all([...copies.map(c => saveRecord('tasks', taskRec(c))), ...before.kids.map(([k]) => saveRecord('tasks', taskRec(k))), ...before.mats.map(([m]) => saveRecord('materials', matRec(m)))]);
+}
+
 // ── Subtasks: swipe a task right to tuck it under the one above; swipe left to bring it back out ──
 async function setTaskParent(id, parentId) {
   const t = S.tasks.find(x => x.id === id);
@@ -2199,7 +2262,7 @@ function renderTaskRow(t, areaId=null, isSub=false) {
   const assignees = t.assignees || [t.assignee ?? 0];
   const areaIds = t.areaIds || [];
   const isExpanded = taskRowOpen(t.id, areaId);
-  const kids = isSub ? [] : taskKids(t.id);
+  const kids = isSub ? [] : taskKids(t.id).filter(c => !areaId || (c.areaIds||[]).includes(areaId));
   const kidBadge = kids.length ? `<span onclick="toggleTaskRow('${t.id}',event,'${areaId||''}')" style="font-family:'DM Mono',monospace;font-size:10px;color:#8a8578;border:1px solid #ddd9d0;border-radius:4px;padding:1px 5px;flex-shrink:0">${kids.filter(c=>c.done).length}/${kids.length}</span>` : '';
   const taskMats = matsForTask(t.id);
   const liveMats = taskMats.filter(m=>!m.archived);
@@ -2726,6 +2789,7 @@ function openTaskMenu(taskId, btn, areaId='') {
   let html = '';
   if (isEditor()) html += item(t.done ? 'Reopen task' : 'Mark done', 'toggle');
   if (isEditor()) html += item('Team', 'team');
+  if (isEditor() && (t.areaIds||[]).length > 1) html += item('Split by area', 'split');
   if (isEditor()) html += item(t.archived ? 'Unarchive task' : 'Archive task', 'archive');
   if (archivedCount) html += item(`${panelOpen ? 'Hide' : 'View'} archived materials (${archivedCount})`, 'archmats');
   if (isAdmin()) html += `<div style="height:1px;background:#ddd9d0;margin:4px 0"></div>` + item('Delete task', 'delete', '#c8440e');
@@ -2752,6 +2816,7 @@ function openTaskMenu(taskId, btn, areaId='') {
     closeTaskMenu();
     if (act === 'toggle') toggleTask(taskId, areaId||'');
     else if (act === 'team') openReassign(taskId);
+    else if (act === 'split') splitTaskByArea(taskId);
     else if (act === 'archive') toggleArchiveTask(taskId);
     else if (act === 'archmats') toggleArchivedMatsPanel(taskId, btn);
     else if (act === 'delete') {
