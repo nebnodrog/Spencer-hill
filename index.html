@@ -211,8 +211,12 @@ select.ctl { display: block; font-size: 13px !important; font-weight: 500; paddi
 .area-chip.done { border-color: #15803d; background: #15803d; color: #fff; }
 .mini-tag.done { background: #f0fdf4; color: #15803d; border-color: #15803d; }
 /* Compact rows: the white box is only a touch taller than its status button */
-.mat-row { padding: 3px 3px 3px 12px !important; min-height: 28px; box-sizing: border-box; }
-.mat-row .lozenge { margin: 0; }
+.mat-row { padding: 0 0 0 12px !important; min-height: 22px; box-sizing: border-box; }
+/* Title rows are as slim as the status button, whose border is the row's edge */
+.mat-row .lozenge { margin: -1px -1px -1px 0; height: auto; min-height: 22px; align-self: stretch; border-radius: 6px 8px 8px 6px; }
+.mat-row.expanded .lozenge { border-bottom-right-radius: 6px; }
+.mat-row .task-name-full { padding: 1px 0; }
+.mat-detail .lozenge { margin-right: -4px; }
 .diary-row .lozenge { height: auto; align-self: stretch; font-size: 13px; width: 96px; }
 .diary-row .diary-more { align-self: stretch; height: auto; width: 36px; padding: 0 !important; justify-content: center; font-size: 22px; font-weight: 700; color: #1a1916; flex-shrink: 0; }
 .mat-row .mat-row-chevron { margin-right: 8px; }
@@ -831,6 +835,19 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
         <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openAddSupplier()">+ Add supplier</button>
       </div>
       <div id="supplierList"></div>
+    </div>
+
+    <!-- ACTIVITY SECTION (admin only): who added or changed what -->
+    <div id="listsActivityWrap" style="display:none">
+      <div onclick="toggleListSection('activity')" style="display:flex;align-items:center;cursor:pointer;padding:8px 6px 8px 0;border-bottom:1px solid #ddd9d0;margin-bottom:4px;user-select:none;-webkit-user-select:none">
+        <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#1a1916;width:38%;flex-shrink:0">Activity</span>
+        <div style="flex:1"></div>
+        <button class="btn btn-ghost btn-sm ctl list-toggle" id="lists-chevron-activity">Expand</button>
+      </div>
+      <div id="lists-body-activity" style="margin-bottom:16px;display:none">
+        <div id="activityPeople" style="display:flex;flex-wrap:wrap;gap:5px;padding:6px 0 8px"></div>
+        <div id="activityList"></div>
+      </div>
     </div>
 
   </div>
@@ -5190,7 +5207,7 @@ async function placeBulkOrder() {
   showToast(`${placed} order${placed!==1?'s':''} placed`);
 }
 // ═══════════════ LISTS PAGE ═══════════════
-const listSectionOpen = { projects: false, areas: false, team: false, suppliers: false };
+const listSectionOpen = { projects: false, areas: false, team: false, suppliers: false, activity: false };
 
 function toggleListSection(section) {
   listSectionOpen[section] = !listSectionOpen[section];
@@ -5198,6 +5215,7 @@ function toggleListSection(section) {
   const chevron = document.getElementById('lists-chevron-'+section);
   if (body) body.style.display = listSectionOpen[section] ? 'block' : 'none';
   if (chevron) chevron.textContent = listSectionOpen[section] ? 'Collapse' : 'Expand';
+  if (section === 'activity' && listSectionOpen.activity) loadActivity();
   // Collapsing a list also leaves edit mode (and saves any re-ordering)
   if (!listSectionOpen[section] && listEdit[section]) { toggleListEdit(section); return; }
   if (section === 'team' && listSectionOpen[section]) renderTeam();
@@ -5206,6 +5224,58 @@ function toggleListSection(section) {
   if (section === 'projects' && listSectionOpen[section]) renderProjectList();
 }
 
+// ── Activity log (admin): every add, change and delete, recorded by the database ──
+let activityRows = [], activityWho = '';
+async function loadActivity() {
+  const el = document.getElementById('activityList');
+  if (!el || !isAdmin()) return;
+  el.innerHTML = `<div style="font-size:13px;color:#8a8578;padding:8px 0">Loading…</div>`;
+  await refreshSessionIfNeeded();
+  try {
+    const res = await fetch(`${SB_URL}/activity_log?project_id=eq.${encodeURIComponent(CURRENT_PROJECT)}&order=at.desc&limit=300`, { headers: getAuthHeaders() });
+    if (!res.ok) throw new Error(await res.text());
+    activityRows = await res.json();
+  } catch(e) {
+    el.innerHTML = `<div style="font-size:13px;color:#8a8578;padding:8px 0">The activity log isn't available yet.</div>`;
+    return;
+  }
+  renderActivity();
+}
+function setActivityWho(w) { activityWho = activityWho === w ? '' : w; renderActivity(); }
+function renderActivity() {
+  const el = document.getElementById('activityList'), pe = document.getElementById('activityPeople');
+  if (!el) return;
+  const people = [...new Set(activityRows.map(r => r.who).filter(Boolean))].sort();
+  const chip = (label, on, w) => `<span class="mini-tag" onclick="setActivityWho('${w}')" style="cursor:pointer;${on?'background:#1a1916;color:#fff;border-color:#1a1916':''}">${label}</span>`;
+  if (pe) pe.innerHTML = chip('Everyone', !activityWho, '') + people.map(p => chip(p, activityWho === p, p.replace(/'/g, "\\'"))).join('');
+  const rows = activityRows.filter(r => !activityWho || r.who === activityWho);
+  if (!rows.length) { el.innerHTML = `<div style="font-size:13px;color:#8a8578;padding:8px 0">Nothing recorded yet. Changes show here from now on.</div>`; return; }
+  const when = iso => { const d = new Date(iso); return d.toLocaleDateString('en-GB', { day:'numeric', month:'short' }) + ' ' + d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }); };
+  const esc = x => String(x ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  el.innerHTML = rows.map(r => {
+    const tap = (r.kind === 'task' || r.kind === 'material') ? ` onclick="openLogItem('${r.kind}','${r.item_id}')" style="cursor:pointer"` : '';
+    return `<div class="mat-task-line"${tap}>
+      <div style="flex:1;min-width:0;font-size:13px;line-height:1.35;color:#1a1916"><b style="font-weight:500">${esc(r.who)}</b> ${esc(r.action)} “${esc(r.item_name)}”${r.area ? `<span style="color:#8a8578"> · ${esc(r.area)}</span>` : ''}</div>
+      <span style="font-size:12px;color:#8a8578;flex-shrink:0;white-space:nowrap">${when(r.at)}</span>
+    </div>`;
+  }).join('');
+}
+function openLogItem(kind, id) {
+  if (kind === 'task') {
+    const t = S.tasks.find(x => x.id === id);
+    if (!t) { showToast('That task no longer exists'); return; }
+    showPage('tasks');
+    ['', ...(t.areaIds||[])].forEach(a => expandedTaskRows.add(taskRowKey(id, a)));
+    renderTasksPage();
+    setTimeout(() => document.querySelector(`[data-tid="${id}"]`)?.scrollIntoView({ block: 'center' }), 50);
+  } else {
+    if (!S.materials.some(m => m.id === id)) { showToast('That material no longer exists'); return; }
+    showPage('materials');
+    expandedMats.add(id);
+    renderMaterials();
+    setTimeout(() => document.getElementById('matrow-' + id)?.scrollIntoView({ block: 'center' }), 50);
+  }
+}
 function renderListsPage() {
   // Edit / Done button on each list (only for people allowed to change it)
   const canEdit = { projects: isAdmin(), areas: isEditor(), team: isAdmin(), suppliers: isEditor() };
@@ -5221,8 +5291,11 @@ function renderListsPage() {
   document.getElementById('teamEditBox').style.display = listEdit.team ? '' : 'none';
   document.getElementById('supEditBox').style.display = listEdit.suppliers ? '' : 'none';
 
+  const actWrap = document.getElementById('listsActivityWrap');
+  if (actWrap) actWrap.style.display = isAdmin() ? '' : 'none';
+  if (!isAdmin()) listSectionOpen.activity = false;
   // Set chevron states
-  ['projects','areas','team','suppliers'].forEach(s => {
+  ['projects','areas','team','suppliers','activity'].forEach(s => {
     const body = document.getElementById('lists-body-'+s);
     const chevron = document.getElementById('lists-chevron-'+s);
     if (body) body.style.display = listSectionOpen[s] ? 'block' : 'none';
