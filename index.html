@@ -2412,10 +2412,10 @@ function restoreView() {
 
 // ── Page toolbars: ⋮ menu holds the filters ──
 const TB_MENUS = {
-  tasks:     [{ t:'', ids:['taskReorderBtn','taskExpandToggle'] }, { t:'Show', taskStatus:true }, { t:'Areas', taskAreas:true }, { t:'Team', taskPeople:true, editorOnly:true }, { t:'Sort', sortFor:'tasks' }],
+  tasks:     [{ t:'', ids:['taskExpandToggle','taskReorderBtn'] }, { t:'Show', taskStatus:true }, { t:'Areas', taskAreas:true }, { t:'Team', taskPeople:true, editorOnly:true }, { t:'Sort', sortFor:'tasks' }],
   materials: [{ t:'', ids:['matExpandToggle','matBulkBtn'] }, { t:'Show', multi:true, ids:['mf-all','mf-pending','mf-ordered','mf-collect','mf-delivered','mf-archived'] }, { t:'Categories', matCats:true }, { t:'Suppliers', matSups:true }, { t:'Sort', sortFor:'materials' }],
   diary:     [{ t:'Show', multi:true, ids:['df-out','df-hist'] }],
-  orders:    [{ t:'Show', ids:['of-all','of-pending','of-ordered','of-collect','of-delivered'] }, { t:'', ids:['orderExpandToggle'] }],
+  orders:    [{ t:'', ids:['orderExpandToggle'] }, { t:'Show', ids:['of-all','of-pending','of-ordered','of-collect','of-delivered'] }],
 };
 // A tap outside an open ⋮ menu only closes it; the tap does not go through to what's underneath.
 // A tap on the ⋮ button that opened it is left alone, so that button toggles the menu.
@@ -3478,8 +3478,8 @@ function renderMatCard(m) {
       ${supplierHtml}
       <div class="row task-actions" style="gap:5px;flex-wrap:nowrap">
         ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAddMat('${m.id}')">Edit</button>` : ''}
-        <button class="btn btn-ghost btn-sm ${notesOn}" onclick="event.stopPropagation();openNotes('mat','${m.id}')">Notes</button>
         ${isEditor() ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openOrderModal('${m.id}')">+ Order</button>` : `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openOrderHistory('${m.id}')">History</button>`}
+        <button class="btn btn-ghost btn-sm ${notesOn}" onclick="event.stopPropagation();openNotes('mat','${m.id}')">Notes</button>
         ${isEditor() ? `<button class="btn btn-ghost btn-sm more" title="More actions" onclick="event.stopPropagation();openMatMenu('${m.id}',this)">⋮</button>` : ''}
       </div>
     </div>`;
@@ -4093,12 +4093,13 @@ function matOrderStatus(m) {
   return (toOrderQty>0 || pend.length) ? 'toorder' : toCollect.length ? 'collect' : onOrder.length ? 'onorder'
     : delivered.length ? (delivered.every(o=>o.isCollection) ? 'collected' : 'delivered') : 'toorder';
 }
-// Round tick at the start of task and material rows. Pale green with a green rim = it has a note.
+// Round tick at the start of task and material rows. A pale green N inside = it has notes.
 function tickCircle(done, hasNote, rim, onclickJs) {
-  const border = hasNote ? '#15803d' : (done ? '#ddd9d0' : (rim || '#bdb8ad'));
-  const bg = hasNote ? (done ? '#86c79a' : '#dcfce7') : (done ? '#ddd9d0' : 'transparent');
+  const border = done ? '#ddd9d0' : (rim || '#bdb8ad');
+  const bg = done ? '#ddd9d0' : 'transparent';
+  const mark = done ? '✓' : (hasNote ? `<span style="color:#86c79a;font-family:'DM Sans',sans-serif;font-size:9px;font-weight:600;line-height:1">N</span>` : '');
   const tap = onclickJs ? `onclick="event.stopPropagation();${onclickJs}" ` : 'onclick="event.stopPropagation()" ';
-  return `<div ${tap}style="width:14px;height:14px;border-radius:50%;border:1.5px solid ${border};background:${bg};display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;flex-shrink:0;cursor:${onclickJs?'pointer':'default'}">${done?'✓':''}</div>`;
+  return `<div ${tap}style="width:14px;height:14px;border-radius:50%;border:1.5px solid ${border};background:${bg};display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;flex-shrink:0;cursor:${onclickJs?'pointer':'default'}">${mark}</div>`;
 }
 function statusLozenge(key, onclickJs) {
   const st = ORDER_STATUS[key];
