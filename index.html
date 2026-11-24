@@ -681,7 +681,6 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
   </div>
 </div>
-<button id="matFloatingMic" onclick="startVoiceMatInput(true)" style="position:fixed;bottom:90px;right:20px;width:54px;height:54px;border-radius:50%;background:#1a1916;color:#fff;border:none;font-size:22px;box-shadow:0 4px 14px rgba(0,0,0,0.25);z-index:50;display:none;align-items:center;justify-content:center;cursor:pointer">🎤</button>
 
 <!-- ══════════════════════════════════════
      PAGE: TASKS
@@ -952,7 +951,6 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
 
 <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
   <input id="matNameInput" placeholder="Material name" style="flex:1;box-sizing:border-box;font-weight:600">
-  <button id="matVoiceBtn" onclick="startVoiceMatInput()" style="background:#1a1916;border:none;color:#fff;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0">🎤</button>
 </div>
 
 <div style="display:flex;gap:8px;margin-bottom:0;align-items:flex-start;flex-shrink:0">
@@ -1638,6 +1636,23 @@ let taskAreaFilter = 'all';
 let taskStatuses = new Set(['open']);        // open / done / archived — always at least one
 let taskAreaMode = 'all';                    // 'all' | 'none' (no headings) | 'some'
 let taskAreaPicked = new Set();
+let taskPersonPicked = new Set();             // empty = everyone; otherwise team member indexes
+function projectPeople() {
+  return S.users.map((u, i) => ({ u, i })).filter(({ u }) => !u.projectIds || !u.projectIds.length || u.projectIds.includes(CURRENT_PROJECT));
+}
+function toggleTaskPerson(k) {
+  if (k === 'all') taskPersonPicked = new Set();
+  else { const i = Number(k); if (taskPersonPicked.has(i)) taskPersonPicked.delete(i); else taskPersonPicked.add(i); }
+  if (projectPeople().every(({ i }) => taskPersonPicked.has(i))) taskPersonPicked = new Set();
+  renderTasksPage();
+}
+// One person picked (or a tradesman looking at their own list) = use that person's job order
+function orderPersonIdx() {
+  if (isTradesman()) return S.currentUser;
+  return taskPersonPicked.size === 1 ? [...taskPersonPicked][0] : null;
+}
+function personKey(i) { const u = S.users[i]; return u ? 'p:' + u.id : null; }
+function taskPersonPos(t, i) { const k = personKey(i); const v = k && t.sortByArea && t.sortByArea[k]; return (v === undefined || v === null || v === false) ? 1e9 : Number(v); }
 function syncTaskFilterDerived() {
   taskFilter = taskStatuses.size === 1 ? [...taskStatuses][0] : 'all';
   taskHeadingsVisible = taskAreaMode !== 'none';
@@ -1978,7 +1993,28 @@ async function toggleTaskReorder() {
     showToast(results.every(Boolean) ? 'Order saved' : '⚠️ Order not saved — check connection');
   }
 }
+function renderPersonReorder(pi) {
+  const u = S.users[pi], key = personKey(pi);
+  const list = S.tasks.filter(t => !t.archived && !t.done && (t.assignees||[]).includes(pi));
+  list.sort((x, y) => taskPersonPos(x, pi) - taskPersonPos(y, pi));
+  document.getElementById('taskListGlobal').innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin:4px 0 8px">
+      <span style="flex:1;font-size:13px;color:#8a8578">Drag ☰ to set the order for ${u ? u.name.split(' ')[0] : 'them'}</span>
+      <button class="btn btn-primary btn-sm" style="height:28px" onclick="toggleTaskReorder()">Done</button>
+    </div>` + (list.length ? `<div class="reorder-list">${list.map((t, i) => `
+      <div data-idx="${i}" class="mat-row" style="display:flex;align-items:center;gap:8px;padding:0 0 0 12px !important;margin-bottom:4px">
+        <div class="task-name-full">${t.text}${(t.areaIds||[]).length ? `<span style="color:#8a8578;font-size:12px"> · ${(t.areaIds||[]).map(areaName).join(', ')}</span>` : ''}</div>${dragHandleHtml()}
+      </div>`).join('')}</div>` : `<div style="text-align:center;padding:48px 20px;color:#8a8578;font-size:13px">No open tasks for ${u ? u.name.split(' ')[0] : 'them'}</div>`);
+  const el = document.querySelector('#taskListGlobal .reorder-list');
+  if (el) enableDrag(el, (from, to) => {
+    if (from === to) return;
+    moveInArray(list, from, to);
+    list.forEach((t, i) => { t.sortByArea = { ...(t.sortByArea||{}), [key]: i + 1 }; taskReorderDirty.add(t.id); });
+    renderPersonReorder(pi);
+  });
+}
 function renderTaskReorder() {
+  if (!isTradesman() && taskPersonPicked.size === 1) { renderPersonReorder([...taskPersonPicked][0]); return; }
   const tb = document.getElementById('tbSummary-tasks');
   const areas = S.areas.filter(a => taskAreaMode !== 'some' || taskAreaPicked.has(a.id));
   const lists = areas.map(a => {
@@ -2027,6 +2063,10 @@ function renderTasksPage() {
   if (isTradesman()) {
     tasks = tasks.filter(t => (t.assignees||[t.assignee??0]).includes(S.currentUser));
   }
+  // Ticked people (managers): tasks given to any of them
+  if (taskPersonPicked.size && !isTradesman()) {
+    tasks = tasks.filter(t => (t.assignees||[]).some(i => taskPersonPicked.has(i)));
+  }
   // Ticked statuses (Open / Done / Archived — any combination)
   const incOpen = taskStatuses.has('open'), incDone = taskStatuses.has('done'), incArch = taskStatuses.has('archived');
   tasks = tasks.filter(t => t.archived ? incArch : (incOpen || incDone));
@@ -2050,7 +2090,9 @@ function renderTasksPage() {
   const priorityOrder = { high:0, medium:1, low:2, none:3 };
 
   const priOf = t => { const p = t.priority && typeof t.priority === 'object' ? Object.values(t.priority).map(v=>priorityOrder[v]??3) : []; return p.length ? Math.min(...p) : 3; };
-  const flat = [...tasks].sort((a,b) => (!!a.done - !!b.done) || (priOf(a) - priOf(b)));
+  const pIdx = orderPersonIdx();
+  const pPos = t => pIdx === null ? 0 : taskPersonPos(t, pIdx);
+  const flat = [...tasks].sort((a,b) => (!!a.done - !!b.done) || (pPos(a) - pPos(b)) || (priOf(a) - priOf(b)));
   const html = (S.areas.length === 0 || taskAreaMode === 'none')
     ? flat.map(t => renderTaskRow(t)).join('')
     : S.areas.filter(a=>byArea[a.id]).map(area=>{
@@ -2058,6 +2100,8 @@ function renderTasksPage() {
           const aDone = !!a.done;
           const bDone = !!b.done;
           if (aDone !== bDone) return aDone ? 1 : -1;
+          const po = pPos(a) - pPos(b);
+          if (po) return po;
           const so = taskAreaPos(a, area.id) - taskAreaPos(b, area.id);
           if (so) return so;
           const getPri = (t) => {
@@ -2174,7 +2218,7 @@ function saveView() {
   try {
     localStorage.setItem('sh_view', JSON.stringify({
       page: currentPageName,
-      taskStatuses: [...taskStatuses], taskAreaMode, taskAreaPicked: [...taskAreaPicked],
+      taskStatuses: [...taskStatuses], taskAreaMode, taskAreaPicked: [...taskAreaPicked], taskPersonPicked: [...taskPersonPicked],
       matFilters: [...matFilters], matCatMode, matCatPicked: [...matCatPicked], matFiltersV: 3,
       matSupMode, matSupPicked: [...matSupPicked],
       orderFilter, orderGroupBy, project: CURRENT_PROJECT, diaryShow: [...diaryShow],
@@ -2192,6 +2236,7 @@ function restoreView() {
     taskAreaPicked = new Set((v.taskAreaPicked||[]).filter(id => sameProject && S.areas.some(a => a.id === id)));
     if (taskAreaMode === 'some' && !taskAreaPicked.size) taskAreaMode = 'all';
   }
+  if (Array.isArray(v.taskPersonPicked) && sameProject) taskPersonPicked = new Set(v.taskPersonPicked.filter(i => Number.isInteger(i) && S.users[i]));
   if (Array.isArray(v.matFilters) && v.matFilters.length) {
     matFilters = new Set(v.matFilters);
     if (!v.matFiltersV && matFilters.has('ordered')) matFilters.add('collect');
@@ -2221,7 +2266,7 @@ function restoreView() {
 
 // ── Page toolbars: ⋮ menu holds the filters ──
 const TB_MENUS = {
-  tasks:     [{ t:'', ids:['taskReorderBtn','taskExpandToggle'] }, { t:'Show', taskStatus:true }, { t:'Areas', taskAreas:true }],
+  tasks:     [{ t:'', ids:['taskReorderBtn','taskExpandToggle'] }, { t:'Show', taskStatus:true }, { t:'Areas', taskAreas:true }, { t:'People', taskPeople:true, editorOnly:true }],
   materials: [{ t:'', ids:['matExpandToggle','matBulkBtn'] }, { t:'Show', multi:true, ids:['mf-all','mf-pending','mf-ordered','mf-collect','mf-delivered','mf-archived'] }, { t:'Categories', matCats:true }, { t:'Suppliers', matSups:true }],
   diary:     [{ t:'Show', multi:true, ids:['df-out','df-hist'] }],
   orders:    [{ t:'Show', ids:['of-all','of-pending','of-ordered','of-collect','of-delivered'] }, { t:'', ids:['orderExpandToggle'] }],
@@ -2258,11 +2303,15 @@ function openToolbarMenu(anchor, page) {
   const item = (label, active, key) => `<button data-key="${key}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;background:none;border:none;padding:9px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:#1a1814;cursor:pointer;font-weight:${active?'600':'400'}">${label}<span style="color:#c8440e">${active?'✓':''}</span></button>`;
   let html = '';
   TB_MENUS[page].forEach((g, gi) => {
+    if (g.editorOnly && !isEditor()) return;
     if (gi) html += `<div style="height:1px;background:#ece9e2;margin:4px 0"></div>`;
     html += head(g.t);
     if (g.taskStatus) {
       html += tick('All', ['open','done','archived'].every(k => taskStatuses.has(k)), 'ts:all');
       [['open','Open'],['done','Done'],['archived','Archived']].forEach(([k,l]) => html += tick(l, taskStatuses.has(k), 'ts:' + k));
+    } else if (g.taskPeople) {
+      html += tick('Everyone', !taskPersonPicked.size, 'tp:all');
+      projectPeople().forEach(({ u, i }) => html += tick(u.name, taskPersonPicked.has(i), 'tp:' + i));
     } else if (g.taskAreas) {
       html += `<div style="display:flex">` + tick('All', taskAreaMode === 'all', 'ta:all', 1) + tick('None', taskAreaMode === 'none', 'ta:none', 1) + `</div>`;
       S.areas.forEach(a => html += tick(a.name, taskAreaMode === 'all' || (taskAreaMode === 'some' && taskAreaPicked.has(a.id)), 'ta:' + a.id));
@@ -2286,11 +2335,12 @@ function openToolbarMenu(anchor, page) {
   menu.addEventListener('click', e => {
     const b = e.target.closest('button[data-key]'); if (!b) return;
     const [kind, val] = b.dataset.key.split(/:(.*)/s);
-    const multi = ['ts','ta','mc','ms'].includes(kind) || TB_MENUS[page].some(g => g.multi && g.ids && g.ids.includes(val));
+    const multi = ['ts','ta','tp','mc','ms'].includes(kind) || TB_MENUS[page].some(g => g.multi && g.ids && g.ids.includes(val));
     const scroll = menu.scrollTop;
     closeToolbarMenu();
     if (kind === 'ts') toggleTaskStatus(val);
     else if (kind === 'ta') toggleTaskAreaTick(val);
+    else if (kind === 'tp') toggleTaskPerson(val);
     else if (kind === 'mc') toggleMatCat(val);
     else if (kind === 'ms') toggleMatSup(val);
     else document.getElementById(val)?.click();
@@ -2309,6 +2359,7 @@ function updateTbSummary(page) {
     parts.push(active(TB_MENUS.tasks[0].ids));
     const sel = document.getElementById('taskAreaFilter');
     parts.push(sel && sel.selectedOptions[0] ? sel.selectedOptions[0].textContent : 'All Areas');
+    if (taskPersonPicked.size) parts.push([...taskPersonPicked].map(i => (S.users[i]?.name || '').split(' ')[0]).join(', '));
   } else if (page === 'materials') {
     const st = MAT_FILTER_KEYS.every(k => matFilters.has(k)) ? ['All'] : MAT_FILTER_KEYS.filter(k => matFilters.has(k)).map(k => document.getElementById('mf-' + k)?.textContent || k);
     parts.push(st.join(', '));
