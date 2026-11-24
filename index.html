@@ -512,7 +512,7 @@ margin-bottom: 4px;
 }
 .task-detail.open { display: block; }
 .mat-row {
-background: #ffffff;
+background: #ece9e2;
 border: 1px solid #ddd9d0;
 border-radius: 8px;
 padding: 6px 12px;
@@ -1303,6 +1303,11 @@ let currentPriorityAreaId = null;
 function uid() { return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function initials(name) { return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
 function uColor(i) { return COLORS[i % COLORS.length]; }
+function uTint(i) {   // the person's colour mixed 88% with white — solid, so stacked circles overlap cleanly
+  const h = uColor(i).slice(1), mix = c => Math.round(parseInt(c, 16) * 0.12 + 255 * 0.88).toString(16).padStart(2, '0');
+  return '#' + mix(h.slice(0,2)) + mix(h.slice(2,4)) + mix(h.slice(4,6));
+}
+function avStyle(i) { return `background:${uTint(i)};color:${uColor(i)};border:1.5px solid ${uColor(i)};box-sizing:border-box`; }
 function totalQty(mat) {
   const direct = mat.directQty || 0;
   const taskTotal = (mat.assignments||[]).reduce((s,a)=>s+Number(a.qty),0);
@@ -1332,7 +1337,7 @@ function matsForArea(areaId) {
 // Get materials for a specific task
 const MAT_STATUS_RANK = { toorder:0, onorder:1, collect:1, delivered:2, collected:2 };
 function matStatusRank(m) { return m.archived ? 3 : (MAT_STATUS_RANK[matOrderStatus(m)] ?? 0); }
-function sortMatsByStatus(list) { return [...list].sort((a,b) => matStatusRank(a) - matStatusRank(b)); }
+function sortMatsByStatus(list) { return matSortAZ ? [...list].sort(byName) : [...list].sort((a,b) => matStatusRank(a) - matStatusRank(b)); }
 function matsForTask(taskId) {
   return S.materials.filter(m=>m.assignments.some(a=>a.taskId===taskId));
 }
@@ -1636,7 +1641,9 @@ let taskAreaFilter = 'all';
 let taskStatuses = new Set(['open']);        // open / done / archived — always at least one
 let taskAreaMode = 'all';                    // 'all' | 'none' (no headings) | 'some'
 let taskAreaPicked = new Set();
-let taskPersonPicked = new Set();             // empty = everyone; otherwise team member indexes
+let taskPersonPicked = new Set();
+let taskSortAZ = false, matSortAZ = false;   // A to Z only changes the view; the manual order is untouched
+const byName = (a, b) => String(a.text ?? a.name ?? '').localeCompare(String(b.text ?? b.name ?? ''), undefined, { numeric: true, sensitivity: 'base' });             // empty = everyone; otherwise team member indexes
 function projectPeople() {
   return S.users.map((u, i) => ({ u, i })).filter(({ u }) => !u.projectIds || !u.projectIds.length || u.projectIds.includes(CURRENT_PROJECT));
 }
@@ -1843,7 +1850,7 @@ function renderTaskPersonChips() {
   const container = document.getElementById('taskPersonChips');
   container.innerHTML = S.users.map((u,i)=>`
     <div class="area-chip ${taskSelectedPeople.has(i)?'selected':''}" id="personchip-${i}" style="gap:6px">
-      <div class="avatar" style="width:20px;height:20px;font-size:11px;background:${uColor(i)};color:#fff;flex-shrink:0;pointer-events:none">${initials(u.name)}</div>
+      <div class="avatar" style="width:20px;height:20px;font-size:11px;${avStyle(i)};flex-shrink:0;pointer-events:none">${initials(u.name)}</div>
       <span style="pointer-events:none;font-size:13px;font-weight:500">${u.name.split(' ')[0]}</span>
     </div>`).join('');
   container.ontouchend = function(e) {
@@ -1901,7 +1908,7 @@ function renderAreaTaskRow(t) {
   const assignees = t.assignees || [t.assignee ?? 0];
   const taskMats = matsForTask(t.id);
   const avatarHtml = assignees.slice(0,3).map((i,idx)=>`
-    <div class="avatar" style="width:20px;height:20px;font-size:11px;background:${uColor(i)};color:#fff;margin-left:${idx>0?'-5px':'0'};border:2px solid #ffffff;z-index:${3-idx}">${initials(S.users[i]?.name||'?')}</div>
+    <div class="avatar" style="width:20px;height:20px;font-size:11px;${avStyle(i)};margin-left:${idx>0?'-5px':'0'};box-shadow:0 0 0 2px #fff;z-index:${3-idx}">${initials(S.users[i]?.name||'?')}</div>
   `).join('') + (assignees.length>3?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-left:3px">+${assignees.length-3}</span>`:'');
 
   return `
@@ -2214,7 +2221,7 @@ function renderTasksPage() {
   const priOf = t => { const p = t.priority && typeof t.priority === 'object' ? Object.values(t.priority).map(v=>priorityOrder[v]??3) : []; return p.length ? Math.min(...p) : 3; };
   const pIdx = orderPersonIdx();
   const pPos = t => pIdx === null ? 0 : taskPersonPos(t, pIdx);
-  const flat = [...tasks].sort((a,b) => (!!a.done - !!b.done) || (pPos(a) - pPos(b)) || (priOf(a) - priOf(b)));
+  const flat = taskSortAZ ? [...tasks].sort(byName) : [...tasks].sort((a,b) => (!!a.done - !!b.done) || (pPos(a) - pPos(b)) || (priOf(a) - priOf(b)));
   // Subtasks sit under their main task and only show once it's opened in that place
   const nested = (rows, aId) => {
     const here = new Set(rows.map(t => t.id));
@@ -2226,6 +2233,7 @@ function renderTasksPage() {
     ? nested(flat, null)
     : S.areas.filter(a=>byArea[a.id]).map(area=>{
         const rows = byArea[area.id].sort((a,b) => {
+          if (taskSortAZ) return byName(a, b);
           const aDone = !!a.done;
           const bDone = !!b.done;
           if (aDone !== bDone) return aDone ? 1 : -1;
@@ -2303,7 +2311,7 @@ function renderTaskRow(t, areaId=null, isSub=false) {
   // ── EXPANDED DETAIL — mirrors mat-detail ──
   // Stacked avatars
   const avatarHtml = assignees.slice(0,3).map((i,idx)=>`
-    <div class="avatar" style="width:20px;height:20px;font-size:11px;background:${uColor(i)};color:#fff;margin-left:${idx>0?'-5px':'0'};border:2px solid #ffffff;z-index:${3-idx}">${initials(S.users[i]?.name||'?')}</div>
+    <div class="avatar" style="width:20px;height:20px;font-size:11px;${avStyle(i)};margin-left:${idx>0?'-5px':'0'};box-shadow:0 0 0 2px #fff;z-index:${3-idx}">${initials(S.users[i]?.name||'?')}</div>
   `).join('') + (assignees.length>3?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin-left:3px">+${assignees.length-3}</span>`:'');
 
   const matsHtml = `
@@ -2316,7 +2324,7 @@ function renderTaskRow(t, areaId=null, isSub=false) {
         const mst = matOrderStatus(m);
         return `
           <div ${isEditor() ? `onclick="event.stopPropagation();openAddMat('${m.id}')"` : ''} style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid #ece9e2;${isEditor()?'cursor:pointer':''}">
-            <div style="flex:1;min-width:0;font-size:14px;font-weight:500;line-height:1.3">${m.name}</div>
+            <div style="flex:1;min-width:0;font-size:14px;font-weight:400;color:#8a8578;line-height:1.3">${m.name}</div>
             <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;flex-shrink:0">${assign?assign.qty:''} ${m.unit}</span>
             ${statusLozenge(mst, (mst==='toorder' && isEditor()) ? `openOrderModal('${m.id}')` : '')}
           </div>`;
@@ -2328,7 +2336,7 @@ function renderTaskRow(t, areaId=null, isSub=false) {
       <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;flex-wrap:wrap">
         ${assignees.map(i=>{
           const u = S.users[i];
-          return u ? `<div class="avatar" title="${u.name}" style="width:20px;height:20px;font-size:11px;background:${uColor(i)};color:#fff">${initials(u.name)}</div>` : '';
+          return u ? `<div class="avatar" title="${u.name}" style="width:20px;height:20px;font-size:11px;${avStyle(i)}">${initials(u.name)}</div>` : '';
         }).join('')}
         ${areaIds.map(id=>`<span class="mini-tag ${t.doneByArea?.[id]?'done':''}">${t.doneByArea?.[id]?'✓ ':''}${areaName(id)}</span>`).join('')}
         ${priorityPill}
@@ -2351,7 +2359,7 @@ function saveView() {
   try {
     localStorage.setItem('sh_view', JSON.stringify({
       page: currentPageName,
-      taskStatuses: [...taskStatuses], taskAreaMode, taskAreaPicked: [...taskAreaPicked], taskPersonPicked: [...taskPersonPicked],
+      taskStatuses: [...taskStatuses], taskAreaMode, taskAreaPicked: [...taskAreaPicked], taskPersonPicked: [...taskPersonPicked], taskSortAZ, matSortAZ,
       matFilters: [...matFilters], matCatMode, matCatPicked: [...matCatPicked], matFiltersV: 3,
       matSupMode, matSupPicked: [...matSupPicked],
       orderFilter, orderGroupBy, project: CURRENT_PROJECT, diaryShow: [...diaryShow],
@@ -2369,6 +2377,7 @@ function restoreView() {
     taskAreaPicked = new Set((v.taskAreaPicked||[]).filter(id => sameProject && S.areas.some(a => a.id === id)));
     if (taskAreaMode === 'some' && !taskAreaPicked.size) taskAreaMode = 'all';
   }
+  taskSortAZ = !!v.taskSortAZ; matSortAZ = !!v.matSortAZ;
   if (Array.isArray(v.taskPersonPicked) && sameProject) taskPersonPicked = new Set(v.taskPersonPicked.filter(i => Number.isInteger(i) && S.users[i]));
   if (Array.isArray(v.matFilters) && v.matFilters.length) {
     matFilters = new Set(v.matFilters);
@@ -2399,8 +2408,8 @@ function restoreView() {
 
 // ── Page toolbars: ⋮ menu holds the filters ──
 const TB_MENUS = {
-  tasks:     [{ t:'', ids:['taskReorderBtn','taskExpandToggle'] }, { t:'Show', taskStatus:true }, { t:'Areas', taskAreas:true }, { t:'Team', taskPeople:true, editorOnly:true }],
-  materials: [{ t:'', ids:['matExpandToggle','matBulkBtn'] }, { t:'Show', multi:true, ids:['mf-all','mf-pending','mf-ordered','mf-collect','mf-delivered','mf-archived'] }, { t:'Categories', matCats:true }, { t:'Suppliers', matSups:true }],
+  tasks:     [{ t:'', ids:['taskReorderBtn','taskExpandToggle'] }, { t:'Show', taskStatus:true }, { t:'Areas', taskAreas:true }, { t:'Team', taskPeople:true, editorOnly:true }, { t:'Sort', sortFor:'tasks' }],
+  materials: [{ t:'', ids:['matExpandToggle','matBulkBtn'] }, { t:'Show', multi:true, ids:['mf-all','mf-pending','mf-ordered','mf-collect','mf-delivered','mf-archived'] }, { t:'Categories', matCats:true }, { t:'Suppliers', matSups:true }, { t:'Sort', sortFor:'materials' }],
   diary:     [{ t:'Show', multi:true, ids:['df-out','df-hist'] }],
   orders:    [{ t:'Show', ids:['of-all','of-pending','of-ordered','of-collect','of-delivered'] }, { t:'', ids:['orderExpandToggle'] }],
 };
@@ -2455,6 +2464,10 @@ function openToolbarMenu(anchor, page) {
     if (g.taskStatus) {
       html += tick('All', ['open','done','archived'].every(k => taskStatuses.has(k)), 'ts:all');
       [['open','Open'],['done','Done'],['archived','Archived']].forEach(([k,l]) => html += tick(l, taskStatuses.has(k), 'ts:' + k));
+    } else if (g.sortFor) {
+      const az = g.sortFor === 'tasks' ? taskSortAZ : matSortAZ;
+      html += tick(g.sortFor === 'tasks' ? 'My order' : 'By status', !az, 'so:' + g.sortFor + ':manual');
+      html += tick('A to Z', az, 'so:' + g.sortFor + ':az');
     } else if (g.taskPeople) {
       html += tick('Everyone', !taskPersonPicked.size, 'tp:all');
       projectPeople().forEach(({ u, i }) => html += tick(u.name, taskPersonPicked.has(i), 'tp:' + i));
@@ -2481,10 +2494,11 @@ function openToolbarMenu(anchor, page) {
   menu.addEventListener('click', e => {
     const b = e.target.closest('button[data-key]'); if (!b) return;
     const [kind, val] = b.dataset.key.split(/:(.*)/s);
-    const multi = ['ts','ta','tp','mc','ms','fold'].includes(kind) || TB_MENUS[page].some(g => g.multi && g.ids && g.ids.includes(val));
+    const multi = ['ts','ta','tp','mc','ms','fold','so'].includes(kind) || TB_MENUS[page].some(g => g.multi && g.ids && g.ids.includes(val));
     const scroll = menu.scrollTop;
     closeToolbarMenu();
     if (kind === 'fold') toggleMenuFold(page, val);
+    else if (kind === 'so') { const [pg2, mode] = val.split(':'); if (pg2 === 'tasks') { taskSortAZ = mode === 'az'; renderTasksPage(); } else { matSortAZ = mode === 'az'; renderMaterials(); } }
     else if (kind === 'ts') toggleTaskStatus(val);
     else if (kind === 'ta') toggleTaskAreaTick(val);
     else if (kind === 'tp') toggleTaskTeamFilter(val);
@@ -2918,7 +2932,7 @@ function renderReassignList() {
   document.getElementById('reassignPersonList').innerHTML = S.users.map((u,i)=>`
     <div class="team-card" style="cursor:pointer;margin-bottom:6px;${current.has(i)?'border-color:#c8440e':''}"
          onclick="toggleReassign(${i})">
-      <div class="avatar team-avatar" style="background:${uColor(i)};color:#fff;width:36px;height:36px;font-size:13px">${initials(u.name)}</div>
+      <div class="avatar team-avatar" style="${avStyle(i)};width:36px;height:36px;font-size:13px">${initials(u.name)}</div>
       <div class="team-info"><div class="team-name">${u.name}</div><div class="team-role">${u.role}</div></div>
       ${current.has(i)?'<span style="color:#c8440e;font-size:13px">✓</span>':''}
     </div>`).join('') +
@@ -4907,7 +4921,7 @@ function renderTeam() {
     const permBg = perm==='admin' ? '#fdf0eb' : perm==='foreman' ? '#eff3ff' : '#edeae3';
     return `
       <div class="team-card" ${isAdmin() ? `onclick="openEditUser(${i})" style="cursor:pointer"` : ''}>
-        <div class="avatar team-avatar" style="background:${uColor(i)};color:#fff">${initials(u.name)}</div>
+        <div class="avatar team-avatar" style="${avStyle(i)}">${initials(u.name)}</div>
         <div class="team-info">
           <div class="team-name">${u.name}</div>
           <div class="team-role">${u.role}${editing && !inProj ? ' · <span style="color:#c8440e">not on this project</span>' : ''}</div>
@@ -4994,7 +5008,7 @@ async function addUser() {
 function openUserModal() {
   document.getElementById('userSwitchList').innerHTML = S.users.map((u,i)=>`
     <div class="team-card" style="cursor:pointer;${i===S.currentUser?'border-color:#c8440e':''}" onclick="switchUser(${i})">
-      <div class="avatar team-avatar" style="background:${uColor(i)};color:#fff">${initials(u.name)}</div>
+      <div class="avatar team-avatar" style="${avStyle(i)}">${initials(u.name)}</div>
       <div class="team-info">
         <div class="team-name">${u.name}</div>
         <div class="team-role">${u.role}</div>
