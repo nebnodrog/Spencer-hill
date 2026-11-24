@@ -1077,7 +1077,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
       <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Project</label>
       <select id="editAreaProject" style="margin-bottom:12px;font-size:16px"></select>
       <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:6px">Notes</label>
-      <textarea id="editAreaNotes" oninput="areaNotesChanged()" placeholder="Type notes here…" style="min-height:28vh;width:100%;box-sizing:border-box;font-size:16px;line-height:1.5;padding:12px;border:1px solid #ddd9d0;border-radius:8px;resize:none;font-family:'DM Sans',sans-serif"></textarea>
+      <textarea id="editAreaNotes" oninput="areaNotesChanged()" placeholder="Type notes here…" style="min-height:28vh;width:100%;box-sizing:border-box;font-size:14px;color:#8a8578;line-height:1.45;padding:12px;border:1px solid #ddd9d0;border-radius:8px;resize:none;font-family:'DM Sans',sans-serif"></textarea>
       <div id="editAreaNotesStatus" style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin:6px 0 12px;min-height:14px"></div>
       <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="saveEditArea()">Save</button>
       <button id="editAreaDeleteBtn" class="btn btn-ghost" style="width:100%;color:#c8440e;margin-bottom:16px" onclick="deleteCurrentArea()">Delete Area</button>
@@ -1201,7 +1201,7 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
       </div>
       <button onclick="closeNotes()" style="background:#edeae3;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button>
     </div>
-    <textarea id="notesText" oninput="notesChanged()" placeholder="Type notes here…" style="flex:1;min-height:45vh;width:100%;box-sizing:border-box;font-size:16px;line-height:1.5;padding:12px;border:1px solid #ddd9d0;border-radius:8px;resize:none;font-family:'DM Sans',sans-serif"></textarea>
+    <textarea id="notesText" oninput="notesChanged()" placeholder="Type notes here…" style="flex:1;min-height:45vh;width:100%;box-sizing:border-box;font-size:14px;color:#8a8578;line-height:1.45;padding:12px;border:1px solid #ddd9d0;border-radius:8px;resize:none;font-family:'DM Sans',sans-serif"></textarea>
     <div id="notesStatus" style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578;margin:8px 0 12px;flex-shrink:0;min-height:14px"></div>
   </div>
 </div>
@@ -2116,10 +2116,7 @@ function renderTaskRow(t, areaId=null) {
   // ── COLLAPSED ROW — mirrors mat-row exactly ──
   const row = `
     <div class="mat-row ${isExpanded?'expanded':''}" id="trow-${t.id}">
-      <div onclick="event.stopPropagation();toggleTask('${t.id}','${areaId||""}')"
-        style="width:14px;height:14px;border-radius:50%;border:1.5px solid ${isDoneInArea?'#ddd9d0':priColor};background:${isDoneInArea?'#ddd9d0':'transparent'};display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;flex-shrink:0;cursor:pointer">
-        ${isDoneInArea?'✓':''}
-      </div>
+      ${tickCircle(isDoneInArea, !!(t.notes&&t.notes.trim()), priColor, `toggleTask('${t.id}','${areaId||""}')`)}
       <div class="task-name-full" onclick="toggleTaskRow('${t.id}',event)" style="${isDoneInArea?'text-decoration:line-through;opacity:0.5':''}">${t.text}</div>
       <span onclick="toggleTaskRow('${t.id}',event)" style="display:flex">${statusPill}</span>
     </div>`;
@@ -2852,7 +2849,7 @@ function renderAreaManagerList() {
         <div style="font-size:14px;font-weight:500">${a.name}</div>
         ${a.description ? `<div style="font-size:12px;color:#8a8578;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.description}</div>` : ''}
       </div>
-      ${a.notes&&a.notes.trim() ? `<span title="Has notes" style="font-size:12px;opacity:.7">📝</span>` : ''}
+      ${a.notes&&a.notes.trim() ? `<span title="Has notes" style="width:12px;height:12px;border-radius:50%;border:1.5px solid #15803d;background:#dcfce7;flex-shrink:0;display:inline-block"></span>` : ''}
       ${editing ? dragHandleHtml() : `<span style="font-size:18px;color:#8a8578;line-height:1">›</span>`}
     </div>`).join('');
   if (editing) enableDrag(list, (from, to) => { moveInArray(S.areas, from, to); renderAreaManagerList(); });
@@ -3197,7 +3194,9 @@ function renderMatCard(m) {
   // ── COLLAPSED ROW ──
   const row = `
     <div class="mat-row ${isExpanded?'expanded':''}" onclick="toggleMatExpand('${m.id}',event)" id="matrow-${m.id}">
-      <div class="task-name-full" style="${m.archived?'opacity:.55':''}">${m.name}</div>
+      ${(() => { const k = matOrderStatus(m); const inStock = k==='delivered' || k==='collected';
+        return tickCircle(inStock, !!(m.notes&&m.notes.trim()), '', (isEditor() && !m.archived) ? `toggleMatInStock('${m.id}')` : ''); })()}
+      <div class="task-name-full" style="${m.archived?'opacity:.55':''}${(()=>{const k=matOrderStatus(m);return (k==='delivered'||k==='collected')?';text-decoration:line-through;opacity:.5':'';})()}">${m.name}</div>
       ${m.archived
         ? `<span class="lozenge" style="background:#f5f3ee;color:#8a8578;border-color:#bdb8ad">Archived</span>`
         : (() => { const k = matOrderStatus(m); return statusLozenge(k, isEditor() ? matNextStepJs(m, k) : ''); })()}
@@ -3874,6 +3873,13 @@ function matOrderStatus(m) {
   return (toOrderQty>0 || pend.length) ? 'toorder' : toCollect.length ? 'collect' : onOrder.length ? 'onorder'
     : delivered.length ? (delivered.every(o=>o.isCollection) ? 'collected' : 'delivered') : 'toorder';
 }
+// Round tick at the start of task and material rows. Pale green with a green rim = it has a note.
+function tickCircle(done, hasNote, rim, onclickJs) {
+  const border = hasNote ? '#15803d' : (done ? '#ddd9d0' : (rim || '#bdb8ad'));
+  const bg = hasNote ? (done ? '#86c79a' : '#dcfce7') : (done ? '#ddd9d0' : 'transparent');
+  const tap = onclickJs ? `onclick="event.stopPropagation();${onclickJs}" ` : 'onclick="event.stopPropagation()" ';
+  return `<div ${tap}style="width:14px;height:14px;border-radius:50%;border:1.5px solid ${border};background:${bg};display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;flex-shrink:0;cursor:${onclickJs?'pointer':'default'}">${done?'✓':''}</div>`;
+}
 function statusLozenge(key, onclickJs) {
   const st = ORDER_STATUS[key];
   const tap = onclickJs ? ` onclick="event.stopPropagation();${onclickJs}" style="cursor:pointer;` : ` style="`;
@@ -4366,6 +4372,44 @@ function saveOrder() {
   if (document.getElementById('page-overview').classList.contains('active')) renderOverview();
 }
 
+// Tick a material = it's in stock now: open orders count as received today, and anything
+// still to order is logged as a collection with no supplier. Tick again to take that back.
+const TICK_NOTE = 'Ticked off';
+async function toggleMatInStock(matId) {
+  const m = S.materials.find(x=>x.id===matId);
+  if (!m || !isEditor()) return;
+  const k = matOrderStatus(m);
+  const today = new Date().toISOString().slice(0,10);
+  const orderRec = o => ({ id: o.id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: o.status, ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: o.deliveredAt, notes: o.notes, is_collection: o.isCollection||false, project_id: CURRENT_PROJECT });
+  if (k === 'delivered' || k === 'collected') {
+    const quick = S.orders.filter(o => o.matId===matId && o.notes===TICK_NOTE);
+    if (!quick.length) { showToast('Received through its orders — change it there'); return; }
+    S.orders = S.orders.filter(o => !quick.includes(o));
+    // orders this tick marked received go back to waiting
+    const back = S.orders.filter(o => o.matId===matId && o.status==='delivered' && o._tickedFrom);
+    back.forEach(o => { o.status = o._tickedFrom; o.deliveredAt = null; delete o._tickedFrom; });
+    refreshCurrentPage();
+    showToast('Unticked');
+    await Promise.all([...quick.map(o => deleteRecord('orders', o.id)), ...back.map(o => saveRecord('orders', orderRec(o)))]);
+    return;
+  }
+  const live = S.orders.filter(o => o.matId===matId && o.status!=='cancelled');
+  const open = live.filter(o => o.status==='ordered');
+  open.forEach(o => { o._tickedFrom = o.status; o.status = 'delivered'; o.deliveredAt = today; });
+  const needed = totalQty(m);
+  const already = live.reduce((s,o)=>s+Number(o.qty||0),0);
+  let qty = Math.max(0, needed - already);
+  if (!open.length && !qty) qty = needed || 1;
+  const saves = open.map(o => saveRecord('orders', orderRec(o)));
+  if (qty > 0) {
+    const o = { id: uid(), matId, qty, unit: m.unit, supplierId: null, status: 'delivered', orderedBy: S.currentUser, orderedAt: today, expectedDelivery: null, deliveredAt: today, notes: TICK_NOTE, isCollection: true };
+    S.orders.push(o);
+    saves.push(saveRecord('orders', orderRec(o)));
+  }
+  refreshCurrentPage();
+  showToast('In stock');
+  await Promise.all(saves);
+}
 async function markDelivered(id) {
   const o = S.orders.find(x=>x.id===id);
   if (!o) return;
