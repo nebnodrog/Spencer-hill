@@ -5105,9 +5105,8 @@ function renderBulkMaterialList() {
     return accounted < needed;
   });
 
-  // Everything listed starts ticked; untick what you don't want
+  // Everything listed starts unticked; tick what you're ordering
   bulkSelected.clear();
-  materials.forEach(m => bulkSelected.add(m.id));
   if (!materials.length) {
     document.getElementById('bulkMatList').innerHTML = `
       <div style="padding:20px;text-align:center;font-family:'DM Mono',monospace;font-size:13px;color:#8a8578">No materials need ordering</div>`;
