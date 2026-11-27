@@ -201,6 +201,7 @@ select.ctl { display: block; font-size: 13px !important; font-weight: 500; paddi
 .toolbar-line input.ctl.search { font-size: 13px !important; padding-left: 10px !important; }
 .toolbar-line input[type=search]::-webkit-search-decoration { -webkit-appearance: none; }
 .toolbar-line .btn-soft { width: 122px; justify-content: center; }
+.toolbar-line #diaryAddBtn .btn-soft { width: auto; padding-left: 10px !important; padding-right: 10px !important; }
 .btn-soft { background: #fff !important; color: #1a1916 !important; border: 1px solid #1a1916 !important; }
 .task-name-full { flex: 1; min-width: 0; font-size: 15px; font-weight: 400; line-height: 1.3; white-space: normal; overflow: visible; }
 .mini-tag { font-family: 'DM Mono', monospace; font-size: 11px; color: #8a8578; background: #f8f7f3; border: 1px solid #ddd9d0; border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
@@ -1192,6 +1193,38 @@ cursor: pointer; padding: 2px 0; text-decoration: underline; flex-shrink: 0;
     <div style="flex-shrink:0">
       <div style="font-family:'DM Mono', monospace;font-size:11px;color:#8a8578;margin-bottom:6px" id="bulkSelectedCount">0 materials selected</div>
       <button class="btn btn-accent" style="width:100%;margin-bottom:16px" onclick="placeBulkOrder()">Place Orders</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Bulk Receive (mark several orders delivered/collected at once) -->
+<div class="overlay" id="bulkReceiveOverlay" onclick="if(event.target===this)closeBulkReceive()">
+  <div class="sheet">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0">
+      <span style="font-family:'DM Mono', monospace;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#1a1916">Bulk Received</span>
+      <button onclick="closeBulkReceive()" style="background:#f1efea;border:none;font-size:20px;color:#1a1916;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">✕</button>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-shrink:0">
+      <div style="flex:1">
+        <label style="font-family:'DM Mono', monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px">Supplier</label>
+        <select id="bulkRecvSupplier" style="width:100%;box-sizing:border-box" onchange="renderBulkReceiveList()"></select>
+      </div>
+      <div style="flex:1">
+        <label style="font-family:'DM Mono', monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px">Received On</label>
+        <input type="date" id="bulkRecvDate" style="width:100%;box-sizing:border-box">
+      </div>
+    </div>
+
+    <label style="font-family:'DM Mono', monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8578;display:block;margin-bottom:4px;flex-shrink:0">Tick what's arrived</label>
+
+    <div style="position:relative;flex:1;min-height:80px;margin-bottom:8px">
+      <div id="bulkRecvList" style="position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:1px solid #ddd9d0;border-bottom:1px solid #ddd9d0;padding:4px 0;box-sizing:border-box"></div>
+    </div>
+
+    <div style="flex-shrink:0">
+      <div style="font-family:'DM Mono', monospace;font-size:11px;color:#8a8578;margin-bottom:6px" id="bulkRecvCount">0 orders selected</div>
+      <button class="btn btn-accent" style="width:100%;margin-bottom:16px" onclick="placeBulkReceive()">Mark Received</button>
     </div>
   </div>
 </div>
@@ -3918,7 +3951,10 @@ function renderDiary() {
   const toggleBar = '';
   ['out','hist'].forEach(k => { const b = document.getElementById('df-' + k); if (b) b.className = 'btn btn-sm ' + (diaryShow.has(k) ? 'btn-primary' : 'btn-ghost'); });
   const addBox = document.getElementById('diaryAddBtn');
-  if (addBox) addBox.innerHTML = isEditor() ? `<button class="btn btn-sm ctl btn-soft" onclick="openBulkOrder()">+ Bulk Order</button>` : '';
+  if (addBox) {
+    addBox.style.cssText = 'display:flex;gap:6px';
+    addBox.innerHTML = isEditor() ? `<button class="btn btn-sm ctl btn-soft" onclick="openBulkOrder()">+ Order</button><button class="btn btn-sm ctl btn-soft" onclick="openBulkReceive()">✓ Received</button>` : '';
+  }
   const dq = (document.getElementById('diarySearchBox')?.value || '').trim().toLowerCase();
   const showOut = diaryShow.has('out'), showHist = diaryShow.has('hist');
 
@@ -5211,6 +5247,109 @@ async function placeBulkOrder() {
   if (document.getElementById('page-diary').classList.contains('active')) renderDiary();
   await Promise.all(saves);
   showToast(`${placed} order${placed!==1?'s':''} placed`);
+}
+
+// ═══════════════ BULK RECEIVE ═══════════════
+const bulkRecvSelected = new Set(); // order ids ticked
+
+function openBulkReceive() {
+  bulkRecvSelected.clear();
+  const sel = document.getElementById('bulkRecvSupplier');
+  sel.innerHTML = `<option value="__all">All suppliers</option><option value="__none">No supplier</option>` +
+    S.suppliers.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  sel.value = '__all';
+  document.getElementById('bulkRecvDate').value = new Date().toISOString().slice(0,10);
+  renderBulkReceiveList();
+  document.getElementById('bulkReceiveOverlay').classList.add('open');
+}
+
+function closeBulkReceive() {
+  try { document.activeElement && document.activeElement.blur(); } catch(e) {}
+  document.getElementById('bulkReceiveOverlay').classList.remove('open');
+  bulkRecvSelected.clear();
+}
+
+function renderBulkReceiveList() {
+  const supId = document.getElementById('bulkRecvSupplier').value || '__all';
+  const orders = S.orders
+    .filter(o => o.status === 'ordered' && S.materials.some(m => m.id === o.matId))
+    .filter(o => supId === '__all' ? true : supId === '__none' ? !o.supplierId : o.supplierId === supId)
+    .sort((a,b) => (diaryDate(a)||'9999').localeCompare(diaryDate(b)||'9999'));
+  // Drop ticks for orders no longer shown
+  [...bulkRecvSelected].forEach(id => { if (!orders.some(o => o.id === id)) bulkRecvSelected.delete(id); });
+
+  const list = document.getElementById('bulkRecvList');
+  if (!orders.length) {
+    list.innerHTML = `<div style="padding:20px;text-align:center;font-family:'DM Mono',monospace;font-size:13px;color:#8a8578">Nothing outstanding</div>`;
+    updateBulkRecvCount();
+    return;
+  }
+  list.innerHTML = orders.map(o => {
+    const m = S.materials.find(x=>x.id===o.matId);
+    const sup = o.supplierId ? S.suppliers.find(x=>x.id===o.supplierId) : null;
+    const sel = bulkRecvSelected.has(o.id);
+    const due = diaryDate(o);
+    const bits = [`${o.qty} ${qtyUnit(o.qty, m.unit)}`, sup ? sup.name : 'No supplier', o.isCollection ? 'Collection' : 'Delivery'];
+    if (due) bits.push('due ' + fmtDate(due));
+    return `
+      <div id="bulkrecv-${o.id}" onclick="toggleBulkRecv('${o.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #f8f7f3;cursor:pointer;background:${sel?'#f0fdf4':'#fff'}">
+        <div class="bulk-box" style="width:22px;height:22px;border:2px solid ${sel?'#15803d':'#ddd9d0'};border-radius:6px;background:${sel?'#15803d':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          ${sel?'<span style="color:#fff;font-size:14px;line-height:1">✓</span>':''}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.name}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;color:#8a8578">${bits.join(' · ')}</div>
+        </div>
+      </div>`;
+  }).join('');
+  updateBulkRecvCount();
+}
+
+function toggleBulkRecv(id) {
+  if (bulkRecvSelected.has(id)) bulkRecvSelected.delete(id); else bulkRecvSelected.add(id);
+  const row = document.getElementById('bulkrecv-'+id);
+  const sel = bulkRecvSelected.has(id);
+  if (row) {
+    row.style.background = sel ? '#f0fdf4' : '#fff';
+    const box = row.querySelector('.bulk-box');
+    if (box) {
+      box.style.borderColor = sel ? '#15803d' : '#ddd9d0';
+      box.style.background = sel ? '#15803d' : 'transparent';
+      box.innerHTML = sel ? '<span style="color:#fff;font-size:14px;line-height:1">✓</span>' : '';
+    }
+  }
+  updateBulkRecvCount();
+}
+
+function updateBulkRecvCount() {
+  const el = document.getElementById('bulkRecvCount');
+  const n = bulkRecvSelected.size;
+  if (el) el.textContent = `${n} order${n!==1?'s':''} selected`;
+}
+
+function orderRecord(o) {
+  return { id: o.id, mat_id: o.matId, qty: o.qty, unit: o.unit, supplier_id: o.supplierId, status: o.status, ordered_by: o.orderedBy, ordered_at: o.orderedAt, expected_delivery: o.expectedDelivery, delivered_at: o.deliveredAt, notes: o.notes, is_collection: o.isCollection||false, project_id: CURRENT_PROJECT };
+}
+
+async function placeBulkReceive() {
+  if (bulkRecvSelected.size === 0) { alert('Please tick at least one order'); return; }
+  const date = document.getElementById('bulkRecvDate').value || new Date().toISOString().slice(0,10);
+  const picked = S.orders.filter(o => bulkRecvSelected.has(o.id) && o.status === 'ordered');
+  closeBulkReceive();
+  picked.forEach(o => { o.status = 'delivered'; o.deliveredAt = date; });
+  const redraw = () => {
+    refreshCurrentPage();
+    renderMaterials();
+    if (document.getElementById('page-diary').classList.contains('active')) renderDiary();
+  };
+  redraw();
+  const n = picked.length;
+  showToast(`${n} order${n!==1?'s':''} received`, async () => {
+    picked.forEach(o => { o.status = 'ordered'; o.deliveredAt = null; });
+    redraw();
+    await Promise.all(picked.map(o => saveRecord('orders', orderRecord(o))));
+  });
+  await Promise.all(picked.map(o => saveRecord('orders', orderRecord(o))));
 }
 // ═══════════════ LISTS PAGE ═══════════════
 const listSectionOpen = { projects: false, areas: false, team: false, suppliers: false, activity: false };
